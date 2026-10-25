@@ -1,0 +1,94 @@
+enum OrderStatus {
+  pending,
+  confirmed,
+  processing,
+  shipped,
+  delivered,
+  cancelled,
+}
+
+class OrderItem {
+  final String productId;
+  final String productName;
+  final double price;
+  final int quantity;
+
+  const OrderItem({
+    required this.productId,
+    required this.productName,
+    required this.price,
+    required this.quantity,
+  });
+
+  double get subtotal => price * quantity;
+
+  Map<String, dynamic> toJson() => {
+        'product_id': productId,
+        'product_name': productName,
+        'price': price,
+        'quantity': quantity,
+      };
+}
+
+class OrderModel {
+  final String id;
+  final String userId;
+  final List<OrderItem> items;
+  final String shippingAddress;
+  final double shippingFee;
+  final OrderStatus status;
+  final DateTime createdAt;
+
+  const OrderModel({
+    required this.id,
+    required this.userId,
+    required this.items,
+    required this.shippingAddress,
+    required this.shippingFee,
+    required this.status,
+    required this.createdAt,
+  });
+
+  double get subtotal =>
+      items.fold(0.0, (sum, item) => sum + item.subtotal);
+
+  double get total => subtotal + shippingFee;
+
+  double get totalAmount => total;
+
+  Map<String, dynamic> toInsertJson() => {
+        'id': id,
+        'user_id': userId,
+        'items': items.map((item) => item.toJson()).toList(),
+        'shipping_address': shippingAddress,
+        'shipping_fee': shippingFee,
+        'status': status.name,
+        'created_at': createdAt.toUtc().toIso8601String(),
+      };
+
+  factory OrderModel.fromJson(Map<String, dynamic> json) {
+    final rawItems = json['items'] as List<dynamic>;
+
+    return OrderModel(
+      id: json['id'] as String,
+      userId: json['user_id'] as String,
+      items: rawItems.map((raw) {
+        final item = Map<String, dynamic>.from(raw as Map);
+
+        return OrderItem(
+          productId: item['product_id'] as String,
+          productName: item['product_name'] as String,
+          price: (item['price'] as num).toDouble(),
+          quantity: (item['quantity'] as num).toInt(),
+        );
+      }).toList(),
+      shippingAddress: json['shipping_address'] as String,
+      shippingFee: (json['shipping_fee'] as num).toDouble(),
+      status: OrderStatus.values.firstWhere(
+        (value) => value.name == json['status'],
+        orElse: () => OrderStatus.pending,
+      ),
+      createdAt: DateTime.parse(json['created_at'] as String),
+    );
+  }
+}
