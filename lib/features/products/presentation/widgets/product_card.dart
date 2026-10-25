@@ -23,7 +23,7 @@ class ProductCard extends StatelessWidget {
                     : Image.network(
                         product.imageUrl,
                         fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) =>
+                        errorBuilder: (context, error, stackTrace) =>
                             const Icon(Icons.broken_image_outlined, size: 48),
                       ),
               ),

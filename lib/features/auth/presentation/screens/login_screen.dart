@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../domain/providers/auth_provider.dart';
-import 'signup_screen.dart';
-import '../../../products/presentation/screens/product_list_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -45,12 +44,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           const SnackBar(content: Text('Login successful')),
         );
 
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => const ProductListScreen(),
-          ),
-        );
+        context.go('/home');
       }
     });
 
@@ -69,8 +63,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   constraints: const BoxConstraints(),
                   icon: const Icon(Icons.arrow_back_ios_new, size: 20, color: Colors.black),
                   onPressed: () {
-                    if (Navigator.canPop(context)) {
-                      Navigator.pop(context);
+                    if (context.canPop()) {
+                      context.pop();
                     }
                   },
                 ),
@@ -388,12 +382,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                   GestureDetector(
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const SignupScreen(),
-                        ),
-                      );
+                      context.push('/signup');
                     },
                     child: const Text(
                       'Create an account',
@@ -410,12 +399,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               Center(
                 child: GestureDetector(
                   onTap: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const ProductListScreen(),
-                      ),
-                    );
+                    context.go('/home');
                   },
                   child: Text(
                     'Continue as guest',

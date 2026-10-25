@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../domain/models/order_model.dart';
 
@@ -65,7 +66,7 @@ class OrderConfirmationScreen extends StatelessWidget {
                   width: double.infinity,
                   child: FilledButton(
                     onPressed: () {
-                      Navigator.of(context).popUntil((route) => route.isFirst);
+                      context.go('/home');
                     },
                     child: const Text('Continue Shopping'),
                   ),

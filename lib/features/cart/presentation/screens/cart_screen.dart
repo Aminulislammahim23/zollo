@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../providers/cart_provider.dart';
 import '../widgets/cart_item_tile.dart';
-import 'package:zollo/features/checkout/screens/checkout_screen.dart';
 
 class CartScreen extends ConsumerWidget {
   const CartScreen({super.key});
@@ -84,13 +84,12 @@ class CartScreen extends ConsumerWidget {
                         const SizedBox(height: 14),
                         FilledButton(
                           onPressed: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => CheckoutScreen(
-                                  subtotal: subtotal,
-                                  deliveryCharge: 60,
-                                ),
-                              ),
+                            context.push(
+                              '/checkout',
+                              extra: {
+                                'subtotal': subtotal,
+                                'deliveryCharge': 60.0,
+                              },
                             );
                           },
                           child: const Text('Proceed to Checkout'),

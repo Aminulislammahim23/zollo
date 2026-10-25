@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../providers/order_provider.dart';
-import 'order_details_screen.dart';
 
 class OrderHistoryScreen extends ConsumerWidget {
   const OrderHistoryScreen({super.key});
@@ -43,7 +43,7 @@ class OrderHistoryScreen extends ConsumerWidget {
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.all(16),
               itemCount: orders.length,
-              separatorBuilder: (_, __) =>
+              separatorBuilder: (context, index) =>
                   const SizedBox(height: 12),
               itemBuilder: (context, index) {
                 final order = orders[index];
@@ -61,14 +61,7 @@ class OrderHistoryScreen extends ConsumerWidget {
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => OrderDetailsScreen(
-                            orderId: order.id,
-                          ),
-                        ),
-                      );
+                      context.push('/order-details/${order.id}');
                     },
                   ),
                 );

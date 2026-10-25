@@ -27,7 +27,7 @@ class CartItemTile extends ConsumerWidget {
                 width: 80,
                 height: 80,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const SizedBox(
+                errorBuilder: (context, error, stackTrace) => const SizedBox(
                   width: 80,
                   height: 80,
                   child: Icon(Icons.image_not_supported),

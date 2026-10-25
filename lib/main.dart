@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:zollo/core/theme/app_theme.dart';
-import 'features/auth/domain/providers/auth_provider.dart';
-import 'features/auth/presentation/screens/login_screen.dart';
-import 'features/products/presentation/screens/product_list_screen.dart';
+import 'core/router/app_router.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,34 +30,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       title: 'zollo',
       theme: AppTheme.light,
-      home: const AuthGate(),
-    );
-  }
-}
-
-class AuthGate extends ConsumerWidget {
-  const AuthGate({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authStateProvider);
-
-    return authState.when(
-      data: (data) {
-        final session = data.session ?? Supabase.instance.client.auth.currentSession;
-        if (session != null) {
-          return const ProductListScreen();
-        }
-        return const LoginScreen();
-      },
-      loading: () => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      ),
-      error: (_, __) => const LoginScreen(),
+      routerConfig: appRouter,
     );
   }
 }

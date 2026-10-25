@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
@@ -6,7 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../cart/presentation/providers/cart_provider.dart';
 import '../../orders/domain/models/order_model.dart';
 import '../../orders/presentation/providers/order_provider.dart';
-import '../../orders/presentation/screens/order_confirmation_screen.dart';
+import 'package:go_router/go_router.dart';
 import '../models/checkout_order.dart';
 
 class CheckoutScreen extends ConsumerStatefulWidget {
@@ -96,16 +98,13 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
       if (!mounted) return;
 
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (_) => OrderConfirmationScreen(
-            order: savedOrder,
-          ),
-        ),
-      );
+      context.go('/order-confirmation', extra: savedOrder);
     } catch (error) {
       if (!mounted) return;
-      showMessage('Order could not be placed. Please try again.');
+      final errorMessage = error is Exception
+          ? error.toString().replaceFirst('Exception: ', '')
+          : error.toString();
+      showMessage('Order error: $errorMessage');
     }
   }
 
