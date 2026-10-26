@@ -34,6 +34,27 @@ class AuthRepository {
     );
   }
 
+  Future<UserResponse> updateProfile({
+    required String fullName,
+    String? phone,
+    String? gender,
+    String? birthday,
+  }) {
+    final Map<String, dynamic> updateData = {
+      'full_name': fullName.trim(),
+    };
+
+    if (gender != null) updateData['gender'] = gender;
+    if (birthday != null) updateData['birthday'] = birthday;
+    if (phone != null) updateData['phone'] = phone;
+
+    return _client.auth.updateUser(
+      UserAttributes(
+        data: updateData,
+      ),
+    );
+  }
+
   Future<void> signOut() async {
     await _client.auth.signOut();
   }

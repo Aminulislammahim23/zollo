@@ -17,7 +17,7 @@ final currentUserProvider = Provider<User?>((ref) {
 });
 
 final authControllerProvider =
-AsyncNotifierProvider<AuthController, User?>(
+    AsyncNotifierProvider<AuthController, User?>(
   AuthController.new,
 );
 
@@ -60,6 +60,25 @@ class AuthController extends AsyncNotifier<User?> {
         password: password,
       );
 
+      return response.user;
+    });
+  }
+
+  Future<void> updateProfile({
+    required String fullName,
+    String? phone,
+    String? gender,
+    String? birthday,
+  }) async {
+    state = const AsyncLoading();
+
+    state = await AsyncValue.guard(() async {
+      final response = await _repository.updateProfile(
+        fullName: fullName,
+        phone: phone,
+        gender: gender,
+        birthday: birthday,
+      );
       return response.user;
     });
   }

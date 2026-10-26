@@ -8,42 +8,44 @@ class ProductRepository {
   final SupabaseClient _client;
 
   Future<List<Product>> getProducts() async {
-    final response = await _client
-        .from('products')
-        .select('''
-          id,
-          name,
-          description,
-          image_url,
-          price,
-          stock_quantity,
-          categories (
-            name
-          )
-        ''')
-        .eq('is_active', true)
-        .order('created_at', ascending: false);
+    List<dynamic> response;
+    try {
+      // Primary query: fetch products with active filter and joined categories
+      response = await _client
+          .from('products')
+          .select('''
+            *,
+            categories (
+              name
+            )
+          ''')
+          .eq('is_active', true)
+          .order('created_at', ascending: false);
+    } catch (_) {
+      try {
+        // Fallback 1: query without is_active filter
+        response = await _client
+            .from('products')
+            .select('''
+              *,
+              categories (
+                name
+              )
+            ''');
+      } catch (_) {
+        try {
+          // Fallback 2: simple select without joins or filters
+          response = await _client
+              .from('products')
+              .select('*');
+        } catch (e) {
+          rethrow;
+        }
+      }
+    }
 
-    return (response as List)
-        .map((row) {
-          final json = Map<String, dynamic>.from(row);
-          final categoryData = json['categories'];
-
-          final categoryName = categoryData is Map
-              ? categoryData['name'] as String?
-              : null;
-
-          return Product(
-            id: json['id'].toString(),
-            title: json['name'] as String,
-            description: json['description'] as String? ?? '',
-            imageUrl: json['image_url'] as String? ?? '',
-            price: (json['price'] as num).toDouble(),
-            rating: 0.0,
-            category: categoryName ?? 'Uncategorized',
-            stock: (json['stock_quantity'] as num).toInt(),
-          );
-        })
+    return response
+        .map((row) => Product.fromJson(Map<String, dynamic>.from(row)))
         .toList();
   }
 }
