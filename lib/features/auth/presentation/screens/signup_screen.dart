@@ -1,8 +1,17 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/constants/app_constants.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_text.dart';
+import '../../../../core/widgets/widgets.dart';
+import '../../domain/auth_validators.dart';
 import '../../domain/providers/auth_provider.dart';
+import '../widgets/auth_widgets.dart';
 
 class SignupScreen extends ConsumerStatefulWidget {
   const SignupScreen({super.key});
@@ -14,457 +23,193 @@ class SignupScreen extends ConsumerStatefulWidget {
 class _SignupScreenState extends ConsumerState<SignupScreen> {
   final _formKey = GlobalKey<FormState>();
   final _name = TextEditingController();
-  final _phone = TextEditingController();
   final _email = TextEditingController();
+  final _phone = TextEditingController();
   final _password = TextEditingController();
+  late final TapGestureRecognizer _termsTap = TapGestureRecognizer()
+    ..onTap = () => _open(AppConstants.termsUrl);
+  late final TapGestureRecognizer _privacyTap = TapGestureRecognizer()
+    ..onTap = () => _open(AppConstants.privacyPolicyUrl);
 
-  bool _agreeTerms = false;
-  static const _primaryColor = Color(0xFF006B54);
+  String? _confirmationSentTo;
+
+  @override
+  void initState() {
+    super.initState();
+    _password.addListener(() => setState(() {}));
+  }
 
   @override
   void dispose() {
     _name.dispose();
-    _phone.dispose();
     _email.dispose();
+    _phone.dispose();
     _password.dispose();
+    _termsTap.dispose();
+    _privacyTap.dispose();
     super.dispose();
   }
 
-  int get _passwordStrength {
-    final pass = _password.text;
-    if (pass.isEmpty) return 0;
-    if (pass.length < 6) return 1;
-    if (pass.length < 8) return 2;
-    if (pass.length >= 8 && pass.contains(RegExp(r'[A-Z]'))) return 4;
-    return 3;
+  Future<void> _open(String url) async {
+    final ok = await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    if (!ok && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Couldn't open the link.")),
+      );
+    }
+  }
+
+  Future<void> _submit() async {
+    FocusScope.of(context).unfocus();
+    if (!_formKey.currentState!.validate()) return;
+
+    final phone = _phone.text.trim();
+    final response = await ref.read(authControllerProvider.notifier).signUp(
+          email: _email.text,
+          password: _password.text,
+          fullName: _name.text,
+          phone: phone.isEmpty ? null : PhoneField.toE164(phone),
+        );
+    if (!mounted) return;
+
+    if (response == null) {
+      final error = ref.read(authControllerProvider).error;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AuthValidators.message(error ?? 'Could not create your account.'))),
+      );
+      return;
+    }
+
+    if (response.session == null) {
+      setState(() => _confirmationSentTo = _email.text.trim());
+    } else {
+      context.go('/home');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final auth = ref.watch(authControllerProvider);
-
-    ref.listen(authControllerProvider, (previous, next) {
-      if (next.hasError) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(next.error.toString())),
-        );
-      } else if (previous?.isLoading == true &&
-          next.hasValue &&
-          next.value != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Account created successfully!'),
+    if (_confirmationSentTo != null) {
+      return AuthScaffold(
+        content: [
+          const AuthIconTile(icon: Icons.mark_email_unread_outlined, circle: true),
+          AuthHeading(
+            title: 'Check your email',
+            subtitle: 'We sent a confirmation link to $_confirmationSentTo.',
           ),
-        );
-        context.go('/home');
-      }
-    });
+          AppButton.primary(label: 'Back to log in', onPressed: () => context.go('/login')),
+        ],
+      );
+    }
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Form(
+    final isLoading = ref.watch(authControllerProvider).isLoading;
+    final linkStyle = AppText.custom(13, FontWeight.w700, color: AppColors.primary);
+
+    return AuthScaffold(
+      gap: 20,
+      content: [
+        const AuthHeading(
+          title: 'Create your account',
+          subtitle: 'Shop, track orders and save your favourites.',
+        ),
+        Form(
           key: _formKey,
-          child: ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            children: [
-              Align(
-                alignment: Alignment.centerLeft,
-                child: IconButton(
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  icon: const Icon(
-                    Icons.arrow_back_ios_new,
-                    size: 20,
-                    color: Colors.black,
-                  ),
-                  onPressed: () {
-                    if (context.canPop()) {
-                      context.pop();
-                    } else {
-                      context.go('/login');
-                    }
-                  },
+          child: AutofillGroup(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                AppTextField(
+                  label: 'Full name',
+                  controller: _name,
+                  hint: 'Your name',
+                  textCapitalization: TextCapitalization.words,
+                  textInputAction: TextInputAction.next,
+                  autofillHints: const [AutofillHints.name],
+                  validator: AuthValidators.fullName,
                 ),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'Create your account',
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
+                const SizedBox(height: 14),
+                AppTextField(
+                  label: 'Email',
+                  controller: _email,
+                  hint: 'you@example.com',
+                  keyboardType: TextInputType.emailAddress,
+                  textInputAction: TextInputAction.next,
+                  autofillHints: const [AutofillHints.email],
+                  validator: AuthValidators.email,
                 ),
-              ),
-              const SizedBox(height: 6),
-              const Text(
-                "We'll send a code to verify your phone.",
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Color(0xFF6B7280),
+                const SizedBox(height: 14),
+                PhoneField(
+                  label: 'Phone (optional)',
+                  controller: _phone,
+                  textInputAction: TextInputAction.next,
                 ),
-              ),
-              const SizedBox(height: 28),
-
-              // Full Name
-              const Text(
-                'Full name',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
+                const SizedBox(height: 14),
+                PasswordField(
+                  controller: _password,
+                  hint: 'At least 8 characters',
+                  textInputAction: TextInputAction.done,
+                  autofillHints: const [AutofillHints.newPassword],
+                  validator: AuthValidators.password,
                 ),
-              ),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _name,
-                decoration: InputDecoration(
-                  hintText: 'Your name',
-                  hintStyle: TextStyle(color: Colors.grey.shade400),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide:
-                        const BorderSide(color: _primaryColor, width: 1.5),
-                  ),
-                ),
-                validator: (value) => value == null || value.trim().isEmpty
-                    ? 'Enter your name'
-                    : null,
-              ),
-              const SizedBox(height: 16),
-
-              // Phone Number
-              const Text(
-                'Phone number',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _phone,
-                keyboardType: TextInputType.phone,
-                decoration: InputDecoration(
-                  hintText: '1XXXXXXXXXX',
-                  hintStyle: TextStyle(color: Colors.grey.shade400),
-                  prefixIcon: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    margin: const EdgeInsets.only(right: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
-                      borderRadius: const BorderRadius.horizontal(
-                        left: Radius.circular(12),
-                      ),
-                      border: Border(
-                        right: BorderSide(color: Colors.grey.shade300),
-                      ),
-                    ),
-                    alignment: Alignment.center,
-                    child: const Text(
-                      '+880',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
-                    ),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide:
-                        const BorderSide(color: _primaryColor, width: 1.5),
-                  ),
-                ),
-                validator: (value) => value == null || value.trim().length < 10
-                    ? 'Enter a valid phone number'
-                    : null,
-              ),
-              const SizedBox(height: 16),
-
-              // Email (optional)
-              const Text(
-                'Email (optional)',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _email,
-                keyboardType: TextInputType.emailAddress,
-                decoration: InputDecoration(
-                  hintText: 'you@example.com',
-                  hintStyle: TextStyle(color: Colors.grey.shade400),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide:
-                        const BorderSide(color: _primaryColor, width: 1.5),
-                  ),
-                ),
-                validator: (value) {
-                  final email = value?.trim() ?? '';
-                  if (email.isEmpty) return null;
-                  return RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email)
-                      ? null
-                      : 'Enter a valid email';
-                },
-              ),
-              const SizedBox(height: 16),
-
-              // Password
-              const Text(
-                'Password',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _password,
-                obscureText: true,
-                onChanged: (_) => setState(() {}),
-                decoration: InputDecoration(
-                  hintText: 'At least 8 characters',
-                  hintStyle: TextStyle(color: Colors.grey.shade400),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide:
-                        const BorderSide(color: _primaryColor, width: 1.5),
-                  ),
-                ),
-                validator: (value) => (value?.length ?? 0) < 8
-                    ? 'Use at least 8 characters'
-                    : null,
-              ),
-              const SizedBox(height: 12),
-
-              // Password strength indicator bars
-              Row(
-                children: List.generate(4, (index) {
-                  final strength = _passwordStrength;
-                  final isActive = index < strength;
-                  return Expanded(
-                    child: Container(
-                      height: 4,
-                      margin: EdgeInsets.only(right: index < 3 ? 6 : 0),
-                      decoration: BoxDecoration(
-                        color: isActive ? _primaryColor : Colors.grey.shade300,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  );
-                }),
-              ),
-              const SizedBox(height: 16),
-
-              // Terms & Conditions Checkbox
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    height: 24,
-                    width: 24,
-                    child: Checkbox(
-                      value: _agreeTerms,
-                      activeColor: _primaryColor,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      onChanged: (val) {
-                        setState(() {
-                          _agreeTerms = val ?? false;
-                        });
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Wrap(
-                      children: [
-                        const Text(
-                          'I agree to the ',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () {},
-                          child: const Text(
-                            'Terms of use',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: _primaryColor,
-                              fontWeight: FontWeight.bold,
+                const SizedBox(height: 10),
+                PasswordStrengthBar(password: _password.text),
+                const SizedBox(height: 14),
+                FormField<bool>(
+                  initialValue: false,
+                  validator: (v) => v == true ? null : 'Please accept the terms to continue',
+                  builder: (field) => Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Checkbox(
+                            value: field.value ?? false,
+                            onChanged: (v) => field.didChange(v),
+                            side: BorderSide(
+                              color: field.hasError ? AppColors.error : AppColors.border,
+                              width: 1.5,
                             ),
                           ),
-                        ),
-                        const Text(
-                          ' and ',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () {},
-                          child: const Text(
-                            'Privacy policy',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: _primaryColor,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-
-              // Submit Button
-              SizedBox(
-                height: 52,
-                child: FilledButton(
-                  style: FilledButton.styleFrom(
-                    backgroundColor: _primaryColor,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                  ),
-                  onPressed: auth.isLoading
-                      ? null
-                      : () async {
-                          if (!_formKey.currentState!.validate()) {
-                            return;
-                          }
-                          if (!_agreeTerms) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Please agree to the terms and privacy policy.',
-                                ),
+                          Expanded(
+                            child: Text.rich(
+                              TextSpan(
+                                style: AppText.custom(13, FontWeight.w500, color: AppColors.muted),
+                                children: [
+                                  const TextSpan(text: 'I agree to the '),
+                                  TextSpan(text: 'Terms of use', style: linkStyle, recognizer: _termsTap),
+                                  const TextSpan(text: ' and '),
+                                  TextSpan(text: 'Privacy policy', style: linkStyle, recognizer: _privacyTap),
+                                ],
                               ),
-                            );
-                            return;
-                          }
-
-                          final email = _email.text.trim().isNotEmpty
-                              ? _email.text.trim()
-                              : '${_phone.text.trim()}@zollo.app';
-
-                          await ref
-                              .read(authControllerProvider.notifier)
-                              .signUp(
-                                email: email,
-                                password: _password.text,
-                                fullName: _name.text,
-                              );
-                        },
-                  child: auth.isLoading
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
+                            ),
                           ),
-                        )
-                      : const Text(
-                          'Send verification code',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                        ],
+                      ),
+                      if (field.hasError)
+                        Padding(
+                          padding: const EdgeInsets.only(left: AppSpacing.m),
+                          child: Text(
+                            field.errorText!,
+                            style: AppText.caption.withColor(AppColors.error),
                           ),
                         ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 40),
-
-              // Already have an account? Log in
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Already have an account? ',
-                    style: TextStyle(
-                      color: Colors.grey.shade600,
-                      fontSize: 14,
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () => context.go('/login'),
-                    child: const Text(
-                      'Log in',
-                      style: TextStyle(
-                        color: _primaryColor,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-            ],
+              ],
+            ),
           ),
         ),
-      ),
+        AppButton.primary(label: 'Create account', loading: isLoading, onPressed: _submit),
+      ],
+      footer: [
+        AuthLinkText(
+          prefix: 'Already have an account?',
+          link: 'Log in',
+          onTap: () => context.canPop() ? context.pop() : context.go('/login'),
+        ),
+      ],
     );
   }
 }

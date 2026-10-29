@@ -2,7 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/constants/app_constants.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_text.dart';
+import '../../../../core/widgets/widgets.dart';
+import '../../domain/auth_validators.dart';
 import '../../domain/providers/auth_provider.dart';
+import '../widgets/auth_widgets.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -15,11 +22,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _email = TextEditingController();
   final _password = TextEditingController();
-
-  bool _obscurePassword = true;
   bool _keepLoggedIn = true;
-
-  static const _primaryColor = Color(0xFF006B54);
 
   @override
   void dispose() {
@@ -28,394 +31,128 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
+  Future<void> _submit() async {
+    FocusScope.of(context).unfocus();
+    if (!_formKey.currentState!.validate()) return;
+
+    final controller = ref.read(authControllerProvider.notifier);
+    final ok = await controller.signIn(email: _email.text, password: _password.text);
+    if (!mounted) return;
+
+    if (ok) {
+      context.go('/home');
+      return;
+    }
+    final error = ref.read(authControllerProvider).error;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(AuthValidators.message(error ?? 'Could not log in.'))),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final auth = ref.watch(authControllerProvider);
+    final isLoading = ref.watch(authControllerProvider).isLoading;
 
-    ref.listen(authControllerProvider, (previous, next) {
-      if (next.hasError) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(next.error.toString())),
-        );
-      } else if (previous?.isLoading == true &&
-          next.hasValue &&
-          next.value != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login successful')),
-        );
-
-        context.go('/home');
-      }
-    });
-
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Form(
+    return AuthScaffold(
+      content: [
+        const AuthHeading(
+          title: 'Welcome back',
+          subtitle: 'Log in to track orders and check out faster.',
+        ),
+        Form(
           key: _formKey,
-          child: ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            children: [
-              Align(
-                alignment: Alignment.centerLeft,
-                child: IconButton(
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  icon: const Icon(Icons.arrow_back_ios_new, size: 20, color: Colors.black),
-                  onPressed: () {
-                    if (context.canPop()) {
-                      context.pop();
-                    }
-                  },
+          child: AutofillGroup(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                AppTextField(
+                  label: 'Email',
+                  controller: _email,
+                  hint: 'you@example.com',
+                  keyboardType: TextInputType.emailAddress,
+                  textInputAction: TextInputAction.next,
+                  autofillHints: const [AutofillHints.email],
+                  validator: AuthValidators.email,
                 ),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'Welcome back',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
+                const SizedBox(height: AppSpacing.l),
+                PasswordField(
+                  controller: _password,
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (_) => _submit(),
+                  validator: (v) => (v == null || v.isEmpty) ? 'Enter your password' : null,
                 ),
-              ),
-              const SizedBox(height: 6),
-              const Text(
-                'Log in to track orders and check out faster.',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Color(0xFF6B7280),
-                ),
-              ),
-              const SizedBox(height: 28),
-
-              // Phone number or email
-              const Text(
-                'Email',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black,
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _email,
-                keyboardType: TextInputType.emailAddress,
-                decoration: InputDecoration(
-                  hintText: 'abc@example.com',
-                  hintStyle: TextStyle(color: Colors.grey.shade400),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: _primaryColor, width: 1.5),
-                  ),
-                ),
-                validator: (value) {
-                  final text = value?.trim() ?? '';
-                  if (text.isEmpty) return 'Enter email';
-                  return null;
-                },
-              ),
-              const SizedBox(height: 20),
-
-              // Password
-              const Text(
-                'Password',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black,
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _password,
-                obscureText: _obscurePassword,
-                decoration: InputDecoration(
-                  hintText: 'Enter your password',
-                  hintStyle: TextStyle(color: Colors.grey.shade400),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
-                  suffixIcon: TextButton(
-                    onPressed: () {
-                      setState(() {
-                        _obscurePassword = !_obscurePassword;
-                      });
-                    },
-                    child: Text(
-                      _obscurePassword ? 'Show' : 'Hide',
-                      style: const TextStyle(
-                        color: _primaryColor,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: _primaryColor, width: 1.5),
-                  ),
-                ),
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Enter your password' : null,
-              ),
-              const SizedBox(height: 12),
-
-              // Checkbox & Forgot Password
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      SizedBox(
-                        height: 24,
-                        width: 24,
-                        child: Checkbox(
-                          value: _keepLoggedIn,
-                          activeColor: _primaryColor,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          onChanged: (value) {
-                            setState(() {
-                              _keepLoggedIn = value ?? true;
-                            });
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      const Text(
-                        'Keep me logged in',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Color(0xFF4B5563),
-                        ),
-                      ),
-                    ],
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      // Forgot password flow
-                    },
-                    style: TextButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    child: const Text(
-                      'Forgot password?',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: _primaryColor,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 28),
-
-              // Primary Log in Button
-              SizedBox(
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: auth.isLoading
-                      ? null
-                      : () async {
-                          if (!_formKey.currentState!.validate()) {
-                            return;
-                          }
-
-                          await ref
-                              .read(authControllerProvider.notifier)
-                              .signIn(
-                            email: _email.text,
-                            password: _password.text,
-                          );
-                        },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _primaryColor,
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: auth.isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Text(
-                          'Log in',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                ),
-              ),
-              const SizedBox(height: 14),
-
-              // Secondary Button: Log in with a one-time code
-              SizedBox(
-                height: 50,
-                child: OutlinedButton(
-                  onPressed: () {},
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: _primaryColor,
-                    side: const BorderSide(color: _primaryColor, width: 1.5),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'Log in with a one-time code',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 28),
-
-              // Or continue with Divider
-              Row(
-                children: [
-                  Expanded(child: Divider(color: Colors.grey.shade300)),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Text(
-                      'or continue with',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey.shade500,
-                      ),
-                    ),
-                  ),
-                  Expanded(child: Divider(color: Colors.grey.shade300)),
-                ],
-              ),
-              const SizedBox(height: 20),
-
-              // Social Buttons: Google & Facebook
-              Row(
-                children: [
-                  Expanded(
-                    child: SizedBox(
-                      height: 48,
-                      child: OutlinedButton(
-                        onPressed: () {},
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.black,
-                          side: BorderSide(color: Colors.grey.shade300),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text(
-                          'Google',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                const SizedBox(height: AppSpacing.s),
+                Row(
+                  children: [
+                    Expanded(
+                      child: InkWell(
+                        onTap: () => setState(() => _keepLoggedIn = !_keepLoggedIn),
+                        borderRadius: AppRadius.tileAll,
+                        child: Row(
+                          children: [
+                            Checkbox(
+                              value: _keepLoggedIn,
+                              onChanged: (v) => setState(() => _keepLoggedIn = v ?? true),
+                            ),
+                            Flexible(
+                              child: Text(
+                                'Keep me logged in',
+                                style: AppText.custom(13, FontWeight.w500, color: AppColors.inkSoft),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: SizedBox(
-                      height: 48,
-                      child: OutlinedButton(
-                        onPressed: () {},
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.black,
-                          side: BorderSide(color: Colors.grey.shade300),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text(
-                          'Facebook',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
+                    TextButton(
+                      onPressed: () => context.push('/forgot-password'),
+                      child: const Text('Forgot password?'),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 36),
-
-              // Bottom create account & guest
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'New to zollo? ',
-                    style: TextStyle(
-                      color: Colors.grey.shade600,
-                      fontSize: 14,
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      context.push('/signup');
-                    },
-                    child: const Text(
-                      'Create an account',
-                      style: TextStyle(
-                        color: _primaryColor,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Center(
-                child: GestureDetector(
-                  onTap: () {
-                    context.go('/home');
-                  },
-                  child: Text(
-                    'Continue as guest',
-                    style: TextStyle(
-                      color: Colors.grey.shade700,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 16),
-            ],
+              ],
+            ),
           ),
         ),
-      ),
+        AppButton.primary(label: 'Log in', loading: isLoading, onPressed: _submit),
+        if (AppConstants.showSocialLogin) ...[
+          Row(
+            children: [
+              const Expanded(child: Divider()),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.m),
+                child: Text(
+                  'or continue with',
+                  style: AppText.custom(13, FontWeight.w500, color: AppColors.muted),
+                ),
+              ),
+              const Expanded(child: Divider()),
+            ],
+          ),
+          Row(
+            children: [
+              Expanded(child: AppButton.outline(label: 'Google', height: 50, onPressed: () {})),
+              const SizedBox(width: AppSpacing.m),
+              Expanded(child: AppButton.outline(label: 'Facebook', height: 50, onPressed: () {})),
+            ],
+          ),
+        ],
+      ],
+      footer: [
+        AuthLinkText(
+          prefix: 'New to zollo?',
+          link: 'Create an account',
+          onTap: () => context.push('/signup'),
+        ),
+        TextButton(
+          onPressed: () => context.go('/home'),
+          style: TextButton.styleFrom(
+            foregroundColor: AppColors.muted,
+            textStyle: AppText.custom(14, FontWeight.w700),
+          ),
+          child: const Text('Continue as guest'),
+        ),
+      ],
     );
   }
 }

@@ -14,6 +14,8 @@ import '../../features/profile/presentation/screens/edit_profile_screen.dart';
 import '../../features/wishlist/presentation/screens/wishlist_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/signup_screen.dart';
+import '../../features/auth/presentation/screens/forgot_password_screen.dart';
+import '../../features/auth/presentation/screens/change_password_screen.dart';
 import '../../features/products/presentation/screens/product_details_screen.dart';
 import '../../features/products/domain/models/product.dart';
 import '../../features/checkout/screens/checkout_screen.dart';
@@ -50,6 +52,14 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/signup',
       builder: (context, state) => const SignupScreen(),
+    ),
+    GoRoute(
+      path: '/forgot-password',
+      builder: (context, state) => const ForgotPasswordScreen(),
+    ),
+    GoRoute(
+      path: '/settings/change-password',
+      builder: (context, state) => const ChangePasswordScreen(),
     ),
     GoRoute(
       path: '/edit-profile',
