@@ -1,330 +1,296 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_text.dart';
+import '../../../../core/utils/support.dart';
+import '../../../../core/widgets/widgets.dart';
 import '../../../auth/domain/providers/auth_provider.dart';
 import '../../../wishlist/presentation/providers/wishlist_provider.dart';
 
+/// Bottom-nav tab 4, spec C17.
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
-  static const Color primaryTeal = Color(0xFF006B54);
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(currentUserProvider) ?? Supabase.instance.client.auth.currentUser;
+    final user = ref.watch(currentUserProvider);
+    final wishlistCount = ref.watch(wishlistProvider).value?.length ?? 0;
 
-    final fullName = (user?.userMetadata?['full_name'] as String?) ??
-        (user?.userMetadata?['name'] as String?) ??
-        (user?.email != null && user!.email!.contains('@')
-            ? user.email!.split('@').first
-            : 'User Name');
-
-    final initial = fullName.isNotEmpty ? fullName[0].toUpperCase() : 'U';
-
-    final phoneOrEmail = (user?.phone != null && user!.phone!.isNotEmpty)
-        ? user.phone!
-        : (user?.userMetadata?['phone'] as String?) ?? user?.email ?? '+880 1XXX-XXXXXX';
-
-    final wishlistState = ref.watch(wishlistProvider);
-    final wishlistCount = wishlistState.value?.length ?? 0;
+    void comingSoon(String feature) => ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$feature is coming soon.')),
+        );
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F0),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              // Top Header Section
-              InkWell(
-                onTap: () => context.push('/edit-profile'),
-                child: Container(
-                  color: primaryTeal,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-                  child: Row(
+      body: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          Container(
+            color: AppColors.primary,
+            padding: EdgeInsets.fromLTRB(
+              AppSpacing.l,
+              MediaQuery.paddingOf(context).top + AppSpacing.xl,
+              AppSpacing.l,
+              20,
+            ),
+            child: user == null
+                ? Row(
                     children: [
-                      // Avatar Circle
-                      Container(
-                        width: 60,
-                        height: 60,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFD4ECE6),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: Text(
-                            initial,
-                            style: const TextStyle(
-                              fontSize: 26,
-                              fontWeight: FontWeight.bold,
-                              color: primaryTeal,
+                      const _Avatar(initial: null),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Welcome to zollo', style: AppText.title.withColor(AppColors.white)),
+                            Text(
+                              'Log in or sign up',
+                              style: AppText.custom(13, FontWeight.w500, color: AppColors.onPrimaryMuted),
                             ),
-                          ),
+                          ],
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      // User Info
+                      AppButton.deal(
+                        label: 'Log in',
+                        size: AppButtonSize.small,
+                        fullWidth: false,
+                        onPressed: () => context.push('/login'),
+                      ),
+                    ],
+                  )
+                : Row(
+                    children: [
+                      _Avatar(initial: user.initial),
+                      const SizedBox(width: 14),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              fullName,
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
+                              user.displayName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppText.title.withColor(AppColors.white),
                             ),
-                            const SizedBox(height: 4),
                             Text(
-                              phoneOrEmail,
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.white.withValues(alpha: 0.8),
-                              ),
+                              user.phoneNumber != null
+                                  ? PhoneField.display(user.phoneNumber!)
+                                  : (user.email ?? ''),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppText.custom(13, FontWeight.w500, color: AppColors.onPrimaryMuted),
                             ),
                           ],
                         ),
                       ),
-                      // Edit Button
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: const Text(
-                          'Edit',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
+                      Material(
+                        color: AppColors.primaryOnDark,
+                        shape: const StadiumBorder(),
+                        child: InkWell(
+                          customBorder: const StadiumBorder(),
+                          onTap: () => context.push('/edit-profile'),
+                          child: Container(
+                            constraints: const BoxConstraints(minHeight: 36, minWidth: 48),
+                            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.m),
+                            alignment: Alignment.center,
+                            child: Text(
+                              'Edit',
+                              semanticsLabel: 'Edit profile',
+                              style: AppText.custom(13, FontWeight.w700, color: AppColors.white),
+                            ),
                           ),
                         ),
                       ),
                     ],
                   ),
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // My Orders Card
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  padding: const EdgeInsets.all(16),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(AppSpacing.m),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                InfoCard(
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Orders Header
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
-                            'My orders',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          InkWell(
-                            onTap: () => context.push('/order-history'),
-                            child: const Text(
-                              'View all',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: primaryTeal,
-                              ),
-                            ),
+                          Expanded(child: Text('My orders', style: AppText.custom(15, FontWeight.w800))),
+                          TextButton(
+                            onPressed: () => context.push('/order-history'),
+                            child: const Text('View all'),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),
-                      // Order Actions Row
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      const SizedBox(height: AppSpacing.xs),
+                      const Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildOrderAction(
-                            icon: Icons.account_balance_wallet_outlined,
-                            label: 'To pay',
-                            onTap: () => context.push('/order-history'),
-                          ),
-                          _buildOrderAction(
-                            icon: Icons.inventory_2_outlined,
-                            label: 'To ship',
-                            onTap: () => context.push('/order-history'),
-                          ),
-                          _buildOrderAction(
-                            icon: Icons.local_shipping_outlined,
-                            label: 'To receive',
-                            onTap: () => context.push('/order-history'),
-                          ),
-                          _buildOrderAction(
-                            icon: Icons.star_outline_rounded,
-                            label: 'To review',
-                            onTap: () => context.push('/order-history'),
-                          ),
-                          _buildOrderAction(
-                            icon: Icons.assignment_return_outlined,
-                            label: 'Returns',
-                            onTap: () => context.push('/order-history'),
-                          ),
+                          _OrderShortcut(icon: Icons.credit_card_outlined, label: 'To pay', tab: 'processing'),
+                          _OrderShortcut(icon: Icons.inventory_2_outlined, label: 'Processing', tab: 'processing'),
+                          _OrderShortcut(icon: Icons.local_shipping_outlined, label: 'Shipped', tab: 'shipped'),
+                          _OrderShortcut(icon: Icons.star_outline_rounded, label: 'To review', tab: 'delivered'),
+                          _OrderShortcut(icon: Icons.assignment_return_outlined, label: 'Returns', tab: 'delivered'),
                         ],
                       ),
                     ],
                   ),
                 ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Menu Options Card
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
+                const SizedBox(height: AppSpacing.cardGap),
+                InfoCard(
+                  padding: EdgeInsets.zero,
                   child: Column(
                     children: [
-                      _buildMenuItem(
-                        title: 'Wishlist',
-                        subtitle: '$wishlistCount items',
+                      _MenuRow(
+                        icon: Icons.favorite_border,
+                        label: 'Wishlist',
+                        hint: '$wishlistCount ${wishlistCount == 1 ? 'item' : 'items'}',
                         onTap: () => context.push('/wishlist'),
                       ),
-                      const Divider(height: 1, indent: 16, endIndent: 16),
-                      _buildMenuItem(
-                        title: 'My vouchers',
-                        subtitle: '2 available',
-                        onTap: () {},
+                      _MenuRow(
+                        icon: Icons.confirmation_number_outlined,
+                        label: 'My vouchers',
+                        onTap: () => context.push('/vouchers'),
                       ),
-                      const Divider(height: 1, indent: 16, endIndent: 16),
-                      _buildMenuItem(
-                        title: 'Address book',
+                      _MenuRow(
+                        icon: Icons.location_on_outlined,
+                        label: 'Address book',
                         onTap: () => context.push('/addresses'),
                       ),
-                      const Divider(height: 1, indent: 16, endIndent: 16),
-                      _buildMenuItem(
-                        title: 'Messages',
-                        subtitle: '1 new',
-                        onTap: () {},
+                      _MenuRow(
+                        icon: Icons.chat_bubble_outline,
+                        label: 'Messages',
+                        onTap: () => context.push('/messages'),
                       ),
-                      const Divider(height: 1, indent: 16, endIndent: 16),
-                      _buildMenuItem(
-                        title: 'Notifications',
-                        onTap: () {},
+                      _MenuRow(
+                        icon: Icons.notifications_none,
+                        label: 'Notifications',
+                        onTap: () => context.push('/notifications'),
                       ),
-                      const Divider(height: 1, indent: 16, endIndent: 16),
-                      _buildMenuItem(
-                        title: 'Help center',
-                        onTap: () {},
+                      _MenuRow(
+                        icon: Icons.help_outline,
+                        label: 'Help center',
+                        onTap: () => contactSupport(context, subject: 'Help request'),
                       ),
-                      const Divider(height: 1, indent: 16, endIndent: 16),
-                      _buildMenuItem(
-                        title: 'Settings',
-                        onTap: () {},
+                      _MenuRow(
+                        icon: Icons.settings_outlined,
+                        label: 'Settings',
+                        onTap: () => context.push('/settings'),
                       ),
-                      const Divider(height: 1, indent: 16, endIndent: 16),
-                      _buildMenuItem(
-                        title: 'Sell on zollo',
-                        onTap: () {},
-                      ),
-                      const Divider(height: 1, indent: 16, endIndent: 16),
-                      _buildMenuItem(
-                        title: 'Logout',
-                        titleColor: Colors.red,
-                        onTap: () async {
-                          await ref.read(authControllerProvider.notifier).signOut();
-                          if (!context.mounted) return;
-                          context.go('/login');
-                        },
+                      _MenuRow(
+                        icon: Icons.storefront_outlined,
+                        label: 'Sell on zollo',
+                        onTap: () => comingSoon('Selling on zollo'),
+                        last: true,
                       ),
                     ],
                   ),
                 ),
-              ),
-
-              const SizedBox(height: 24),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildOrderAction({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
-        child: Column(
-          children: [
-            Icon(icon, color: primaryTeal, size: 26),
-            const SizedBox(height: 6),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-                color: Colors.black87,
-              ),
+                const SizedBox(height: AppSpacing.xl),
+              ],
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMenuItem({
-    required String title,
-    String? subtitle,
-    Color titleColor = Colors.black87,
-    required VoidCallback onTap,
-  }) {
-    return ListTile(
-      onTap: onTap,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-      title: Text(
-        title,
-        style: TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w500,
-          color: titleColor,
-        ),
-      ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (subtitle != null) ...[
-            Text(
-              subtitle,
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.grey.shade600,
-              ),
-            ),
-            const SizedBox(width: 4),
-          ],
-          Icon(
-            Icons.chevron_right,
-            color: Colors.grey.shade400,
-            size: 20,
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _Avatar extends StatelessWidget {
+  const _Avatar({required this.initial});
+
+  final String? initial;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 60,
+      height: 60,
+      decoration: const BoxDecoration(color: AppColors.primaryTint, shape: BoxShape.circle),
+      alignment: Alignment.center,
+      child: initial == null
+          ? const Icon(Icons.person_outline, size: 28, color: AppColors.primary)
+          : Text(initial!, style: AppText.custom(22, FontWeight.w800, color: AppColors.primary)),
+    );
+  }
+}
+
+class _OrderShortcut extends StatelessWidget {
+  const _OrderShortcut({required this.icon, required this.label, required this.tab});
+
+  final IconData icon;
+  final String label;
+  final String tab;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Semantics(
+        button: true,
+        label: label,
+        excludeSemantics: true,
+        child: InkWell(
+          borderRadius: AppRadius.tileAll,
+          onTap: () => context.push('/order-history?tab=$tab'),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 56),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.s),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(icon, size: 24, color: AppColors.primary),
+                  const SizedBox(height: 6),
+                  Text(label, textAlign: TextAlign.center, style: AppText.micro),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MenuRow extends StatelessWidget {
+  const _MenuRow({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.hint,
+    this.last = false,
+  });
+
+  final IconData icon;
+  final String label;
+  final String? hint;
+  final VoidCallback onTap;
+  final bool last;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 50),
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        decoration: BoxDecoration(
+          border: last ? null : const Border(bottom: BorderSide(color: AppColors.surfaceAlt)),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: AppSpacing.iconInline, color: AppColors.inkSoft),
+            const SizedBox(width: AppSpacing.m),
+            Expanded(child: Text(label, style: AppText.custom(14, FontWeight.w600))),
+            if (hint != null) ...[
+              Text(hint!, style: AppText.caption.withColor(AppColors.muted)),
+              const SizedBox(width: AppSpacing.xs),
+            ],
+            const Icon(Icons.chevron_right, size: 16, color: AppColors.hint),
+          ],
+        ),
       ),
     );
   }

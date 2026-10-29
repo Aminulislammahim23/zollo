@@ -1,140 +1,110 @@
 import 'package:flutter/material.dart';
+
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_text.dart';
+import '../../../../core/widgets/phone_field.dart';
 import '../../domain/address_model.dart';
 
+/// Address book card, spec C22.
 class AddressCard extends StatelessWidget {
   final Address address;
   final VoidCallback? onEdit;
-  final VoidCallback? onDelete;
   final VoidCallback? onSetDefault;
   final VoidCallback? onTap;
+
+  /// Select mode shows a radio; [isSelected] is its value.
+  final bool selecting;
   final bool isSelected;
 
   const AddressCard({
     super.key,
     required this.address,
     this.onEdit,
-    this.onDelete,
     this.onSetDefault,
     this.onTap,
+    this.selecting = false,
     this.isSelected = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
+    final label = address.label.toUpperCase();
+    final isHome = label == 'HOME';
+
+    Widget tag(String text, {required Color fg, required Color bg}) => Container(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s, vertical: 2),
+          decoration: BoxDecoration(color: bg, borderRadius: AppRadius.badgeAll),
+          child: Text(text, style: AppText.custom(11, FontWeight.w800, color: fg)),
+        );
+
+    final highlighted = selecting ? isSelected : address.isDefault;
+
+    return Material(
+      color: AppColors.surface,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: AppRadius.cardAll,
         side: BorderSide(
-          color: isSelected ? const Color(0xFF006B54) : Colors.grey.shade200,
-          width: isSelected ? 2 : 1,
+          color: highlighted ? AppColors.primary : AppColors.divider,
+          width: highlighted ? AppBorders.selected : AppBorders.thin,
         ),
       ),
-      elevation: 0,
-      color: Colors.white,
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
+          padding: const EdgeInsets.all(AppSpacing.card),
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      // Label Badge (HOME / OFFICE / OTHER)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 3,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        tag(
+                          label.isEmpty ? 'OTHER' : label,
+                          fg: isHome ? AppColors.white : AppColors.inkSoft,
+                          bg: isHome ? AppColors.primary : AppColors.surfaceAlt,
                         ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF006B54),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          address.label.toUpperCase(),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      if (address.isDefault) ...[
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color:
-                                const Color(0xFF006B54).withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: const Text(
-                            'Default',
-                            style: TextStyle(
-                              color: Color(0xFF006B54),
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
+                        if (address.isDefault) ...[
+                          const SizedBox(width: 6),
+                          tag('Default', fg: AppColors.primary, bg: AppColors.primaryTint),
+                        ],
+                        const Spacer(),
+                        if (onEdit != null && !selecting)
+                          TextButton(
+                            onPressed: onEdit,
+                            style: TextButton.styleFrom(
+                              minimumSize: const Size(48, 36),
+                              tapTargetSize: MaterialTapTargetSize.padded,
                             ),
+                            child: Text('Edit', semanticsLabel: 'Edit ${address.label} address'),
                           ),
-                        ),
                       ],
-                    ],
-                  ),
-                  if (onEdit !=
-                      null) // Edit button in top right as in reference image
-                    GestureDetector(
-                      onTap: onEdit,
-                      child: const Text(
-                        'Edit',
-                        style: TextStyle(
-                          color: Color(0xFF006B54),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      '${address.fullName} · ${PhoneField.display(address.phone)}',
+                      style: AppText.bodyStrong,
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      address.displayAddress,
+                      style: AppText.custom(13, FontWeight.w500, color: AppColors.muted, height: 1.45),
+                    ),
+                    if (!address.isDefault && onSetDefault != null && !selecting)
+                      TextButton(
+                        onPressed: onSetDefault,
+                        style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                        child: const Text('Set as default'),
                       ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Text(
-                '${address.fullName} · ${address.phone}',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                  color: Colors.black87,
+                  ],
                 ),
               ),
-              const SizedBox(height: 4),
-              Text(
-                address.formattedAddress,
-                style: TextStyle(
-                  color: Colors.grey.shade600,
-                  fontSize: 13,
-                  height: 1.3,
-                ),
-              ),
-              if (!address.isDefault && onSetDefault != null) ...[
-                const SizedBox(height: 12),
-                GestureDetector(
-                  onTap: onSetDefault,
-                  child: const Text(
-                    'Set as default',
-                    style: TextStyle(
-                      color: Color(0xFF006B54),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-              ],
+              if (selecting)
+                Radio<String>(value: address.id),
             ],
           ),
         ),

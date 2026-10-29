@@ -22,8 +22,8 @@ class AddressListNotifier extends AsyncNotifier<List<Address>> {
     return _repository.getAddresses();
   }
 
+  /// Reloads without dropping the current list, so the screen doesn't flash.
   Future<void> refresh() async {
-    state = const AsyncLoading();
     state = await AsyncValue.guard(() => _repository.getAddresses());
   }
 

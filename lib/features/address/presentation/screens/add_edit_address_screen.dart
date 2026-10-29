@@ -1,402 +1,298 @@
-// ignore_for_file: deprecated_member_use
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../providers/address_provider.dart';
+import '../../../../core/constants/app_constants.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_text.dart';
+import '../../../../core/widgets/widgets.dart';
+import '../../../auth/domain/providers/auth_provider.dart';
 import '../../domain/address_model.dart';
+import '../providers/address_provider.dart';
 
+/// `/add-address` and `/edit-address` (extra: Address), spec C23.
 class AddEditAddressScreen extends ConsumerStatefulWidget {
   final Address? address;
 
   const AddEditAddressScreen({super.key, this.address});
 
   @override
-  ConsumerState<AddEditAddressScreen> createState() =>
-      _AddEditAddressScreenState();
+  ConsumerState<AddEditAddressScreen> createState() => _AddEditAddressScreenState();
 }
 
 class _AddEditAddressScreenState extends ConsumerState<AddEditAddressScreen> {
+  static const _labels = ['Home', 'Office', 'Other'];
+  static const double _fieldHeight = 46;
+
   final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _name;
+  late final TextEditingController _phone;
+  late final TextEditingController _area;
+  late final TextEditingController _addressLine;
 
-  late final TextEditingController _nameController;
-  late final TextEditingController _phoneController;
-  late final TextEditingController _fullAddressController;
-  late final TextEditingController _postalCodeController;
+  late String _division;
+  late String _district;
+  late String _label;
+  late bool _isDefault;
+  bool _saving = false;
 
-  String _selectedDivision = 'Dhaka';
-  String _selectedDistrict = 'Dhaka City';
-  String _selectedArea = 'Dhanmondi';
-  String _selectedLabel = 'Home'; // 'Home', 'Office', 'Other'
-
-  bool _isDefault = false;
-  bool _isLoading = false;
-
-  final List<String> _labels = ['Home', 'Office', 'Other'];
-  final List<String> _divisions = ['Dhaka', 'Chattogram', 'Sylhet', 'Rajshahi'];
-  final List<String> _districts = ['Dhaka City', 'Gazipur', 'Narayanganj', 'Chittagong'];
-  final List<String> _areas = ['Dhanmondi', 'Gulshan', 'Banani', 'Uttara', 'Mirpur', 'Mohakhali'];
+  List<String> get _districts => AppConstants.districtsByDivision[_division] ?? const [];
 
   @override
   void initState() {
     super.initState();
     final a = widget.address;
-    _nameController = TextEditingController(text: a?.fullName ?? '');
-    _phoneController = TextEditingController(text: a?.phone ?? '');
-    _fullAddressController = TextEditingController(text: a?.addressLine ?? '');
-    _postalCodeController = TextEditingController(text: a?.postalCode ?? '1209');
+    _name = TextEditingController(text: a?.fullName ?? '');
+    _phone = TextEditingController(text: a == null ? '' : PhoneField.normalize(a.phone));
+    _area = TextEditingController(text: a?.area ?? '');
+    _addressLine = TextEditingController(text: a?.addressLine ?? '');
 
-    _selectedDivision = a?.division ?? 'Dhaka';
-    _selectedDistrict = a?.district ?? 'Dhaka City';
-    _selectedArea = a?.area ?? 'Dhanmondi';
-    _selectedLabel = a != null
-        ? (a.label[0] + a.label.substring(1).toLowerCase())
-        : 'Home';
+    _division = AppConstants.divisions.contains(a?.division) ? a!.division : AppConstants.divisions.first;
+    _district = _districts.contains(a?.district) ? a!.district : _districts.first;
+    final label = (a?.label ?? 'Home').toLowerCase();
+    _label = _labels.firstWhere((l) => l.toLowerCase() == label, orElse: () => 'Other');
     _isDefault = a?.isDefault ?? false;
   }
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _phoneController.dispose();
-    _fullAddressController.dispose();
-    _postalCodeController.dispose();
+    _name.dispose();
+    _phone.dispose();
+    _area.dispose();
+    _addressLine.dispose();
     super.dispose();
   }
 
-  Future<void> _saveAddress() async {
+  Future<void> _save() async {
+    FocusScope.of(context).unfocus();
     if (!_formKey.currentState!.validate()) return;
 
-    final user = Supabase.instance.client.auth.currentUser;
+    final user = ref.read(currentUserProvider);
     if (user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please sign in first.')),
+        const SnackBar(content: Text('Please log in to save an address.')),
       );
       return;
     }
 
-    setState(() => _isLoading = true);
+    setState(() => _saving = true);
+    final existing = widget.address;
+    final address = Address(
+      id: existing?.id ?? '',
+      userId: user.id,
+      fullName: _name.text.trim(),
+      phone: '0${PhoneField.normalize(_phone.text)}',
+      division: _division,
+      district: _district,
+      area: _area.text.trim(),
+      addressLine: _addressLine.text.trim(),
+      city: _district,
+      postalCode: existing?.postalCode ?? '',
+      label: _label.toUpperCase(),
+      isDefault: _isDefault,
+      createdAt: existing?.createdAt ?? DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
 
     try {
-      final newAddress = Address(
-        id: widget.address?.id ?? '',
-        userId: user.id,
-        fullName: _nameController.text.trim(),
-        phone: _phoneController.text.trim(),
-        division: _selectedDivision,
-        district: _selectedDistrict,
-        area: _selectedArea,
-        addressLine: _fullAddressController.text.trim(),
-        city: _selectedDistrict,
-        postalCode: _postalCodeController.text.trim(),
-        label: _selectedLabel.toUpperCase(),
-        isDefault: _isDefault,
-        createdAt: widget.address?.createdAt ?? DateTime.now(),
-        updatedAt: DateTime.now(),
-      );
-
-      if (widget.address == null) {
-        await ref.read(addressListProvider.notifier).addAddress(newAddress);
-      } else {
-        await ref.read(addressListProvider.notifier).updateAddress(newAddress);
-      }
-
+      final notifier = ref.read(addressListProvider.notifier);
+      existing == null ? await notifier.addAddress(address) : await notifier.updateAddress(address);
       if (!mounted) return;
-
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            widget.address == null
-                ? 'Address added successfully'
-                : 'Address updated successfully',
-          ),
-          backgroundColor: Colors.green,
-        ),
+        SnackBar(content: Text(existing == null ? 'Address saved' : 'Address updated')),
       );
-
       context.pop();
-    } catch (e) {
+    } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to save address: $e'),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text("Couldn't save the address. ${ErrorView.describe(error)}")),
       );
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _saving = false);
     }
+  }
+
+  Widget _dropdown({
+    required String label,
+    required String value,
+    required List<String> items,
+    required ValueChanged<String> onChanged,
+    Key? key,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(label, style: AppText.custom(12, FontWeight.w700)),
+        const SizedBox(height: 6),
+        DropdownButtonFormField<String>(
+          key: key,
+          initialValue: value,
+          isExpanded: true,
+          style: AppText.custom(15, FontWeight.w600),
+          icon: const Icon(Icons.expand_more, color: AppColors.muted),
+          decoration: const InputDecoration(
+            constraints: BoxConstraints(minHeight: _fieldHeight),
+            contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          ),
+          items: [
+            for (final item in items)
+              DropdownMenuItem(value: item, child: Text(item, overflow: TextOverflow.ellipsis)),
+          ],
+          onChanged: (v) {
+            if (v != null) onChanged(v);
+          },
+        ),
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final isEditing = widget.address != null;
+    final labelStyle = AppText.custom(12, FontWeight.w700);
+    final isEdit = widget.address != null;
 
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new,
-            size: 18,
-            color: Colors.black87,
-          ),
-          onPressed: () => context.pop(),
-        ),
-        title: Text(
-          isEditing ? 'Edit address' : 'Add address',
-          style: const TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
-      ),
+      backgroundColor: AppColors.surface,
+      appBar: AppTopBar(title: isEdit ? 'Edit address' : 'Add address', fallbackRoute: '/addresses'),
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: AppSpacing.l),
           children: [
-            // Use my current location button
-            Container(
-              height: 48,
-              decoration: BoxDecoration(
-                color: const Color(0xFF006B54).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFF006B54).withValues(alpha: 0.3)),
-              ),
-              child: TextButton.icon(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Location fetched successfully!')),
-                  );
-                },
-                icon: const Icon(Icons.my_location, color: Color(0xFF006B54), size: 18),
-                label: const Text(
-                  'Use my current location',
-                  style: TextStyle(
-                    color: Color(0xFF006B54),
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
+            Tooltip(
+              message: 'Coming soon',
+              child: OutlinedButton.icon(
+                onPressed: null,
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(44),
+                  backgroundColor: AppColors.primaryTint,
+                  disabledBackgroundColor: AppColors.primaryTint,
+                  disabledForegroundColor: AppColors.primary.withValues(alpha: 0.6),
+                  side: const BorderSide(color: AppColors.primary),
+                  textStyle: AppText.custom(14, FontWeight.w700),
                 ),
+                icon: const Icon(Icons.my_location, size: AppSpacing.iconSmall),
+                label: const Text('Use my current location'),
               ),
             ),
-            const SizedBox(height: 20),
-
-            // Full name & Phone row
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Full name', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-                      const SizedBox(height: 6),
-                      TextFormField(
-                        controller: _nameController,
-                        decoration: InputDecoration(
-                          hintText: "Receiver's name",
-                          hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                        ),
-                        validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Phone', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-                      const SizedBox(height: 6),
-                      TextFormField(
-                        controller: _phoneController,
-                        keyboardType: TextInputType.phone,
-                        decoration: InputDecoration(
-                          hintText: '01XXXXXXXXX',
-                          hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                        ),
-                        validator: (v) => v == null || v.trim().length < 10 ? 'Required' : null,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            // Division Dropdown
-            const Text('Division', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-            const SizedBox(height: 6),
-            DropdownButtonFormField<String>(
-              value: _selectedDivision,
-              decoration: InputDecoration(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+            const SizedBox(height: AppSpacing.m),
+            _TwoColumns(
+              left: AppTextField(
+                label: 'Full name',
+                labelStyle: labelStyle,
+                controller: _name,
+                height: _fieldHeight,
+                textCapitalization: TextCapitalization.words,
+                textInputAction: TextInputAction.next,
+                validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
               ),
-              items: _divisions.map((d) => DropdownMenuItem(value: d, child: Text(d))).toList(),
-              onChanged: (val) {
-                if (val != null) setState(() => _selectedDivision = val);
-              },
+              right: PhoneField(
+                label: 'Phone',
+                labelStyle: labelStyle,
+                controller: _phone,
+                required: true,
+                height: _fieldHeight,
+                textInputAction: TextInputAction.next,
+              ),
             ),
-            const SizedBox(height: 16),
-
-            // City / District & Area row
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('City / District', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-                      const SizedBox(height: 6),
-                      DropdownButtonFormField<String>(
-                        value: _selectedDistrict,
-                        decoration: InputDecoration(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                        ),
-                        items: _districts.map((d) => DropdownMenuItem(value: d, child: Text(d))).toList(),
-                        onChanged: (val) {
-                          if (val != null) setState(() => _selectedDistrict = val);
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Area', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-                      const SizedBox(height: 6),
-                      DropdownButtonFormField<String>(
-                        value: _selectedArea,
-                        decoration: InputDecoration(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                        ),
-                        items: _areas.map((a) => DropdownMenuItem(value: a, child: Text(a))).toList(),
-                        onChanged: (val) {
-                          if (val != null) setState(() => _selectedArea = val);
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+            const SizedBox(height: AppSpacing.m),
+            _dropdown(
+              label: 'Division',
+              value: _division,
+              items: AppConstants.divisions,
+              onChanged: (v) => setState(() {
+                _division = v;
+                _district = _districts.first;
+              }),
             ),
-            const SizedBox(height: 16),
-
-            // Address
-            const Text('Address', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-            const SizedBox(height: 6),
-            TextFormField(
-              controller: _fullAddressController,
+            const SizedBox(height: AppSpacing.m),
+            _TwoColumns(
+              left: _dropdown(
+                key: ValueKey('district-$_division'),
+                label: 'District',
+                value: _district,
+                items: _districts,
+                onChanged: (v) => setState(() => _district = v),
+              ),
+              right: AppTextField(
+                label: 'Area',
+                labelStyle: labelStyle,
+                controller: _area,
+                hint: 'e.g. Dhanmondi',
+                height: _fieldHeight,
+                textCapitalization: TextCapitalization.words,
+                textInputAction: TextInputAction.next,
+                validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.m),
+            AppTextField(
+              label: 'Address',
+              labelStyle: labelStyle,
+              controller: _addressLine,
+              hint: 'House, road, building, landmark',
               maxLines: 2,
-              decoration: InputDecoration(
-                hintText: 'House, road, building, landmark',
-                hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-              ),
-              validator: (v) => v == null || v.trim().isEmpty ? 'Address required' : null,
+              minLines: 2,
+              textCapitalization: TextCapitalization.sentences,
+              validator: (v) => (v == null || v.trim().length < 5) ? 'Enter your full address' : null,
             ),
-            const SizedBox(height: 16),
-
-            // Label Choice Chips
-            const Text('Label', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-            const SizedBox(height: 8),
-            Row(
-              children: _labels.map((lbl) {
-                final isSelected = _selectedLabel == lbl;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 10),
-                  child: ChoiceChip(
-                    label: Text(lbl),
-                    selected: isSelected,
-                    selectedColor: const Color(0xFF006B54).withValues(alpha: 0.1),
-                    labelStyle: TextStyle(
-                      color: isSelected ? const Color(0xFF006B54) : Colors.black87,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                      side: BorderSide(
-                        color: isSelected ? const Color(0xFF006B54) : Colors.grey.shade300,
-                      ),
-                    ),
-                    backgroundColor: Colors.white,
-                    onSelected: (_) {
-                      setState(() {
-                        _selectedLabel = lbl;
-                      });
-                    },
-                  ),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 16),
-
-            // Make this my default address Checkbox
-            Row(
+            const SizedBox(height: AppSpacing.m),
+            Text('Label', style: labelStyle),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: AppSpacing.s,
               children: [
-                Checkbox(
-                  value: _isDefault,
-                  activeColor: const Color(0xFF006B54),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                  onChanged: (val) {
-                    setState(() {
-                      _isDefault = val ?? false;
-                    });
-                  },
-                ),
-                const Text(
-                  'Make this my default address',
-                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
-                ),
+                for (final l in _labels)
+                  AppChip(
+                    label: l,
+                    height: 40,
+                    selected: _label == l,
+                    onTap: () => setState(() => _label = l),
+                  ),
               ],
             ),
-            const SizedBox(height: 32),
-
-            // Save Address Button
-            SizedBox(
-              height: 52,
-              child: FilledButton(
-                style: FilledButton.styleFrom(
-                  backgroundColor: const Color(0xFF006B54),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-                onPressed: _isLoading ? null : _saveAddress,
-                child: _isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : Text(
-                        isEditing ? 'Update address' : 'Save address',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-              ),
+            const SizedBox(height: AppSpacing.s),
+            CheckboxListTile(
+              value: _isDefault,
+              onChanged: (v) => setState(() => _isDefault = v ?? false),
+              controlAffinity: ListTileControlAffinity.leading,
+              contentPadding: EdgeInsets.zero,
+              title: Text('Make this my default address', style: AppText.custom(14, FontWeight.w600)),
             ),
           ],
         ),
       ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, AppSpacing.m, 20, AppSpacing.xl),
+          child: AppButton.primary(label: 'Save address', loading: _saving, onPressed: _save),
+        ),
+      ),
+    );
+  }
+}
+
+/// Two fields side by side, stacked when the screen is narrow or the text is large.
+class _TwoColumns extends StatelessWidget {
+  const _TwoColumns({required this.left, required this.right});
+
+  final Widget left;
+  final Widget right;
+
+  @override
+  Widget build(BuildContext context) {
+    final stacked = MediaQuery.sizeOf(context).width < 360 || MediaQuery.textScalerOf(context).scale(1) > 1.2;
+    if (stacked) {
+      return Column(children: [left, const SizedBox(height: AppSpacing.m), right]);
+    }
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(child: left),
+        const SizedBox(width: AppSpacing.m),
+        Expanded(child: right),
+      ],
     );
   }
 }
