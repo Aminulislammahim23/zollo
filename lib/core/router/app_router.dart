@@ -8,6 +8,7 @@ import '../../features/splash/presentation/screens/splash_screen.dart';
 import '../../features/onboarding/presentation/screens/onboarding_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/products/presentation/screens/product_list_screen.dart';
+import '../../features/categories/presentation/screens/categories_screen.dart';
 import '../../features/cart/presentation/screens/cart_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/profile/presentation/screens/edit_profile_screen.dart';
@@ -88,6 +89,13 @@ final GoRouter appRouter = GoRouter(
       },
     ),
     GoRoute(
+      path: '/products',
+      builder: (context, state) => ProductListScreen(
+        categoryId: state.uri.queryParameters['category'],
+        query: state.uri.queryParameters['q'],
+      ),
+    ),
+    GoRoute(
       path: '/product-details',
       builder: (context, state) {
         final product = state.extra as Product;
@@ -147,7 +155,7 @@ final GoRouter appRouter = GoRouter(
           routes: [
             GoRoute(
               path: '/categories',
-              builder: (context, state) => const ProductListScreen(),
+              builder: (context, state) => const CategoriesScreen(),
             ),
           ],
         ),
