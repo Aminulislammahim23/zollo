@@ -210,7 +210,7 @@ class ProfileScreen extends ConsumerWidget {
                       const Divider(height: 1, indent: 16, endIndent: 16),
                       _buildMenuItem(
                         title: 'Address book',
-                        onTap: () {},
+                        onTap: () => context.push('/addresses'),
                       ),
                       const Divider(height: 1, indent: 16, endIndent: 16),
                       _buildMenuItem(

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:zollo/features/auth/domain/providers/auth_provider.dart';
 import 'package:zollo/features/onboarding/presentation/providers/onboarding_provider.dart';
+import 'package:zollo/core/widgets/zollo_logo.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   final Duration splashDelay;
@@ -24,25 +25,20 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   }
 
   Future<void> _initializeAndNavigate() async {
-    // Artificial minimum delay for smooth branding experience & logo display
     final minDelay = Future.delayed(widget.splashDelay);
 
-    // Read onboarding status
     bool isOnboardingCompleted = false;
     try {
       final repository = ref.read(onboardingRepositoryProvider);
       isOnboardingCompleted = await repository.isOnboardingCompleted();
     } catch (_) {
-      // Fallback if SharedPreferences fails
       isOnboardingCompleted = false;
     }
 
-    // Wait for minimum splash delay
     await minDelay;
 
     if (!mounted) return;
 
-    // Determine target route based on onboarding & authentication state
     final currentUser = ref.read(currentUserProvider);
 
     if (!isOnboardingCompleted) {
@@ -66,46 +62,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Spacer(),
-            // Brand Logo Widget
-            Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF5B4BDB), Color(0xFF006B54)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF5B4BDB).withValues(alpha: 0.3),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: const Center(
-                child: Icon(
-                  Icons.shopping_bag_rounded,
-                  size: 52,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            // App Name
-            const Text(
-              'zollo',
-              style: TextStyle(
-                fontSize: 36,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.2,
-                color: Color(0xFF5B4BDB),
-              ),
-            ),
-            const SizedBox(height: 8),
-            // Tagline / Subtitle
+            const ZolloLogo(size: 96, showText: true),
+            const SizedBox(height: 16),
             Text(
               'Your Ultimate Marketplace',
               style: TextStyle(
@@ -115,13 +73,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
               ),
             ),
             const Spacer(),
-            // Loading Indicator
             const SizedBox(
               width: 24,
               height: 24,
               child: CircularProgressIndicator(
                 strokeWidth: 2.5,
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF5B4BDB)),
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF006B54)),
               ),
             ),
             const SizedBox(height: 48),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../providers/order_providers.dart';
 
@@ -37,14 +38,33 @@ class OrderDetailsScreen extends ConsumerWidget {
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              Text(
-                'Order #${order.id}',
-                style: Theme.of(context).textTheme.titleLarge,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Order #${order.id.substring(0, order.id.length > 8 ? 8 : order.id.length)}',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  FilledButton.icon(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFF006B54),
+                    ),
+                    onPressed: () {
+                      context.push('/tracking/${order.id}');
+                    },
+                    icon: const Icon(Icons.local_shipping, size: 16),
+                    label: const Text('Track Order'),
+                  ),
+                ],
               ),
               const SizedBox(height: 8),
               Text('Placed: ${order.createdAt.toLocal()}'),
               const SizedBox(height: 8),
-              Chip(label: Text(order.status.name.toUpperCase())),
+              Chip(
+                label: Text(order.status.name.toUpperCase()),
+                backgroundColor: const Color(0xFF006B54).withValues(alpha: 0.1),
+                labelStyle: const TextStyle(color: Color(0xFF006B54)),
+              ),
               const Divider(height: 32),
               const Text(
                 'Items',

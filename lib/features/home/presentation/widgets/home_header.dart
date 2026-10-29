@@ -14,14 +14,67 @@ class HomeHeader extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'zollo',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.5,
-                ),
+              Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E1E1E),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Positioned(
+                          bottom: 4,
+                          right: 4,
+                          child: Container(
+                            width: 14,
+                            height: 9,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF76D743),
+                              borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(4),
+                                bottomRight: Radius.circular(4),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          top: 8,
+                          left: 4,
+                          child: Container(
+                            width: 11,
+                            height: 7,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF76D743),
+                              borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(3),
+                                bottomRight: Radius.circular(3),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const Icon(
+                          Icons.bolt,
+                          color: Colors.white,
+                          size: 22,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'ZOLLO',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 2.5,
+                    ),
+                  ),
+                ],
               ),
               Container(
                 decoration: BoxDecoration(
@@ -38,7 +91,7 @@ class HomeHeader extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 6),
           Row(
             children: [
               const Icon(

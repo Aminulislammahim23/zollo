@@ -17,6 +17,10 @@ import '../../features/orders/presentation/screens/order_history_screen.dart';
 import '../../features/orders/presentation/screens/order_details_screen.dart';
 import '../../features/orders/presentation/screens/order_confirmation_screen.dart';
 import '../../features/orders/domain/models/order_model.dart';
+import '../../features/tracking/presentation/screens/tracking_screen.dart';
+import '../../features/address/presentation/screens/address_list_screen.dart';
+import '../../features/address/presentation/screens/add_edit_address_screen.dart';
+import '../../features/address/domain/address_model.dart';
 import 'main_scaffold.dart';
 
 final GoRouter appRouter = GoRouter(
@@ -45,6 +49,24 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/wishlist',
       builder: (context, state) => const WishlistScreen(),
+    ),
+    GoRoute(
+      path: '/addresses',
+      builder: (context, state) {
+        final isSelecting = state.uri.queryParameters['select'] == 'true';
+        return AddressListScreen(isSelecting: isSelecting);
+      },
+    ),
+    GoRoute(
+      path: '/add-address',
+      builder: (context, state) => const AddEditAddressScreen(),
+    ),
+    GoRoute(
+      path: '/edit-address',
+      builder: (context, state) {
+        final address = state.extra as Address;
+        return AddEditAddressScreen(address: address);
+      },
     ),
     GoRoute(
       path: '/product-details',
@@ -78,6 +100,13 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) {
         final order = state.extra as OrderModel;
         return OrderConfirmationScreen(order: order);
+      },
+    ),
+    GoRoute(
+      path: '/tracking/:orderId',
+      builder: (context, state) {
+        final orderId = state.pathParameters['orderId']!;
+        return TrackingScreen(orderId: orderId);
       },
     ),
     StatefulShellRoute.indexedStack(
