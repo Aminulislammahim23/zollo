@@ -8,6 +8,8 @@ import '../../../../core/theme/app_text.dart';
 import '../../../../core/widgets/search_field.dart';
 import '../../../address/presentation/providers/address_provider.dart';
 import '../../../auth/domain/providers/auth_provider.dart';
+import '../../../notifications/presentation/providers/notification_providers.dart';
+import '../../../../core/widgets/app_bottom_nav.dart';
 
 class HomeHeader extends ConsumerWidget {
   const HomeHeader({super.key});
@@ -16,6 +18,7 @@ class HomeHeader extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
     final address = user == null ? null : ref.watch(defaultAddressProvider).value;
+    final unread = ref.watch(unreadNotificationCountProvider);
 
     final String deliverTo;
     final VoidCallback onDeliverTap;
@@ -84,13 +87,16 @@ class HomeHeader extends ConsumerWidget {
                 ),
               ),
               IconButton(
-                tooltip: 'Notifications',
+                tooltip: unread > 0 ? 'Notifications, $unread unread' : 'Notifications',
                 onPressed: () => context.push('/notifications'),
                 style: IconButton.styleFrom(
                   backgroundColor: AppColors.primaryOnDark,
                   minimumSize: const Size.square(44),
                 ),
-                icon: const Icon(Icons.notifications_none, color: AppColors.white, size: AppSpacing.iconBar),
+                icon: CartBadge(
+                  count: unread,
+                  child: const Icon(Icons.notifications_none, color: AppColors.white, size: AppSpacing.iconBar),
+                ),
               ),
             ],
           ),

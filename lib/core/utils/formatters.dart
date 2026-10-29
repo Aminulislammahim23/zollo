@@ -71,3 +71,13 @@ String formatOrderNumber(String id) {
   final short = clean.length > 6 ? clean.substring(0, 6) : clean;
   return '#ZL-$short';
 }
+
+/// `just now`, `5m ago`, `3h ago`, `2d ago`, then `13 Oct`.
+String formatRelative(DateTime date, {DateTime? now}) {
+  final diff = (now ?? DateTime.now()).difference(date);
+  if (diff.inMinutes < 1) return 'just now';
+  if (diff.inHours < 1) return '${diff.inMinutes}m ago';
+  if (diff.inDays < 1) return '${diff.inHours}h ago';
+  if (diff.inDays < 7) return '${diff.inDays}d ago';
+  return formatDate(date);
+}
