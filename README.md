@@ -177,31 +177,155 @@ Home / Product List → Product Details → Add to Cart → Cart
 
 ```
 lib/
-├── main.dart                    # Bootstrap: Supabase, SharedPreferences, ProviderScope
-├── app.dart
+├── main.dart                                   # Bootstrap: Supabase.initialize, SharedPreferences, ProviderScope, MyApp (MaterialApp.router)
+├── app.dart                                    # Empty placeholder
+│
 ├── core/
 │   ├── router/
-│   │   ├── app_router.dart      # GoRouter config (all routes + shell)
-│   │   └── main_scaffold.dart   # Bottom navigation shell
+│   │   ├── app_router.dart                     # GoRouter config: all routes + StatefulShellRoute (bottom tabs)
+│   │   └── main_scaffold.dart                  # Bottom navigation shell (Home, Categories, Cart, Account)
 │   ├── supabase/
-│   │   ├── supabase_client.dart
-│   │   └── supabase_test_screen.dart
-│   ├── theme/app_theme.dart
-│   └── widgets/zollo_logo.dart
+│   │   ├── supabase_client.dart                # Global `supabase` client accessor
+│   │   └── supabase_test_screen.dart           # Debug screen to verify Supabase connection
+│   ├── theme/
+│   │   └── app_theme.dart                      # AppTheme.light (Material 3, seed #5B4BDB)
+│   └── widgets/
+│       └── zollo_logo.dart                     # Reusable brand logo widget
+│
 └── features/
-    ├── splash/        presentation/screens
-    ├── onboarding/    data · presentation (providers, screens, widgets)
-    ├── auth/          data/repositories · domain/providers · presentation (screens, widgets)
-    ├── home/          presentation (home_screen + header, banner, categories, flash sale, just-for-you)
-    ├── products/      data/repositories · domain/models · presentation (providers, screens, widgets)
-    ├── cart/          domain/models · presentation (providers, screens, widgets)
-    ├── wishlist/      data · domain · presentation (providers, screens, widgets)
-    ├── address/       data · domain · presentation (providers, screens, widgets)
-    ├── checkout/      models · screens
-    ├── orders/        data/repositories · domain/models · presentation (providers, screens)
-    ├── tracking/      data · domain · providers · presentation (screens, widgets)
-    ├── reviews/       data · domain · providers · presentation (screens, widgets)
-    └── profile/       presentation/screens (profile, edit profile)
+    ├── splash/
+    │   └── presentation/screens/
+    │       └── splash_screen.dart              # Logo + delay, routes to onboarding / login / home
+    │
+    ├── onboarding/
+    │   ├── data/
+    │   │   └── onboarding_repository.dart      # SharedPreferences flag (get / set / clear)
+    │   └── presentation/
+    │       ├── providers/onboarding_provider.dart   # sharedPreferencesProvider, onboardingRepositoryProvider, OnboardingController
+    │       ├── screens/onboarding_screen.dart       # PageView with Next / Skip / Get Started
+    │       └── widgets/onboarding_page.dart         # Single onboarding slide
+    │
+    ├── auth/
+    │   ├── data/repositories/
+    │   │   └── auth_repository.dart            # Supabase signUp, signIn, updateProfile, signOut, authStateChanges
+    │   ├── domain/providers/
+    │   │   └── auth_provider.dart              # authRepositoryProvider, authStateProvider, currentUserProvider, AuthController
+    │   └── presentation/
+    │       ├── screens/login_screen.dart       # Email/password login
+    │       ├── screens/signup_screen.dart      # Registration with full name
+    │       └── widgets/auth_form_field.dart    # Shared text field for auth forms
+    │
+    ├── home/
+    │   └── presentation/
+    │       ├── home_screen.dart                # Composes all home sections
+    │       └── widgets/
+    │           ├── home_header.dart            # Top header / search bar
+    │           ├── promo_banner.dart           # Swipeable promo carousel (PageView)
+    │           ├── category_row.dart           # Category shortcuts
+    │           ├── flash_sale_section.dart     # Countdown + horizontal product list
+    │           └── just_for_you_section.dart   # Recommended product grid
+    │
+    ├── products/
+    │   ├── data/repositories/
+    │   │   └── product_repository.dart         # Fetch products (+ categories join) with fallback queries
+    │   ├── domain/models/
+    │   │   └── product.dart                    # Product model, multi-format fromJson
+    │   └── presentation/
+    │       ├── providers/products_provider.dart       # productRepositoryProvider, productsProvider
+    │       ├── screens/product_list_screen.dart       # Search bar + filter chips + product list
+    │       ├── screens/product_details_screen.dart    # Details, color selection, add to cart, reviews
+    │       └── widgets/product_card.dart              # Product tile used in lists/grids
+    │
+    ├── cart/
+    │   ├── domain/models/
+    │   │   └── cart_item.dart                  # CartItem (product, quantity, subtotal)
+    │   └── presentation/
+    │       ├── providers/cart_provider.dart    # CartController + cartItemCountProvider, cartSubtotalProvider
+    │       ├── screens/cart_screen.dart        # Cart list, totals, checkout button, empty state
+    │       └── widgets/cart_item_tile.dart     # Cart row with +/- and remove
+    │
+    ├── wishlist/
+    │   ├── data/
+    │   │   └── wishlist_repository.dart        # Supabase `wishlist` table: getProductIds, add, remove
+    │   ├── domain/
+    │   │   └── wishlist_item.dart              # WishlistItem model
+    │   └── presentation/
+    │       ├── providers/wishlist_provider.dart     # WishlistNotifier (AsyncNotifier<Set<String>>)
+    │       ├── screens/wishlist_screen.dart         # Saved products list
+    │       └── widgets/wishlist_button.dart         # Heart toggle button
+    │
+    ├── address/
+    │   ├── data/
+    │   │   └── address_repository.dart         # Supabase `addresses` CRUD + setDefaultAddress
+    │   ├── domain/
+    │   │   └── address_model.dart              # Address model (division, district, label, isDefault …)
+    │   └── presentation/
+    │       ├── providers/address_provider.dart         # addressRepositoryProvider, AddressListNotifier, defaultAddressProvider
+    │       ├── screens/address_list_screen.dart        # Address book (normal + select mode)
+    │       ├── screens/add_edit_address_screen.dart    # Add / edit address form
+    │       └── widgets/address_card.dart               # Address list item
+    │
+    ├── checkout/
+    │   ├── models/
+    │   │   └── checkout_order.dart             # PaymentMethod enum, CheckoutOrder
+    │   └── screens/
+    │       └── checkout_screen.dart            # Address + payment selection, validation, place order
+    │
+    ├── orders/
+    │   ├── data/repositories/
+    │   │   ├── order_repository.dart           # Abstract interface: saveOrder, getOrderById, getOrders
+    │   │   └── supabase_order_repository.dart  # Supabase implementation (orders + order_items, schema-tolerant)
+    │   ├── domain/models/
+    │   │   └── order_model.dart                # OrderStatus enum, OrderItem, OrderModel
+    │   └── presentation/
+    │       ├── providers/order_provider.dart          # orderRepositoryProvider, orderHistoryProvider, orderByIdProvider, PlaceOrderController
+    │       ├── providers/order_providers.dart         # Empty stub
+    │       ├── screens/order_confirmation_screen.dart # Success screen after placing order
+    │       ├── screens/order_history_screen.dart      # List of user's orders
+    │       └── screens/order_details_screen.dart      # Single order details
+    │
+    ├── tracking/
+    │   ├── data/
+    │   │   └── tracking_repository.dart        # Supabase `shipments` + `tracking_events`
+    │   ├── domain/
+    │   │   ├── tracking_event_model.dart       # ShipmentStatus enum, TrackingEvent, Shipment
+    │   │   └── shipment_model.dart             # Empty stub
+    │   ├── providers/
+    │   │   └── tracking_provider.dart          # trackingRepositoryProvider + shipment/event providers
+    │   └── presentation/
+    │       ├── screens/tracking_screen.dart    # Shipment tracking screen
+    │       └── widgets/tracking_timeline.dart  # Vertical event timeline
+    │
+    ├── reviews/
+    │   ├── data/
+    │   │   └── review_repository.dart          # getReviews, hasUserCompletedOrderForProduct, submitReview (upsert)
+    │   ├── domain/
+    │   │   └── review.dart                     # ProductReview model
+    │   ├── providers/
+    │   │   └── review_providers.dart           # reviewRepositoryProvider, productReviewsProvider, canUserReviewProvider
+    │   └── presentation/
+    │       ├── screens/product_reviews_screen.dart  # All reviews of a product
+    │       └── widgets/rating_stars.dart            # Star rating display/input
+    │
+    └── profile/
+        └── presentation/screens/
+            ├── profile_screen.dart             # Account tab: header, order shortcuts, menu, logout
+            └── edit_profile_screen.dart        # Update full name / phone
+
+test/
+├── widget_test.dart                            # App smoke test
+├── product_test.dart                           # Product.fromJson formats
+├── e2e_marketplace_test.dart                   # Product, cart and order calculations
+├── workflow_test.dart                          # Product & order providers with fake repos
+├── core/router/
+│   └── router_navigation_test.dart             # Splash → Onboarding → Login / Home flows
+└── features/
+    ├── splash/splash_screen_test.dart
+    ├── onboarding/onboarding_repository_test.dart
+    ├── onboarding/onboarding_screen_test.dart
+    ├── tracking/tracking_test.dart
+    ├── wishlist/wishlist_repository_test.dart  # Placeholder
+    └── wishlist/wishlist_provider_test.dart    # Placeholder
 ```
 
 ---
