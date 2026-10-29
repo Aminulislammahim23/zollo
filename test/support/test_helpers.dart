@@ -169,3 +169,10 @@ GoRoute stubRoute(String path, [String? label]) => GoRoute(
       path: path,
       builder: (context, state) => Scaffold(body: Text(label ?? 'Route $path')),
     );
+
+/// A tall phone-width surface so long scrolling screens build fully.
+void useTallViewport(WidgetTester tester, {double width = 400, double height = 1600}) {
+  tester.view.physicalSize = Size(width, height);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
+}

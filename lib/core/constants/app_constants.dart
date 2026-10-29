@@ -14,6 +14,9 @@ abstract final class AppConstants {
 
   static const int returnWindowDays = 7;
 
+  /// Upper bound of "arrives in 2–4 days"; the return window starts on delivery.
+  static const int maxDeliveryDays = 4;
+
   static const List<String> divisions = [
     'Dhaka',
     'Chattogram',
