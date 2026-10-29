@@ -1,17 +1,19 @@
 # zollo
 
-**zollo** is an e-commerce marketplace app built with Flutter. It uses Supabase for authentication and data, Riverpod for state management, and GoRouter for navigation. Users can browse products, manage a cart and wishlist, check out with a saved address, view order history, track shipments, and review products they've bought.
+**zollo** is an e-commerce marketplace app for Bangladesh, built with Flutter. It uses Supabase for authentication and data, Riverpod for state, and GoRouter for navigation. Shoppers can browse and search products, keep a cart and wishlist, check out with cash on delivery, follow their orders, review products, and manage their account.
+
+The UI follows the design spec in [docs/ui_build_plan.md](docs/ui_build_plan.md): one set of colour, type and spacing tokens, shared widgets, and a written spec for each screen.
 
 ---
 
 ## Table of Contents
 
 - [Tech Stack](#tech-stack)
+- [Design System](#design-system)
 - [Features](#features)
 - [Architecture](#architecture)
 - [Project Structure](#project-structure)
 - [Navigation & Routes](#navigation--routes)
-- [State Management](#state-management)
 - [Backend (Supabase)](#backend-supabase)
 - [Getting Started](#getting-started)
 - [Testing](#testing)
@@ -21,154 +23,93 @@
 
 ## Tech Stack
 
-| Concern            | Package                                   |
-| ------------------ | ----------------------------------------- |
-| Framework          | Flutter (Dart SDK `^3.13.5`), Material 3  |
-| State management   | `flutter_riverpod` ^3.4.3                 |
-| Routing            | `go_router` ^18.1.1                       |
-| Backend / Auth / DB| `supabase_flutter` ^2.18.3                |
-| Local storage      | `shared_preferences` ^2.2.2               |
-| ID generation      | `uuid` ^4.6.0                             |
-| Also declared      | `dio`, `cached_network_image` (not used in `lib/` yet) |
-| Linting            | `flutter_lints` ^6.0.0                    |
+| Concern             | Package                                          |
+| ------------------- | ------------------------------------------------ |
+| Framework           | Flutter (Dart SDK `^3.13.5`), Material 3         |
+| State management    | `flutter_riverpod` ^3.4.3                        |
+| Routing             | `go_router` ^18.1.1                              |
+| Backend / Auth / DB | `supabase_flutter` ^2.18.3                       |
+| Images              | `cached_network_image` ^4.0.5                    |
+| Local storage       | `shared_preferences` ^2.2.2                      |
+| Links / email       | `url_launcher` ^6.3.3                            |
+| IDs                 | `uuid` ^4.6.0                                    |
+| Font                | Manrope (bundled variable font, OFL licence)     |
 
-Supported platforms (scaffolded): Android, iOS, Web, macOS, Windows, Linux.
+---
+
+## Design System
+
+Everything lives in `lib/core/theme/` and `lib/core/widgets/`. Screens use these tokens only; no screen file contains a raw colour or font size.
+
+- **Colours** (`AppColors`): primary `#8A1C5E` (plum), accent `#F5B301` (deal yellow), deep `#2A1023` (campaign banners), ink and muted greys, plus status colours (`warning`, `error`, `discountBg`, …).
+- **Type** (`AppText`): Manrope, with `display`, `headline`, `title`, `section`, `body`, `caption`, `price`, `priceOld` and named helper styles.
+- **Spacing and shape** (`AppSpacing`, `AppRadius`, `AppBorders`): 4 / 8 / 12 / 16 / 24 / 32 spacing; radius 12 for buttons and inputs, 14 for cards, 16 for banners, 10 for tiles. The style is flat, with no shadows.
+- **Helpers**: `formatTaka(2450)` → `৳2,450`, `formatSold`, `formatDate`, `formatRelative`, `formatOrderNumber`. `AppConstants.deliveryFee = 60` is the single source for the delivery fee.
+- **Shared widgets**: `AppButton` (primary / outline / deal / danger, loading state), `AppTextField`, `PasswordField`, `PhoneField` (+880, BD validation), `SearchField`, `AppChip`, `DiscountBadge`, `PriceText`, `RatingRow`, `ProductCard`, `SliverProductGrid`, `QuantityStepper`, `SectionHeader`, `AppTopBar`, `InfoCard`, `EmptyState`, `ErrorView`, `ShimmerBox`, `StatusText`, `AppBottomNav`, `CartIconButton`, `DashedBorder`, `ZolloLogo`.
+- **Style preview**: in debug builds, `/style-preview` shows every colour, text style and widget on one screen.
+
+Every screen handles loading (shimmer), empty (`EmptyState`) and error (`ErrorView` with *Try again*) states. Icon-only buttons have tooltips, and a test renders every screen at 360dp width with 1.3× text without overflow.
 
 ---
 
 ## Features
 
-### 1. Splash
-- Branded splash screen with the `ZolloLogo`, a tagline and a progress indicator.
-- Waits at least 1.5s, then decides where to go:
-  - onboarding not done → `/onboarding`
-  - signed in → `/home`
-  - otherwise → `/login`
+### Start-up and account access
+- **Splash**: plum brand screen; after 1.5s it routes to onboarding, home or login.
+- **Onboarding**: 3 slides (products, payments, tracking) with Skip / Next / Get started. Completion is saved in SharedPreferences.
+- **Log in / Sign up**: inline validation, plain-language Supabase errors, an optional BD phone saved to user metadata, a password strength bar, a required terms checkbox, a "Check your email" state when confirmation is on, and *Continue as guest*.
+- **Forgot password**: sends a Supabase reset email, then shows a "Check your inbox" state.
+- **Change password**: re-authenticates first, shows a live rules checklist, and can log out other devices.
 
-### 2. Onboarding
-- Multi-page `PageView` intro ("Discover Products", …) with **Next**, **Skip** and **Get Started**.
-- Completion is saved in `SharedPreferences` (`OnboardingRepository`), so it only shows once. Logging out does **not** reset it.
+### Shopping
+- **Home**: a header with "Deliver to <area>" and a notification bell with an unread badge; campaign banner carousel; categories from Supabase; a flash sale with a live countdown and stock bars; a "Just for you" grid; pull to refresh.
+- **Categories tab**: a category rail on the left and a panel on the right with products and "See all".
+- **Product list** (`/products?category=&q=`): live search, Popular / price ↑↓ sorting, a 4★ & up filter, a filter sheet (price range + categories) and a result count.
+- **Search**: suggestions with the matched text highlighted (300ms debounce), up to 8 recent searches with Clear, and a trending list.
+- **Product details**: image header (back / share / cart / wishlist), discount badge, colour options, delivery info, review summary, a collapsible description, and a sticky bar with chat / Add to cart / Buy now (or Out of stock).
+- **Reviews**: average rating with a star distribution, review cards, and *Write a review* (shown only to verified buyers).
+- **Wishlist**: saved in Supabase; Move to cart; out-of-stock badge.
 
-### 3. Authentication
-- Email/password **Sign Up** (stores `full_name` in user metadata) and **Login** through Supabase Auth.
-- `authStateProvider` streams auth state changes; `currentUserProvider` gives the current `User`.
-- Shared `AuthFormField` widget for the forms.
-- Logout from the Account screen.
+### Cart, checkout and orders
+- **Cart**: quantity stepper limited by stock, colour variant on each line, an Edit mode for bulk delete, a voucher row (coming soon), and a total including delivery.
+- **Checkout**: address card (change or add), package card, Cash on delivery (bKash / Nagad / card shown as *coming soon*), and a summary. The total equals subtotal + delivery and matches the saved order.
+- **Order confirmation**: order number, item count, total, payment and address, with Track / Continue shopping.
+- **My orders**: tabs (All / Processing / Shipped / Delivered / Cancelled), deep links such as `?tab=shipped`, and a per-status action (Track / Write review / Details).
+- **Order details**: status banner, items, delivery and payment cards, Track, *Request a return*, and *Need help?*.
+- **Tracking**: status card plus a timeline built from shipment events, or derived from the order status when there are none.
+- **Return request**: item picker, reason, details, photo placeholder and refund method.
 
-### 4. Home
-- `HomeHeader` (search/branding header)
-- `PromoBanner`: swipeable promo carousel (`PageView`)
-- `CategoryRow`: category shortcuts
-- `FlashSaleSection`: countdown timer UI plus a horizontal product list
-- `JustForYouSection`: product grid
-
-### 5. Products
-- Products load from the Supabase `products` table, joined with `categories(name)`. Only `is_active` products are shown, newest first.
-- **Fallback queries** keep it working on simpler schemas: if the main query fails, it retries without the `is_active` filter, then with a plain `select *`.
-- `Product.fromJson` accepts both the legacy JSON shape and Supabase rows (e.g. `stock_quantity` / `stock` / `quantity`).
-- **Product List screen** (Categories tab): search bar and filter chips (Popular, Price, Brand, 4★ & up, Free delivery), shown with `ProductCard`.
-- **Product Details screen**: image header with back/share/cart buttons, price and discount badge, rating, **color selection** (Black / White / Navy), stock-aware add to cart, and an inline reviews section.
-
-### 6. Cart
-- In-memory cart (`CartController`, a `Notifier<Map<String, CartItem>>`) keyed by product ID.
-- Add, increment, decrement (removes the item at 0), remove and clear.
-- **Stock guard**: quantity can never go above `product.stock`.
-- Derived providers: `cartItemCountProvider`, `cartSubtotalProvider`.
-- Flat delivery fee (৳60) is added to the total; there's an empty-cart state.
-
-### 7. Wishlist
-- Wishlist is stored in the Supabase `wishlist` table (`product_id` per user).
-- `WishlistNotifier` (`AsyncNotifier<Set<String>>`) handles add (upsert) and remove.
-- Reusable `WishlistButton` (heart toggle), a Wishlist screen, and a wishlist count on the Account screen.
-
-### 8. Address Book
-- Full CRUD on the Supabase `addresses` table: list, add, edit, delete.
-- Fields: full name, phone, address line, area, district, division, city, postal code, country, and a label (Home / Office / Other).
-- Bangladesh-specific division and district pickers (Dhaka, Chattogram, Sylhet, Rajshahi …).
-- **Default address** support (`setDefaultAddress`, `defaultAddressProvider`).
-- **Selection mode** (`/addresses?select=true`) for picking an address during checkout.
-
-### 9. Checkout
-- Uses the default address, or another one you pick from the address book.
-- Payment method: **Cash on Delivery** (default) or **Online**.
-- Checks before placing: address present, cart not empty, user signed in.
-- Saves a **snapshot of the shipping address** as a string on the order, so editing the address later doesn't change past orders.
-- Builds an `OrderModel` (UUID v4 ID, status `pending`) and submits it through `PlaceOrderController`. When it succeeds, the cart is cleared and you go to Order Confirmation.
-
-### 10. Orders
-- `OrderRepository` interface with a `SupabaseOrderRepository` implementation.
-- Saves to the `orders` table, with items stored inline or in an `order_items` table.
-- **Schema-tolerant inserts**: if the DB rejects the `items` or `total_amount` columns, it retries without them and writes `order_items` separately.
-- Screens: **Order Confirmation**, **Order History**, **Order Details** (`/order-details/:orderId`).
-- `OrderStatus`: `pending → confirmed → processing → shipped → delivered` or `cancelled`.
-- Providers: `orderHistoryProvider` (alias `myOrdersProvider`), `orderByIdProvider` / `orderDetailsProvider` (family), `placeOrderProvider`.
-
-### 11. Shipment Tracking
-- Reads shipments for an order from `shipments`, and their events from `tracking_events`.
-- `Shipment` has a tracking number, courier, status, estimated delivery date and its list of events, sorted by time.
-- `ShipmentStatus`: `pending, pickedUp, inTransit, outForDelivery, delivered, exception`.
-- `TrackingTimeline` widget shows the events as a vertical timeline (`/tracking/:orderId`).
-
-### 12. Product Reviews & Ratings
-- Reviews are stored in the `product_reviews` table (rating 1–5 plus an optional comment), one per user per product (upsert).
-- **Verified-purchase gate**: you can only review a product that's in one of your orders that has reached the required status (`canUserReviewProvider`).
-- `RatingStars` widget and a `ProductReviewsScreen`. You can also submit a review from Product Details.
-
-### 13. Profile / Account
-- Profile header with **Edit Profile** (updates `full_name` / `phone` in Supabase user metadata).
-- Order status shortcuts that open Order History.
-- Menu: Wishlist (with count), Address book, My vouchers, Messages, Notifications, Help center, Settings, Sell on zollo, Logout.
-
-### 14. Core / Shared
-- `AppTheme.light`: Material 3, seed color `#5B4BDB`. The bottom nav accent is `#006B54`.
-- `MainScaffold`: bottom navigation bar with 4 tabs (Home, Categories, Cart, Account).
-- `ZolloLogo`: reusable brand widget.
-- `supabase_client.dart`: global `supabase` client accessor.
-- `supabase_test_screen.dart`: a debug screen for checking the Supabase connection.
+### Account
+- **Account tab**: profile header (or a log-in prompt for guests), order shortcuts, and menu rows for wishlist, vouchers, addresses, messages, notifications, help, settings and selling.
+- **Edit profile**: name, BD phone, and the email with a *Verified* tag.
+- **Address book**: all 8 divisions with their districts, Home / Office / Other labels, default address, select mode for checkout, and swipe to delete.
+- **Vouchers**: ticket cards and code entry (try `ZOLLO50`).
+- **Notifications**: All / Orders / Promotions tabs, Mark all read, and deep links.
+- **Messages and chat**: conversation list with unread badges; chat room with a product context card, bubbles and day chips.
+- **Settings**: English / বাংলা choice and notification toggles (both saved on the device), change password, policy links, log out, and delete account (through support).
 
 ---
 
 ## Architecture
 
-The app is organized **feature-first**, with a light **Clean Architecture** layering inside each feature:
+The app is organised **feature-first**, with light Clean Architecture layers inside each feature:
 
 ```
-┌──────────────────────────────────────────────────────────┐
-│ presentation/  screens · widgets · providers (Riverpod)   │  UI + state
-├──────────────────────────────────────────────────────────┤
-│ domain/        models / entities (+ enums, fromJson)      │  Business objects
-├──────────────────────────────────────────────────────────┤
-│ data/          repositories (Supabase / SharedPreferences)│  Data access
-└──────────────────────────────────────────────────────────┘
+presentation/  screens · widgets · providers (Riverpod)   ← UI and state
+domain/        models, enums, pure logic (e.g. ProductFilter)
+data/          repositories (Supabase / SharedPreferences / fakes)
 ```
 
-Key ideas:
-
-- **Repository pattern**: each feature talks to Supabase only through a repository class (`ProductRepository`, `AddressRepository`, `WishlistRepository`, `ReviewRepository`, `TrackingRepository`, `AuthRepository`, `OnboardingRepository`). The orders feature goes one step further with an **abstract interface** (`OrderRepository`) and a concrete `SupabaseOrderRepository`, which makes it easy to swap in a fake for tests.
-- **Dependency injection with Riverpod**: every repository is exposed through a `Provider`, so tests can override it (`overrideWithValue` / fake repositories). `SharedPreferences` is created in `main()` and injected by overriding `sharedPreferencesProvider`.
-- **Reactive UI**: screens are `ConsumerWidget` / `ConsumerStatefulWidget` and `watch` `FutureProvider` / `AsyncNotifier` state, with loading, error and data states handled through `AsyncValue.when`.
-- **Derived state**: values like cart count and subtotal are computed providers, not stored separately.
-- **Resilient data layer**: fallback queries and multi-format `fromJson` keep the app running while the Supabase schema is still changing.
-- **Declarative routing**: a single `GoRouter` with a `StatefulShellRoute.indexedStack`, so each bottom-nav tab keeps its own navigation stack and state.
-
-### App start flow
+- **Repository pattern with DI**: every repository is exposed through a Riverpod `Provider`, so tests swap in fakes with `overrideWithValue`. Orders, search, chat, vouchers, notifications and returns define an **abstract interface**.
+- **Fake repositories for features without a backend yet**: vouchers, notifications, chat (stream based, ready for Supabase Realtime) and returns use `Fake…Repository` classes marked `// TODO(backend)`. Replacing them doesn't touch the UI.
+- **Reactive auth**: `currentUserProvider` rebuilds on every Supabase auth event. The wishlist, addresses, orders and review eligibility watch it, so they reload on login and logout.
+- **Errors surface immediately**: Riverpod's automatic retry is off (`ProviderScope(retry: …)`), so a failed load shows `ErrorView` with *Try again* instead of spinning.
+- **Derived state**: cart count and subtotal, product lookup by id, unread counts, review summaries.
+- **Routing**: one `GoRouter` with a `StatefulShellRoute.indexedStack` for the 4 bottom tabs (Home, Categories, Cart, Account). Each tab keeps its own stack.
 
 ```
-main()
- ├─ Supabase.initialize(url, publishableKey)   ← --dart-define or default
- ├─ SharedPreferences.getInstance()
- └─ ProviderScope(overrides: [sharedPreferencesProvider])
-      └─ MaterialApp.router(theme: AppTheme.light, routerConfig: appRouter)
-           └─ /splash → /onboarding | /login | /home
-```
-
-### Purchase flow
-
-```
-Home / Product List → Product Details → Add to Cart → Cart
-  → Checkout (address + payment) → PlaceOrderController → Supabase orders/order_items
-  → Order Confirmation → Order History → Order Details → Tracking
-                                             └→ Review (verified purchase)
+main() → Supabase.initialize → SharedPreferences → ProviderScope(retry off)
+      → MaterialApp.router(AppTheme.light, appRouter) → /splash
 ```
 
 ---
@@ -177,275 +118,267 @@ Home / Product List → Product Details → Add to Cart → Cart
 
 ```
 lib/
-├── main.dart                                   # Bootstrap: Supabase.initialize, SharedPreferences, ProviderScope, MyApp (MaterialApp.router)
-├── app.dart                                    # Empty placeholder
-│
+├── main.dart                                   # Bootstrap: Supabase, SharedPreferences, ProviderScope, MyApp
 ├── core/
+│   ├── constants/app_constants.dart            # Delivery fee, URLs, return window, BD divisions → districts
+│   ├── debug/style_preview_screen.dart         # Debug-only /style-preview catalogue
 │   ├── router/
-│   │   ├── app_router.dart                     # GoRouter config: all routes + StatefulShellRoute (bottom tabs)
-│   │   └── main_scaffold.dart                  # Bottom navigation shell (Home, Categories, Cart, Account)
-│   ├── supabase/
-│   │   ├── supabase_client.dart                # Global `supabase` client accessor
-│   │   └── supabase_test_screen.dart           # Debug screen to verify Supabase connection
+│   │   ├── app_router.dart                     # All routes + bottom-nav shell
+│   │   └── main_scaffold.dart                  # Shell scaffold using AppBottomNav with cart badge
 │   ├── theme/
-│   │   └── app_theme.dart                      # AppTheme.light (Material 3, seed #5B4BDB)
+│   │   ├── app_colors.dart                     # Colour tokens
+│   │   ├── app_text.dart                       # Manrope text styles + helpers
+│   │   ├── app_spacing.dart                    # AppSpacing, AppRadius, AppBorders
+│   │   └── app_theme.dart                      # ThemeData built from the tokens
+│   ├── utils/
+│   │   ├── formatters.dart                     # formatTaka, formatSold, formatDate, formatRelative, …
+│   │   └── support.dart                        # contactSupport (mailto), openExternalUrl
 │   └── widgets/
-│       └── zollo_logo.dart                     # Reusable brand logo widget
-│
+│       ├── widgets.dart                        # Barrel export
+│       ├── app_bottom_nav.dart                 # Bottom nav + CartBadge
+│       ├── app_button.dart                     # primary / outline / deal / danger, small size, loading
+│       ├── app_chip.dart                       # Filter / choice chip
+│       ├── app_network_image.dart              # CachedNetworkImage with placeholder + broken icon
+│       ├── app_text_field.dart                 # Labelled input
+│       ├── app_top_bar.dart                    # 64dp app bar with back, subtitle, actions, tabs
+│       ├── cart_icon_button.dart               # Cart icon with count badge
+│       ├── dashed_border.dart                  # Dashed rect / vertical line painters
+│       ├── discount_badge.dart                 # -23% / price drop / out of stock
+│       ├── empty_state.dart                    # Icon + title + message + action
+│       ├── error_view.dart                     # Error state with Try again + error → text
+│       ├── info_card.dart                      # White section card
+│       ├── password_field.dart                 # Show / Hide password
+│       ├── phone_field.dart                    # +880 prefix, BD validation and formatting
+│       ├── price_text.dart                     # Price + struck-through old price
+│       ├── product_card.dart                   # Grid product card
+│       ├── product_grid.dart                   # Content-sized 2-column sliver grid
+│       ├── quantity_stepper.dart               # − value + with stock limits
+│       ├── rating_row.dart                     # ★ rating · sold
+│       ├── search_field.dart                   # Search input / read-only search button
+│       ├── section_header.dart                 # Title + See all
+│       ├── shimmer_box.dart                    # Pulsing skeleton, list and grid skeletons
+│       ├── status_text.dart                    # Coloured order status
+│       └── zollo_logo.dart                     # Wordmark + store mark
 └── features/
-    ├── splash/
-    │   └── presentation/screens/
-    │       └── splash_screen.dart              # Logo + delay, routes to onboarding / login / home
-    │
+    ├── splash/presentation/screens/splash_screen.dart
     ├── onboarding/
-    │   ├── data/
-    │   │   └── onboarding_repository.dart      # SharedPreferences flag (get / set / clear)
+    │   ├── data/onboarding_repository.dart                      # SharedPreferences flag
     │   └── presentation/
-    │       ├── providers/onboarding_provider.dart   # sharedPreferencesProvider, onboardingRepositoryProvider, OnboardingController
-    │       ├── screens/onboarding_screen.dart       # PageView with Next / Skip / Get Started
-    │       └── widgets/onboarding_page.dart         # Single onboarding slide
-    │
+    │       ├── providers/onboarding_provider.dart               # sharedPreferencesProvider, OnboardingController
+    │       ├── screens/onboarding_screen.dart
+    │       └── widgets/onboarding_page.dart
     ├── auth/
-    │   ├── data/repositories/
-    │   │   └── auth_repository.dart            # Supabase signUp, signIn, updateProfile, signOut, authStateChanges
-    │   ├── domain/providers/
-    │   │   └── auth_provider.dart              # authRepositoryProvider, authStateProvider, currentUserProvider, AuthController
+    │   ├── data/repositories/auth_repository.dart               # sign in/up, reset, change password, profile, sign out
+    │   ├── domain/auth_validators.dart                          # Validators, strength, friendly errors
+    │   ├── domain/providers/auth_provider.dart                  # currentUserProvider, AuthController, User helpers
     │   └── presentation/
-    │       ├── screens/login_screen.dart       # Email/password login
-    │       ├── screens/signup_screen.dart      # Registration with full name
-    │       └── widgets/auth_form_field.dart    # Shared text field for auth forms
-    │
-    ├── home/
+    │       ├── screens/login_screen.dart
+    │       ├── screens/signup_screen.dart
+    │       ├── screens/forgot_password_screen.dart
+    │       ├── screens/change_password_screen.dart
+    │       └── widgets/auth_widgets.dart                        # AuthScaffold, rules checklist, strength bar, links
+    ├── home/presentation/
+    │   ├── home_screen.dart
+    │   └── widgets/
+    │       ├── home_header.dart                                 # Deliver-to, bell, search
+    │       ├── promo_banner.dart                                # Campaign carousel
+    │       ├── category_row.dart                                # 4 categories + All
+    │       ├── flash_sale_section.dart                          # Countdown + stock bars
+    │       └── just_for_you_section.dart
+    ├── categories/
+    │   ├── data/category_repository.dart                        # Active categories from Supabase
+    │   ├── domain/category.dart                                 # Model + icon mapping
     │   └── presentation/
-    │       ├── home_screen.dart                # Composes all home sections
-    │       └── widgets/
-    │           ├── home_header.dart            # Top header / search bar
-    │           ├── promo_banner.dart           # Swipeable promo carousel (PageView)
-    │           ├── category_row.dart           # Category shortcuts
-    │           ├── flash_sale_section.dart     # Countdown + horizontal product list
-    │           └── just_for_you_section.dart   # Recommended product grid
-    │
+    │       ├── providers/categories_provider.dart               # categoriesProvider, productsByCategoryProvider
+    │       └── screens/categories_screen.dart                   # Rail + panel (tab 2)
     ├── products/
-    │   ├── data/repositories/
-    │   │   └── product_repository.dart         # Fetch products (+ categories join) with fallback queries
-    │   ├── domain/models/
-    │   │   └── product.dart                    # Product model, multi-format fromJson
+    │   ├── data/repositories/product_repository.dart            # Products with fallback queries
+    │   ├── domain/models/product.dart                           # Product (+ categoryId, originalPrice, soldCount)
+    │   ├── domain/product_filter.dart                           # Search / sort / filter logic
     │   └── presentation/
-    │       ├── providers/products_provider.dart       # productRepositoryProvider, productsProvider
-    │       ├── screens/product_list_screen.dart       # Search bar + filter chips + product list
-    │       ├── screens/product_details_screen.dart    # Details, color selection, add to cart, reviews
-    │       └── widgets/product_card.dart              # Product tile used in lists/grids
-    │
-    ├── cart/
-    │   ├── domain/models/
-    │   │   └── cart_item.dart                  # CartItem (product, quantity, subtotal)
+    │       ├── providers/products_provider.dart                 # productsProvider, productLookupProvider
+    │       ├── screens/product_list_screen.dart
+    │       ├── screens/product_details_screen.dart
+    │       └── widgets/product_filter_sheet.dart                # Price range + category sheet
+    ├── search/
+    │   ├── data/search_repository.dart                          # Recent searches (prefs) + trending
     │   └── presentation/
-    │       ├── providers/cart_provider.dart    # CartController + cartItemCountProvider, cartSubtotalProvider
-    │       ├── screens/cart_screen.dart        # Cart list, totals, checkout button, empty state
-    │       └── widgets/cart_item_tile.dart     # Cart row with +/- and remove
-    │
-    ├── wishlist/
-    │   ├── data/
-    │   │   └── wishlist_repository.dart        # Supabase `wishlist` table: getProductIds, add, remove
-    │   ├── domain/
-    │   │   └── wishlist_item.dart              # WishlistItem model
-    │   └── presentation/
-    │       ├── providers/wishlist_provider.dart     # WishlistNotifier (AsyncNotifier<Set<String>>)
-    │       ├── screens/wishlist_screen.dart         # Saved products list
-    │       └── widgets/wishlist_button.dart         # Heart toggle button
-    │
-    ├── address/
-    │   ├── data/
-    │   │   └── address_repository.dart         # Supabase `addresses` CRUD + setDefaultAddress
-    │   ├── domain/
-    │   │   └── address_model.dart              # Address model (division, district, label, isDefault …)
-    │   └── presentation/
-    │       ├── providers/address_provider.dart         # addressRepositoryProvider, AddressListNotifier, defaultAddressProvider
-    │       ├── screens/address_list_screen.dart        # Address book (normal + select mode)
-    │       ├── screens/add_edit_address_screen.dart    # Add / edit address form
-    │       └── widgets/address_card.dart               # Address list item
-    │
-    ├── checkout/
-    │   ├── models/
-    │   │   └── checkout_order.dart             # PaymentMethod enum, CheckoutOrder
-    │   └── screens/
-    │       └── checkout_screen.dart            # Address + payment selection, validation, place order
-    │
-    ├── orders/
-    │   ├── data/repositories/
-    │   │   ├── order_repository.dart           # Abstract interface: saveOrder, getOrderById, getOrders
-    │   │   └── supabase_order_repository.dart  # Supabase implementation (orders + order_items, schema-tolerant)
-    │   ├── domain/models/
-    │   │   └── order_model.dart                # OrderStatus enum, OrderItem, OrderModel
-    │   └── presentation/
-    │       ├── providers/order_provider.dart          # orderRepositoryProvider, orderHistoryProvider, orderByIdProvider, PlaceOrderController
-    │       ├── providers/order_providers.dart         # Empty stub
-    │       ├── screens/order_confirmation_screen.dart # Success screen after placing order
-    │       ├── screens/order_history_screen.dart      # List of user's orders
-    │       └── screens/order_details_screen.dart      # Single order details
-    │
-    ├── tracking/
-    │   ├── data/
-    │   │   └── tracking_repository.dart        # Supabase `shipments` + `tracking_events`
-    │   ├── domain/
-    │   │   ├── tracking_event_model.dart       # ShipmentStatus enum, TrackingEvent, Shipment
-    │   │   └── shipment_model.dart             # Empty stub
-    │   ├── providers/
-    │   │   └── tracking_provider.dart          # trackingRepositoryProvider + shipment/event providers
-    │   └── presentation/
-    │       ├── screens/tracking_screen.dart    # Shipment tracking screen
-    │       └── widgets/tracking_timeline.dart  # Vertical event timeline
-    │
+    │       ├── providers/search_providers.dart
+    │       └── screens/search_screen.dart
     ├── reviews/
-    │   ├── data/
-    │   │   └── review_repository.dart          # getReviews, hasUserCompletedOrderForProduct, submitReview (upsert)
-    │   ├── domain/
-    │   │   └── review.dart                     # ProductReview model
-    │   ├── providers/
-    │   │   └── review_providers.dart           # reviewRepositoryProvider, productReviewsProvider, canUserReviewProvider
+    │   ├── data/review_repository.dart                          # Reviews + verified-buyer check
+    │   ├── domain/review.dart
+    │   ├── domain/review_summary.dart                           # Average + distribution
+    │   ├── providers/review_providers.dart
     │   └── presentation/
-    │       ├── screens/product_reviews_screen.dart  # All reviews of a product
-    │       └── widgets/rating_stars.dart            # Star rating display/input
-    │
-    └── profile/
-        └── presentation/screens/
-            ├── profile_screen.dart             # Account tab: header, order shortcuts, menu, logout
-            └── edit_profile_screen.dart        # Update full name / phone
+    │       ├── screens/product_reviews_screen.dart
+    │       ├── screens/write_review_screen.dart
+    │       └── widgets/rating_stars.dart
+    ├── wishlist/
+    │   ├── data/wishlist_repository.dart
+    │   ├── domain/wishlist_item.dart
+    │   └── presentation/
+    │       ├── providers/wishlist_provider.dart
+    │       ├── screens/wishlist_screen.dart
+    │       └── widgets/wishlist_button.dart
+    ├── cart/
+    │   ├── domain/models/cart_item.dart                         # CartItem (+ variant)
+    │   └── presentation/
+    │       ├── providers/cart_provider.dart                     # CartController, count, subtotal
+    │       ├── screens/cart_screen.dart
+    │       └── widgets/cart_item_tile.dart
+    ├── checkout/
+    │   ├── models/checkout_order.dart                           # PaymentMethod
+    │   └── screens/checkout_screen.dart
+    ├── orders/
+    │   ├── data/repositories/order_repository.dart              # Interface
+    │   ├── data/repositories/supabase_order_repository.dart
+    │   ├── domain/models/order_model.dart                       # OrderStatus, OrderItem, OrderModel
+    │   └── presentation/
+    │       ├── providers/order_provider.dart                    # history, details, PlaceOrderController
+    │       ├── screens/order_confirmation_screen.dart
+    │       ├── screens/order_history_screen.dart                # Tabs + OrderCard
+    │       ├── screens/order_details_screen.dart
+    │       └── widgets/order_thumbnail.dart
+    ├── tracking/
+    │   ├── data/tracking_repository.dart
+    │   ├── domain/tracking_event_model.dart                     # Shipment, TrackingEvent
+    │   ├── providers/tracking_provider.dart
+    │   └── presentation/
+    │       ├── screens/tracking_screen.dart
+    │       └── widgets/tracking_timeline.dart                   # TimelineStep (from events or status)
+    ├── returns/
+    │   ├── data/return_repository.dart                          # Interface + fake (TODO backend)
+    │   ├── domain/return_request.dart
+    │   └── presentation/
+    │       ├── providers/return_providers.dart
+    │       └── screens/return_request_screen.dart
+    ├── address/
+    │   ├── data/address_repository.dart
+    │   ├── domain/address_model.dart                            # + displayAddress, shortArea
+    │   └── presentation/
+    │       ├── providers/address_provider.dart
+    │       ├── screens/address_list_screen.dart
+    │       ├── screens/add_edit_address_screen.dart
+    │       └── widgets/address_card.dart
+    ├── profile/presentation/screens/
+    │   ├── profile_screen.dart                                  # Account tab
+    │   └── edit_profile_screen.dart
+    ├── vouchers/
+    │   ├── data/voucher_repository.dart                         # Interface + fake (TODO backend)
+    │   ├── domain/voucher.dart
+    │   └── presentation/
+    │       ├── providers/voucher_providers.dart
+    │       └── screens/vouchers_screen.dart
+    ├── notifications/
+    │   ├── data/notification_repository.dart                    # Interface + fake (TODO backend)
+    │   ├── domain/app_notification.dart
+    │   └── presentation/
+    │       ├── providers/notification_providers.dart            # + unread count
+    │       └── screens/notifications_screen.dart
+    ├── chat/
+    │   ├── data/chat_repository.dart                            # Stream interface + fake (TODO backend)
+    │   ├── domain/chat_models.dart                              # Conversation, ChatMessage
+    │   └── presentation/
+    │       ├── providers/chat_providers.dart
+    │       ├── screens/messages_screen.dart
+    │       └── screens/chat_room_screen.dart
+    └── settings/
+        ├── data/settings_repository.dart                        # Locale + notification prefs
+        └── presentation/
+            ├── providers/settings_providers.dart
+            └── screens/settings_screen.dart
+
+assets/fonts/Manrope/                       # Manrope[wght].ttf + OFL licence
+docs/ui_build_plan.md                       # Design tokens, rules and per-screen spec
 
 test/
-├── widget_test.dart                            # App smoke test
-├── product_test.dart                           # Product.fromJson formats
-├── e2e_marketplace_test.dart                   # Product, cart and order calculations
-├── workflow_test.dart                          # Product & order providers with fake repos
-├── core/router/
-│   └── router_navigation_test.dart             # Splash → Onboarding → Login / Home flows
-└── features/
-    ├── splash/splash_screen_test.dart
-    ├── onboarding/onboarding_repository_test.dart
-    ├── onboarding/onboarding_screen_test.dart
-    ├── tracking/tracking_test.dart
-    ├── wishlist/wishlist_repository_test.dart  # Placeholder
-    └── wishlist/wishlist_provider_test.dart    # Placeholder
+├── support/test_helpers.dart               # Fakes (auth, wishlist), sample data, pumpRoutes, tall viewport
+├── core/                                   # formatters, shared widgets, router flow
+├── features/<feature>/…                    # Screen + provider tests per feature
+├── layout_scaling_test.dart                # All 30 screens at 360dp and 1.3× text
+├── e2e_marketplace_test.dart, workflow_test.dart, product_test.dart, widget_test.dart
 ```
 
 ---
 
 ## Navigation & Routes
 
-| Route                         | Screen                    | Notes                                   |
-| ----------------------------- | ------------------------- | --------------------------------------- |
-| `/splash`                     | SplashScreen              | Initial location                        |
-| `/onboarding`                 | OnboardingScreen          |                                         |
-| `/login`, `/signup`           | Login / Signup            |                                         |
-| `/home`                       | HomeScreen                | Shell tab 1                             |
-| `/categories`                 | ProductListScreen         | Shell tab 2                             |
-| `/cart`                       | CartScreen                | Shell tab 3                             |
-| `/account`                    | ProfileScreen             | Shell tab 4                             |
-| `/edit-profile`               | EditProfileScreen         |                                         |
-| `/wishlist`                   | WishlistScreen            |                                         |
-| `/addresses?select=true`      | AddressListScreen         | `select=true` → picker mode             |
-| `/add-address`                | AddEditAddressScreen      |                                         |
-| `/edit-address`               | AddEditAddressScreen      | `extra: Address`                        |
-| `/product-details`            | ProductDetailsScreen      | `extra: Product`                        |
-| `/checkout`                   | CheckoutScreen            | `extra: {subtotal, deliveryCharge}`     |
-| `/order-confirmation`         | OrderConfirmationScreen   | `extra: OrderModel`                     |
-| `/order-history`              | OrderHistoryScreen        |                                         |
-| `/order-details/:orderId`     | OrderDetailsScreen        |                                         |
-| `/tracking/:orderId`          | TrackingScreen            |                                         |
-
----
-
-## State Management
-
-| Provider                                   | Type                                  | Purpose                         |
-| ------------------------------------------ | ------------------------------------- | ------------------------------- |
-| `sharedPreferencesProvider`                | `Provider<SharedPreferences>`         | Overridden in `main()`          |
-| `onboardingRepositoryProvider` / `OnboardingController` | `Provider` / `AsyncNotifier<bool>` | Onboarding flag     |
-| `authRepositoryProvider`, `authStateProvider`, `currentUserProvider`, `AuthController` | Provider / StreamProvider / AsyncNotifier | Auth |
-| `productRepositoryProvider`, `productsProvider` | `Provider` / `FutureProvider<List<Product>>` | Product catalog   |
-| `cartProvider` (`CartController`)          | `NotifierProvider`                    | Cart state                      |
-| `cartItemCountProvider`, `cartSubtotalProvider` | `Provider`                       | Derived cart values             |
-| `WishlistNotifier`                         | `AsyncNotifier<Set<String>>`          | Wishlist product IDs            |
-| `addressRepositoryProvider`, `AddressListNotifier`, `defaultAddressProvider` | Provider / AsyncNotifier / FutureProvider | Addresses |
-| `orderRepositoryProvider`, `orderHistoryProvider`, `orderByIdProvider`, `orderDetailsProvider`, `PlaceOrderController` | Provider / FutureProvider(.family) / AsyncNotifier | Orders |
-| `trackingRepositoryProvider` (+ tracking providers) | `Provider` / `FutureProvider`  | Shipments & events              |
-| `reviewRepositoryProvider`, `productReviewsProvider`, `canUserReviewProvider` | Provider / FutureProvider | Reviews |
+| Route | Screen | Notes |
+| --- | --- | --- |
+| `/splash`, `/onboarding` | Splash, Onboarding | Start-up |
+| `/login`, `/signup`, `/forgot-password` | Auth | |
+| `/home` · `/categories` · `/cart` · `/account` | Bottom-nav tabs | `StatefulShellRoute` |
+| `/search` | Search | |
+| `/products?category=<id>&q=<text>` | Product list | |
+| `/product-details` | Product details | `extra: Product` |
+| `/product-reviews`, `/write-review` | Reviews | `extra: Product` |
+| `/checkout` | Checkout | `extra: {subtotal, deliveryCharge}` |
+| `/order-confirmation` | Order placed | `extra: OrderModel` |
+| `/order-history?tab=<all\|processing\|shipped\|delivered\|cancelled>` | My orders | |
+| `/order-details/:orderId`, `/tracking/:orderId` | Order details, Tracking | |
+| `/return-request` | Return request | `extra: OrderModel` |
+| `/wishlist`, `/edit-profile` | Account screens | |
+| `/addresses?select=true`, `/add-address`, `/edit-address` | Address book | `/edit-address` takes `extra: Address` |
+| `/vouchers`, `/notifications` | Vouchers, Notifications | |
+| `/messages`, `/messages/:conversationId` | Messages, Chat room | |
+| `/settings`, `/settings/change-password` | Settings | |
+| `/style-preview` | Design system catalogue | Debug builds only |
 
 ---
 
 ## Backend (Supabase)
 
-Tables the app uses:
+| Table | Used by |
+| --- | --- |
+| `products` (+ `categories` join) | ProductRepository |
+| `categories` | CategoryRepository |
+| `wishlist` | WishlistRepository |
+| `addresses` | AddressRepository |
+| `orders`, `order_items` | SupabaseOrderRepository, ReviewRepository |
+| `shipments`, `tracking_events` | TrackingRepository |
+| `product_reviews` | ReviewRepository |
 
-| Table              | Used by                     | Main columns (as read by the app)                                   |
-| ------------------ | --------------------------- | ------------------------------------------------------------------- |
-| `products`         | ProductRepository           | id, title/name, description, price, image, `category_id`, rating, `stock_quantity`, `is_active`, `created_at` |
-| `categories`       | joined from products        | name                                                                |
-| `wishlist`         | WishlistRepository          | user_id, product_id                                                 |
-| `addresses`        | AddressRepository           | user_id, full_name, phone, address_line, area, district, division, city, postal_code, country, label, is_default |
-| `orders`           | SupabaseOrderRepository     | id, user_id, shipping_address, shipping_fee, status, total_amount, created_at, (items) |
-| `order_items`      | Orders, Reviews             | order_id, product_id, product_name, price, quantity                 |
-| `shipments`        | TrackingRepository          | order_id, tracking_number, courier_name, status, estimated_delivery_date |
-| `tracking_events`  | TrackingRepository          | shipment_id, status, description, location, timestamp              |
-| `product_reviews`  | ReviewRepository            | product_id, user_id, rating, comment, created_at                    |
-
-Auth: Supabase email/password. Profile data (`full_name`, `phone`) is kept in the auth user's metadata.
-
-> Row Level Security should restrict `wishlist`, `addresses`, `orders`, `order_items` and `product_reviews` to `auth.uid()`.
+Auth uses Supabase email/password. `full_name` and `phone` are stored in user metadata. Vouchers, notifications, chat and returns run on fake repositories until their tables exist.
 
 ---
 
 ## Getting Started
 
-### Prerequisites
-- Flutter SDK with Dart `>= 3.13.5`
-- A Supabase project with the tables above
-
-### Install & run
-
 ```bash
 flutter pub get
 
-# Uses the default Supabase project baked into main.dart
+# Uses the default Supabase project in main.dart
 flutter run
 
-# Or point to your own Supabase project
+# Or your own project
 flutter run \
-  --dart-define=SUPABASE_URL=https://<your-project>.supabase.co \
-  --dart-define=SUPABASE_PUBLISHABLE_KEY=<your-anon-or-publishable-key>
+  --dart-define=SUPABASE_URL=https://<project>.supabase.co \
+  --dart-define=SUPABASE_PUBLISHABLE_KEY=<anon-or-publishable-key>
 ```
+
+In a debug build, open `/style-preview` to check the design system on a device.
 
 ---
 
 ## Testing
 
 ```bash
-flutter test
+flutter analyze   # no issues
+flutter test      # 126 tests
 ```
 
-| Test file                                              | Covers                                                    |
-| ------------------------------------------------------ | --------------------------------------------------------- |
-| `test/product_test.dart`                               | `Product.fromJson` with legacy and Supabase row formats   |
-| `test/e2e_marketplace_test.dart`                       | Product parsing, cart add/subtotal/count/clear, order totals |
-| `test/workflow_test.dart`                              | `productsProvider` and order providers with fake repositories, place-order invalidation |
-| `test/core/router/router_navigation_test.dart`         | Splash → Onboarding → Login flow, signed-in user → Home, logout keeps onboarding done, no redirect loop |
-| `test/features/splash/splash_screen_test.dart`         | Splash rendering and navigation                           |
-| `test/features/onboarding/*`                           | Repository persistence, page flow, Skip / Get Started     |
-| `test/features/tracking/tracking_test.dart`            | Model serialization, event sorting, timeline widget       |
-| `test/features/wishlist/*`                             | Placeholders                                              |
-| `test/widget_test.dart`                                | App smoke test                                            |
+The tests cover the formatters, shared widgets, router start-up flow, and each feature's screens, which run with faked repositories (auth, wishlist, orders, reviews, addresses, search, chat, vouchers, notifications, settings, returns). A layout test renders every screen at 360dp width with 1.3× text and fails on any overflow.
 
 ---
 
 ## Known Limitations / Roadmap
 
-- The cart lives only in memory, so it's lost on restart. It isn't saved to Supabase yet.
-- Product List filter chips and search are UI only; they don't filter results yet.
-- Product color selection is hardcoded (Black / White / Navy).
-- The **Online** payment method has no payment gateway behind it yet.
-- These Account menu items are placeholders: Vouchers, Messages, Notifications, Help center, Settings, Sell on zollo.
-- Delivery fee is inconsistent: ৳60 in the cart and router, while `CheckoutScreen` defaults to ৳120.
-- `tracking/domain/shipment_model.dart` and `orders/presentation/providers/order_providers.dart` are empty stubs.
-- `dio` and `cached_network_image` are declared but not used.
-- Only a light theme exists, and there's no route guard. Auth redirects are handled by the splash screen.
-- Wishlist tests are placeholders.
+- **Data bugs (spec "Prompt D", not done yet)**: `SupabaseOrderRepository` may save orders without items (it writes `price` instead of `unit_price` and swallows the error). `AddressRepository` doesn't save division, district, area or label. Tracking reads `timestamp` instead of `occurred_at`. Wishlist and review upserts need unique indexes. All of this needs a schema migration.
+- The product catalogue has no `original_price`, `sold_count` or rating columns yet, so discount badges and sold counts appear only when that data exists. Every current product has `category_id = null`, so the category screens show empty states.
+- Colour options are hardcoded (Black / White / Navy). Products have a single image.
+- Payments: only cash on delivery works. bKash, Nagad and cards are *coming soon*. Vouchers can't be applied at checkout yet.
+- Vouchers, notifications, chat and returns use fake data (`TODO(backend)`).
+- The language choice is saved but there are no translations yet.
+- The cart lives in memory and is not synced to Supabase.
+- Account deletion goes through support; there is no delete endpoint yet.
