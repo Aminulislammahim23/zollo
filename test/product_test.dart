@@ -11,9 +11,7 @@ void main() {
         'price': 2499,
         'image': 'https://example.com/headphones.jpg',
         'category': 'Electronics',
-        'rating': {
-          'rate': 4.5,
-        },
+        'rating': {'rate': 4.5},
         'stock': 10,
       });
 
@@ -35,9 +33,7 @@ void main() {
         'image_url': 'https://images.unsplash.com/photo-earbuds.jpg',
         'stock_quantity': 25,
         'rating': 4.8,
-        'categories': {
-          'name': 'Audio & Headphones',
-        },
+        'categories': {'name': 'Audio & Headphones'},
       });
 
       expect(product.id, 'p-100');

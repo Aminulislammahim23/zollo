@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_text.dart';
+import '../../../../core/utils/formatters.dart';
+import '../../../../core/widgets/app_button.dart';
 import '../../domain/models/order_model.dart';
 
+/// `/order-confirmation` (extra: OrderModel), spec C12.
 class OrderConfirmationScreen extends StatelessWidget {
   final OrderModel order;
 
@@ -10,172 +16,143 @@ class OrderConfirmationScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final formattedOrderId = order.id.length > 12
-        ? 'BD${order.id.substring(0, 10).toUpperCase()}'
-        : order.id;
+    final rows = [
+      ('Order number', formatOrderNumber(order.id)),
+      ('Items', '${order.itemCount}'),
+      ('Total', formatTaka(order.total)),
+      ('Payment', 'Cash on delivery'),
+      ('Deliver to', order.deliveryAddress),
+    ];
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        automaticallyImplyLeading: false,
-      ),
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Success Checkmark Icon with Aura
-                Container(
-                  width: 96,
-                  height: 96,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF006B54).withValues(alpha: 0.12),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Container(
-                      width: 64,
-                      height: 64,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF006B54),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.check,
-                        color: Colors.white,
-                        size: 36,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Order placed',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Text(
-                    "Payment of ৳${order.total.toStringAsFixed(0)} received via bKash. We've sent the details by SMS.",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey.shade600,
-                      height: 1.4,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 32),
-
-                // Order Details Summary Card
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF3F1EC),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.grey.shade200),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) context.go('/home');
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.surface,
+        body: SafeArea(
+          child: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.xl,
+                    AppSpacing.xxl,
+                    AppSpacing.xl,
+                    AppSpacing.l,
                   ),
                   child: Column(
                     children: [
-                      _detailRow('Order number', formattedOrderId),
-                      const SizedBox(height: 12),
-                      _detailRow('Packages', '${order.items.length}, from 1 seller'),
-                      const SizedBox(height: 12),
-                      _detailRow('Estimated delivery', '2–4 days'),
-                      const SizedBox(height: 12),
-                      _detailRow('Deliver to', 'Dhanmondi, Dhaka'),
+                      Container(
+                        width: 96,
+                        height: 96,
+                        decoration: const BoxDecoration(
+                          color: AppColors.primaryTint,
+                          shape: BoxShape.circle,
+                        ),
+                        alignment: Alignment.center,
+                        child: Container(
+                          width: 64,
+                          height: 64,
+                          decoration: const BoxDecoration(
+                            color: AppColors.primary,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.check_rounded,
+                            size: 36,
+                            color: AppColors.white,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.l),
+                      Semantics(
+                        header: true,
+                        child: Text('Order placed', style: AppText.headline),
+                      ),
+                      const SizedBox(height: AppSpacing.s),
+                      Text(
+                        "We've received your order. You'll get updates as it moves.",
+                        textAlign: TextAlign.center,
+                        style: AppText.body.withColor(AppColors.muted),
+                      ),
+                      const SizedBox(height: AppSpacing.xl),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.l,
+                          vertical: 14,
+                        ),
+                        decoration: const BoxDecoration(
+                          color: AppColors.background,
+                          borderRadius: AppRadius.cardAll,
+                        ),
+                        child: Column(
+                          children: [
+                            for (var i = 0; i < rows.length; i++) ...[
+                              if (i > 0) const SizedBox(height: 10),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  SizedBox(
+                                    width: 110,
+                                    child: Text(
+                                      rows[i].$1,
+                                      style: AppText.meta.withColor(
+                                        AppColors.muted,
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Text(
+                                      rows[i].$2,
+                                      textAlign: TextAlign.end,
+                                      style: AppText.meta.withWeight(
+                                        i == 0
+                                            ? FontWeight.w800
+                                            : FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 40),
-
-                // Track My Order Button
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: FilledButton(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFF006B54),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                    ),
-                    onPressed: () {
-                      context.push('/order-history');
-                    },
-                    child: const Text(
-                      'Track my order',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.xl,
+                  0,
+                  AppSpacing.xl,
+                  AppSpacing.xxl,
                 ),
-                const SizedBox(height: 12),
-
-                // Continue Shopping Button
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Color(0xFF006B54), width: 1.5),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
+                child: Column(
+                  children: [
+                    AppButton.primary(
+                      label: 'Track my order',
+                      onPressed: () {
+                        context.go('/home');
+                        context.push('/tracking/${order.id}');
+                      },
                     ),
-                    onPressed: () {
-                      context.go('/home');
-                    },
-                    child: const Text(
-                      'Continue shopping',
-                      style: TextStyle(
-                        color: Color(0xFF006B54),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
+                    const SizedBox(height: AppSpacing.m),
+                    AppButton.outline(
+                      label: 'Continue shopping',
+                      onPressed: () => context.go('/home'),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
-    );
-  }
-
-  Widget _detailRow(String label, String value) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            color: Colors.grey.shade700,
-            fontSize: 14,
-          ),
-        ),
-        Text(
-          value,
-          style: const TextStyle(
-            color: Colors.black87,
-            fontWeight: FontWeight.bold,
-            fontSize: 14,
-          ),
-        ),
-      ],
     );
   }
 }

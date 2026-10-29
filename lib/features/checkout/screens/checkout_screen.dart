@@ -1,26 +1,33 @@
-// ignore_for_file: deprecated_member_use
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:uuid/uuid.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
+import 'package:uuid/uuid.dart';
 
+import '../../../core/constants/app_constants.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_spacing.dart';
+import '../../../core/theme/app_text.dart';
+import '../../../core/utils/formatters.dart';
+import '../../../core/widgets/widgets.dart';
+import '../../address/domain/address_model.dart';
+import '../../address/presentation/providers/address_provider.dart';
+import '../../auth/domain/providers/auth_provider.dart';
 import '../../cart/presentation/providers/cart_provider.dart';
 import '../../orders/domain/models/order_model.dart';
 import '../../orders/presentation/providers/order_provider.dart';
-import '../../address/presentation/providers/address_provider.dart';
-import '../../address/domain/address_model.dart';
 import '../models/checkout_order.dart';
 
+/// `/checkout`, spec C11.
 class CheckoutScreen extends ConsumerStatefulWidget {
+  /// Kept for the router contract; the screen always recomputes the
+  /// subtotal from the cart so the total shown matches what is saved.
   final double subtotal;
   final double deliveryCharge;
 
   const CheckoutScreen({
     super.key,
     required this.subtotal,
-    this.deliveryCharge = 120,
+    this.deliveryCharge = AppConstants.deliveryFee,
   });
 
   @override
@@ -28,40 +35,45 @@ class CheckoutScreen extends ConsumerStatefulWidget {
 }
 
 class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
-  PaymentMethod _paymentMethod = PaymentMethod.cashOnDelivery;
+  final PaymentMethod _paymentMethod = PaymentMethod.cashOnDelivery;
   Address? _selectedAddress;
 
-  void showMessage(String message) {
+  void _showMessage(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
-  Future<void> submitOrder() async {
-    final defaultAddr = ref.read(defaultAddressProvider).value;
-    final addressToUse = _selectedAddress ?? defaultAddr;
+  Future<void> _changeAddress() async {
+    final selected = await context.push<Address>('/addresses?select=true');
+    if (selected != null && mounted) {
+      setState(() => _selectedAddress = selected);
+    }
+  }
 
+  Future<void> _submitOrder() async {
+    final addressToUse =
+        _selectedAddress ?? ref.read(defaultAddressProvider).value;
     if (addressToUse == null) {
-      showMessage('Please select or add a delivery address.');
+      _showMessage('Please select or add a delivery address.');
       return;
     }
 
     final cartItems = ref.read(cartProvider).values.toList();
     if (cartItems.isEmpty) {
-      showMessage('Your cart is empty.');
+      _showMessage('Your cart is empty.');
       return;
     }
 
-    final user = Supabase.instance.client.auth.currentUser;
+    final user = ref.read(currentUserProvider);
     if (user == null) {
-      showMessage('Please sign in to place your order.');
+      _showMessage('Please log in to place your order.');
       return;
     }
 
-    // Address snapshot string so history isn't altered by future address edits
+    // Address snapshot so order history isn't altered by future address edits.
     final addressSnapshot =
-        '${addressToUse.fullName} · ${addressToUse.phone}\n${addressToUse.formattedAddress}';
+        '${addressToUse.fullName} · ${addressToUse.phone}\n${addressToUse.displayAddress}';
 
     final order = OrderModel(
       id: const Uuid().v4(),
@@ -84,444 +96,349 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       final savedOrder = await ref
           .read(placeOrderProvider.notifier)
           .placeOrder(order);
-
       if (!mounted) return;
-
       ref.read(cartProvider.notifier).clearCart();
-
-      if (!mounted) return;
-
       context.go('/order-confirmation', extra: savedOrder);
     } catch (error) {
-      if (!mounted) return;
-      final errorMessage = error is Exception
-          ? error.toString().replaceFirst('Exception: ', '')
-          : error.toString();
-      showMessage('Order error: $errorMessage');
+      _showMessage("Couldn't place your order. ${ErrorView.describe(error)}");
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final total = widget.subtotal + widget.deliveryCharge - 100;
+    final cart = ref.watch(cartProvider);
+    final itemCount = ref.watch(cartItemCountProvider);
+    final subtotal = ref.watch(cartSubtotalProvider);
+    final total = subtotal + widget.deliveryCharge;
     final isPlacingOrder = ref.watch(placeOrderProvider).isLoading;
     final defaultAddressAsync = ref.watch(defaultAddressProvider);
-    final currentAddress = _selectedAddress ?? defaultAddressAsync.value;
+    final address = _selectedAddress ?? defaultAddressAsync.value;
+
+    if (cart.isEmpty && !isPlacingOrder) {
+      return Scaffold(
+        appBar: const AppTopBar(title: 'Checkout', fallbackRoute: '/cart'),
+        body: EmptyState(
+          icon: Icons.shopping_cart_outlined,
+          title: 'Your cart is empty',
+          message: 'Add something to your cart before checking out.',
+          actionLabel: 'Start shopping',
+          onAction: () => context.go('/home'),
+        ),
+      );
+    }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF9F9F7),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new,
-            size: 18,
-            color: Colors.black87,
-          ),
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              context.go('/home');
-            }
-          },
-        ),
-        title: const Text(
-          'Checkout',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
-      ),
-      body: Stack(
+      appBar: const AppTopBar(title: 'Checkout', fallbackRoute: '/cart'),
+      body: ListView(
+        padding: const EdgeInsets.all(AppSpacing.m),
         children: [
-          ListView(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-            children: [
-              // 1. Delivery Address Card
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: Colors.grey.shade200),
+          _AddressCard(
+            address: address,
+            loading: defaultAddressAsync.isLoading && _selectedAddress == null,
+            onChange: _changeAddress,
+          ),
+          const SizedBox(height: AppSpacing.cardGap),
+          InfoCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Package 1 · $itemCount ${itemCount == 1 ? 'item' : 'items'}',
+                  style: AppText.label,
                 ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 10),
+                  child: Divider(),
+                ),
+                Row(
                   children: [
                     const Icon(
-                      Icons.location_on_outlined,
-                      color: Color(0xFF006B54),
-                      size: 24,
+                      Icons.local_shipping_outlined,
+                      size: AppSpacing.iconSmall,
+                      color: AppColors.primary,
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: AppSpacing.s),
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                currentAddress != null
-                                    ? '${currentAddress.fullName} · ${currentAddress.phone}'
-                                    : 'No delivery address selected',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
-                                  color: Colors.black87,
-                                ),
-                              ),
-                              GestureDetector(
-                                onTap: () async {
-                                  final selected = await context.push<Address>(
-                                    '/addresses?select=true',
-                                  );
-                                  if (selected != null) {
-                                    setState(() {
-                                      _selectedAddress = selected;
-                                    });
-                                  }
-                                },
-                                child: const Text(
-                                  'Change',
-                                  style: TextStyle(
-                                    color: Color(0xFF006B54),
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            currentAddress != null
-                                ? currentAddress.formattedAddress
-                                : 'Tap "Change" to select or add a delivery address.',
-                            style: TextStyle(
-                              color: Colors.grey.shade600,
-                              fontSize: 13,
-                              height: 1.3,
-                            ),
-                          ),
-                        ],
+                      child: Text(
+                        'Standard delivery · arrives in 2–4 days',
+                        style: AppText.bodySmall.withColor(AppColors.primary),
                       ),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 12),
-
-              // 2. Package / Delivery Method Card
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: Colors.grey.shade200),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Package 1 · [Seller store A]',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            fontSize: 13,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        Text(
-                          'Items',
-                          style: TextStyle(
-                            color: Colors.grey.shade600,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 10),
-                      child: Divider(height: 1),
-                    ),
-                    const Row(
-                      children: [
-                        Icon(
-                          Icons.local_shipping_outlined,
-                          size: 18,
-                          color: Color(0xFF006B54),
-                        ),
-                        SizedBox(width: 8),
-                        Text(
-                          'Standard delivery · arrives in 2–4 days',
-                          style: TextStyle(
-                            color: Color(0xFF006B54),
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // 3. Payment Method Card
-              const Text(
-                'Payment method',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: Colors.grey.shade200),
-                ),
-                child: Column(
-                  children: [
-                    _paymentOption(
-                      code: 'bK',
-                      title: 'bKash',
-                      subtitle: 'Pay with your bKash account',
-                      method: PaymentMethod.online,
-                    ),
-                    const Divider(height: 1, indent: 60),
-                    _paymentOption(
-                      code: 'Ng',
-                      title: 'Nagad',
-                      subtitle: 'Pay with your Nagad account',
-                      method: PaymentMethod.online,
-                    ),
-                    const Divider(height: 1, indent: 60),
-                    _paymentOption(
-                      code: 'Card',
-                      title: 'Credit or debit card',
-                      subtitle: 'Visa, Mastercard, Amex via SSLCommerz',
-                      method: PaymentMethod.online,
-                    ),
-                    const Divider(height: 1, indent: 60),
-                    _paymentOption(
-                      code: 'COD',
-                      title: 'Cash on delivery',
-                      subtitle: 'Pay the rider when it arrives',
-                      method: PaymentMethod.cashOnDelivery,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // 4. Order Summary Card
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: Colors.grey.shade200),
-                ),
-                child: Column(
-                  children: [
-                    _summaryRow('Items total', widget.subtotal),
-                    const SizedBox(height: 8),
-                    _summaryRow('Delivery', widget.deliveryCharge),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Voucher',
-                            style: TextStyle(color: Colors.black87)),
-                        const Text(
-                          '-৳100',
-                          style: TextStyle(
-                            color: Color(0xFF006B54),
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
-
-          // Bottom Sticky Place Order Bar
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              color: Colors.white,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 14,
-              ),
-              child: SafeArea(
-                top: false,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'Total to pay now',
-                          style: TextStyle(
-                            color: Colors.grey.shade600,
-                            fontSize: 12,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '৳${total.toStringAsFixed(0)}',
-                          style: const TextStyle(
-                            color: Color(0xFF006B54),
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(
-                      height: 50,
-                      width: 180,
-                      child: FilledButton(
-                        style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFF006B54),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                        ),
-                        onPressed: isPlacingOrder ? null : submitOrder,
-                        child: isPlacingOrder
-                            ? const SizedBox(
-                                width: 22,
-                                height: 22,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : const Text(
-                                'Place order',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 15,
-                                ),
-                              ),
+          const SizedBox(height: AppSpacing.cardGap),
+          InfoCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text('Payment method', style: AppText.cardTitle),
+                const SizedBox(height: AppSpacing.s),
+                RadioGroup<PaymentMethod>(
+                  groupValue: _paymentMethod,
+                  onChanged: (_) {},
+                  child: const Column(
+                    children: [
+                      _PaymentRow(
+                        code: 'COD',
+                        title: 'Cash on delivery',
+                        note: 'Pay the rider when it arrives',
+                        method: PaymentMethod.cashOnDelivery,
                       ),
-                    ),
-                  ],
+                      _PaymentRow(
+                        code: 'bK',
+                        title: 'bKash',
+                        note: 'Pay with your bKash account',
+                      ),
+                      _PaymentRow(
+                        code: 'Ng',
+                        title: 'Nagad',
+                        note: 'Pay with your Nagad account',
+                      ),
+                      _PaymentRow(
+                        code: 'Card',
+                        title: 'Credit or debit card',
+                        note: 'Visa, Mastercard, Amex',
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.cardGap),
+          InfoCard(
+            child: Column(
+              children: [
+                _SummaryRow(label: 'Items total', value: formatTaka(subtotal)),
+                const SizedBox(height: AppSpacing.s),
+                _SummaryRow(
+                  label: 'Delivery',
+                  value: formatTaka(widget.deliveryCharge),
+                ),
+              ],
             ),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _paymentOption({
-    required String code,
-    required String title,
-    required String subtitle,
-    required PaymentMethod method,
-  }) {
-    return InkWell(
-      onTap: () {
-        setState(() {
-          _paymentMethod = method;
-        });
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade200,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                code,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
-                  color: Colors.black87,
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          color: AppColors.surface,
+          border: Border(top: BorderSide(color: AppColors.divider)),
+        ),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.l,
+          AppSpacing.m,
+          AppSpacing.l,
+          20,
+        ),
+        child: SafeArea(
+          top: false,
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Pay in cash on delivery',
+                      style: AppText.caption.withColor(AppColors.muted),
+                    ),
+                    Text(
+                      formatTaka(total),
+                      style: AppText.totalPrice.withColor(AppColors.primary),
+                    ),
+                  ],
                 ),
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      color: Colors.grey.shade600,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
+              AppButton.primary(
+                label: 'Place order',
+                fullWidth: false,
+                loading: isPlacingOrder,
+                padding: const EdgeInsets.symmetric(horizontal: 28),
+                onPressed: _submitOrder,
               ),
-            ),
-            Radio<PaymentMethod>(
-              value: method,
-              groupValue: _paymentMethod,
-              activeColor: const Color(0xFF006B54),
-              onChanged: (val) {
-                if (val != null) {
-                  setState(() {
-                    _paymentMethod = val;
-                  });
-                }
-              },
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
+}
 
-  Widget _summaryRow(String label, double amount) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label, style: const TextStyle(color: Colors.black87)),
-        Text(
-          '৳${amount.toStringAsFixed(0)}',
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
+class _AddressCard extends StatelessWidget {
+  const _AddressCard({
+    required this.address,
+    required this.loading,
+    required this.onChange,
+  });
+
+  final Address? address;
+  final bool loading;
+  final VoidCallback onChange;
+
+  @override
+  Widget build(BuildContext context) {
+    if (loading) return const ShimmerBox(height: 88, radius: AppRadius.card);
+
+    if (address == null) {
+      return InfoCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(
+                  Icons.location_on_outlined,
+                  size: AppSpacing.iconBar,
+                  color: AppColors.primary,
+                ),
+                const SizedBox(width: AppSpacing.m),
+                Expanded(
+                  child: Text(
+                    'Add a delivery address',
+                    style: AppText.bodyStrong,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.m),
+            AppButton.outline(
+              label: 'Add address',
+              icon: Icons.add,
+              size: AppButtonSize.small,
+              onPressed: () => context.push('/add-address'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final a = address!;
+    return InfoCard(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(
+            Icons.location_on_outlined,
+            size: AppSpacing.iconBar,
+            color: AppColors.primary,
+          ),
+          const SizedBox(width: AppSpacing.m),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('${a.fullName} · ${a.phone}', style: AppText.bodyStrong),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  a.displayAddress,
+                  style: AppText.meta.copyWith(
+                    color: AppColors.muted,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          TextButton(onPressed: onChange, child: const Text('Change')),
+        ],
+      ),
+    );
+  }
+}
+
+class _PaymentRow extends StatelessWidget {
+  const _PaymentRow({
+    required this.code,
+    required this.title,
+    required this.note,
+    this.method,
+  });
+
+  final String code;
+  final String title;
+  final String note;
+
+  /// Null = not available yet (shown disabled with a "Coming soon" tag).
+  final PaymentMethod? method;
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = method != null;
+    return Semantics(
+      enabled: enabled,
+      child: Opacity(
+        opacity: enabled ? 1 : 0.5,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 56),
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                alignment: Alignment.center,
+                decoration: const BoxDecoration(
+                  color: AppColors.surfaceAlt,
+                  borderRadius: AppRadius.tileAll,
+                ),
+                child: Text(code, style: AppText.tag),
+              ),
+              const SizedBox(width: AppSpacing.m),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: AppText.bodyStrong),
+                    Text(
+                      note,
+                      style: AppText.caption.withColor(AppColors.muted),
+                    ),
+                  ],
+                ),
+              ),
+              if (enabled)
+                Radio<PaymentMethod>(value: method!)
+              else
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.s,
+                    vertical: 3,
+                  ),
+                  decoration: const BoxDecoration(
+                    color: AppColors.surfaceAlt,
+                    borderRadius: AppRadius.badgeAll,
+                  ),
+                  child: Text(
+                    'Coming soon',
+                    style: AppText.microStrong.withColor(AppColors.muted),
+                  ),
+                ),
+            ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _SummaryRow extends StatelessWidget {
+  const _SummaryRow({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(label, style: AppText.meta.withColor(AppColors.muted)),
+        ),
+        Text(value, style: AppText.label),
       ],
     );
   }

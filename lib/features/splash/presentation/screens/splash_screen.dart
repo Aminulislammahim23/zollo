@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:zollo/core/theme/app_colors.dart';
+import 'package:zollo/core/theme/app_spacing.dart';
+import 'package:zollo/core/theme/app_text.dart';
+import 'package:zollo/core/widgets/zollo_logo.dart';
 import 'package:zollo/features/auth/domain/providers/auth_provider.dart';
 import 'package:zollo/features/onboarding/presentation/providers/onboarding_provider.dart';
-import 'package:zollo/core/widgets/zollo_logo.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   final Duration splashDelay;
@@ -12,6 +15,9 @@ class SplashScreen extends ConsumerStatefulWidget {
     super.key,
     this.splashDelay = const Duration(milliseconds: 1500),
   });
+
+  static const String tagline =
+      'Everything you need, delivered across Bangladesh';
 
   @override
   ConsumerState<SplashScreen> createState() => _SplashScreenState();
@@ -52,37 +58,52 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
+    final onMuted = AppColors.onPrimaryMuted;
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF121212) : const Color(0xFFF8F8FC),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Spacer(),
-            const ZolloLogo(size: 96, showText: true),
-            const SizedBox(height: 16),
-            Text(
-              'Your Ultimate Marketplace',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: isDark ? Colors.grey[400] : const Color(0xFF6B7280),
+      backgroundColor: AppColors.primary,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+          child: Column(
+            children: [
+              Expanded(
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const ZolloLogo(
+                        onPrimary: true,
+                        showMark: true,
+                        fontSize: 40,
+                      ),
+                      const SizedBox(height: 14),
+                      Text(
+                        SplashScreen.tagline,
+                        textAlign: TextAlign.center,
+                        style: AppText.bodyPlain.copyWith(
+                          color: onMuted,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
-            const Spacer(),
-            const SizedBox(
-              width: 24,
-              height: 24,
-              child: CircularProgressIndicator(
-                strokeWidth: 2.5,
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF006B54)),
+              const SizedBox.square(
+                dimension: 22,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: AppColors.white,
+                ),
               ),
-            ),
-            const SizedBox(height: 48),
-          ],
+              const SizedBox(height: AppSpacing.l),
+              Text(
+                'English · বাংলা',
+                style: AppText.caption.withColor(onMuted),
+              ),
+              const SizedBox(height: AppSpacing.xl),
+            ],
+          ),
         ),
       ),
     );

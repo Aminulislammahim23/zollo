@@ -19,21 +19,17 @@ void main() {
       prefs = await SharedPreferences.getInstance();
     });
 
-    Widget createOnboardingWidget({
-      required GoRouter router,
-    }) {
+    Widget createOnboardingWidget({required GoRouter router}) {
       return ProviderScope(
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
           currentUserProvider.overrideWithValue(null),
         ],
-        child: MaterialApp.router(
-          routerConfig: router,
-        ),
+        child: MaterialApp.router(routerConfig: router),
       );
     }
 
-    testWidgets('renders first page correctly (Discover Products)', (tester) async {
+    testWidgets('renders first page correctly (first slide)', (tester) async {
       final router = GoRouter(
         initialLocation: '/onboarding',
         routes: [
@@ -43,7 +39,8 @@ void main() {
           ),
           GoRoute(
             path: '/login',
-            builder: (context, state) => const Scaffold(body: Text('Login Screen')),
+            builder: (context, state) =>
+                const Scaffold(body: Text('Login Screen')),
           ),
         ],
       );
@@ -51,12 +48,17 @@ void main() {
       await tester.pumpWidget(createOnboardingWidget(router: router));
       await tester.pumpAndSettle();
 
-      expect(find.text('Discover Products'), findsOneWidget);
+      expect(
+        find.text('Millions of products from trusted sellers'),
+        findsOneWidget,
+      );
       expect(find.text('Next'), findsOneWidget);
       expect(find.text('Skip'), findsOneWidget);
     });
 
-    testWidgets('Next button navigates through pages to Get Started', (tester) async {
+    testWidgets('Next button navigates through pages to Get Started', (
+      tester,
+    ) async {
       final router = GoRouter(
         initialLocation: '/onboarding',
         routes: [
@@ -66,7 +68,8 @@ void main() {
           ),
           GoRoute(
             path: '/login',
-            builder: (context, state) => const Scaffold(body: Text('Login Screen')),
+            builder: (context, state) =>
+                const Scaffold(body: Text('Login Screen')),
           ),
         ],
       );
@@ -78,18 +81,59 @@ void main() {
       await tester.tap(find.text('Next'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Shop with Confidence'), findsOneWidget);
+      expect(find.text('Pay the way you like'), findsOneWidget);
       expect(find.text('Next'), findsOneWidget);
 
       // Page 2 -> Page 3
       await tester.tap(find.text('Next'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Fast & Easy Checkout'), findsOneWidget);
-      expect(find.text('Get Started'), findsOneWidget);
+      expect(find.text('Track every order to your door'), findsOneWidget);
+      expect(find.text('Get started'), findsOneWidget);
     });
 
-    testWidgets('Tapping Get Started completes onboarding and navigates to Login', (tester) async {
+    testWidgets(
+      'Tapping Get Started completes onboarding and navigates to Login',
+      (tester) async {
+        final router = GoRouter(
+          initialLocation: '/onboarding',
+          routes: [
+            GoRoute(
+              path: '/onboarding',
+              builder: (context, state) => const OnboardingScreen(),
+            ),
+            GoRoute(
+              path: '/login',
+              builder: (context, state) =>
+                  const Scaffold(body: Text('Login Screen')),
+            ),
+          ],
+        );
+
+        await tester.pumpWidget(createOnboardingWidget(router: router));
+        await tester.pumpAndSettle();
+
+        // Navigate to page 3
+        await tester.tap(find.text('Next'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Next'));
+        await tester.pumpAndSettle();
+
+        // Tap Get Started
+        await tester.tap(find.text('Get started'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Login Screen'), findsOneWidget);
+
+        // Verify SharedPreferences persisted onboarding_completed = true
+        final repo = OnboardingRepository(prefs);
+        expect(await repo.isOnboardingCompleted(), true);
+      },
+    );
+
+    testWidgets('Tapping Skip completes onboarding and navigates immediately', (
+      tester,
+    ) async {
       final router = GoRouter(
         initialLocation: '/onboarding',
         routes: [
@@ -99,42 +143,8 @@ void main() {
           ),
           GoRoute(
             path: '/login',
-            builder: (context, state) => const Scaffold(body: Text('Login Screen')),
-          ),
-        ],
-      );
-
-      await tester.pumpWidget(createOnboardingWidget(router: router));
-      await tester.pumpAndSettle();
-
-      // Navigate to page 3
-      await tester.tap(find.text('Next'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Next'));
-      await tester.pumpAndSettle();
-
-      // Tap Get Started
-      await tester.tap(find.text('Get Started'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Login Screen'), findsOneWidget);
-
-      // Verify SharedPreferences persisted onboarding_completed = true
-      final repo = OnboardingRepository(prefs);
-      expect(await repo.isOnboardingCompleted(), true);
-    });
-
-    testWidgets('Tapping Skip completes onboarding and navigates immediately', (tester) async {
-      final router = GoRouter(
-        initialLocation: '/onboarding',
-        routes: [
-          GoRoute(
-            path: '/onboarding',
-            builder: (context, state) => const OnboardingScreen(),
-          ),
-          GoRoute(
-            path: '/login',
-            builder: (context, state) => const Scaffold(body: Text('Login Screen')),
+            builder: (context, state) =>
+                const Scaffold(body: Text('Login Screen')),
           ),
         ],
       );

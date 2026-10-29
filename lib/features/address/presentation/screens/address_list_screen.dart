@@ -2,175 +2,187 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_text.dart';
+import '../../../../core/widgets/widgets.dart';
+import '../../../auth/domain/providers/auth_provider.dart';
+import '../../domain/address_model.dart';
 import '../providers/address_provider.dart';
 import '../widgets/address_card.dart';
 
+/// `/addresses` and `/addresses?select=true`, spec C22.
 class AddressListScreen extends ConsumerWidget {
-  final bool isSelecting;
-
   const AddressListScreen({super.key, this.isSelecting = false});
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final addressState = ref.watch(addressListProvider);
+  final bool isSelecting;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF9F9F7),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new,
-            size: 18,
-            color: Colors.black87,
+  Future<bool> _confirmDelete(BuildContext context, Address address) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete this address?'),
+        content: Text('${address.fullName}, ${address.shortArea}'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
           ),
-          onPressed: () => context.pop(),
-        ),
-        title: const Text(
-          'Address book',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
-      ),
-      body: Stack(
-        children: [
-          addressState.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, stack) => Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('Failed to load addresses: $error'),
-                  const SizedBox(height: 8),
-                  FilledButton(
-                    onPressed: () => ref.invalidate(addressListProvider),
-                    child: const Text('Retry'),
-                  ),
-                ],
-              ),
-            ),
-            data: (addresses) {
-              if (addresses.isEmpty) {
-                return Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.location_off_outlined,
-                          size: 64, color: Colors.grey),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'No saved addresses yet',
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text('Add an address to proceed with checkout easily.'),
-                      const SizedBox(height: 16),
-                      FilledButton(
-                        style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFF006B54),
-                        ),
-                        onPressed: () => context.push('/add-address'),
-                        child: const Text('Add New Address'),
-                      ),
-                    ],
-                  ),
-                );
-              }
-
-              return RefreshIndicator(
-                onRefresh: () async => ref.refresh(addressListProvider.future),
-                child: ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-                  itemCount: addresses.length,
-                  itemBuilder: (context, index) {
-                    final address = addresses[index];
-                    return AddressCard(
-                      address: address,
-                      isSelected: false,
-                      onTap: isSelecting
-                          ? () => context.pop(address)
-                          : null,
-                      onEdit: () => context.push('/edit-address', extra: address),
-                      onDelete: () async {
-                        try {
-                          await ref
-                              .read(addressListProvider.notifier)
-                              .deleteAddress(address.id);
-                          if (!context.mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Address deleted')),
-                          );
-                        } catch (e) {
-                          if (!context.mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Failed to delete: $e')),
-                          );
-                        }
-                      },
-                      onSetDefault: () async {
-                        try {
-                          await ref
-                              .read(addressListProvider.notifier)
-                              .setDefault(address.id);
-                          if (!context.mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text('Default address updated')),
-                          );
-                        } catch (e) {
-                          if (!context.mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                                content: Text('Failed to set default: $e')),
-                          );
-                        }
-                      },
-                    );
-                  },
-                ),
-              );
-            },
-          ),
-          // Bottom Sticky Add New Address Button
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              color: Colors.white,
-              padding: const EdgeInsets.all(16),
-              child: SafeArea(
-                top: false,
-                child: SizedBox(
-                  height: 52,
-                  child: FilledButton.icon(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFF006B54),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                    ),
-                    onPressed: () => context.push('/add-address'),
-                    icon: const Icon(Icons.add, color: Colors.white),
-                    label: const Text(
-                      'Add new address',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            child: const Text('Delete'),
           ),
         ],
       ),
+    );
+    return ok ?? false;
+  }
+
+  Future<void> _run(
+    BuildContext context,
+    Future<void> Function() action,
+    String success,
+  ) async {
+    try {
+      await action();
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(success)));
+    } catch (error) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(ErrorView.describe(error))));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final signedIn = ref.watch(currentUserProvider) != null;
+    final addressState = ref.watch(addressListProvider);
+    final defaultId = addressState.value
+        ?.where((a) => a.isDefault)
+        .firstOrNull
+        ?.id;
+
+    final Widget body;
+    if (!signedIn) {
+      body = EmptyState(
+        icon: Icons.location_on_outlined,
+        title: 'Log in to manage addresses',
+        message: 'Save delivery addresses for faster checkout.',
+        actionLabel: 'Log in',
+        onAction: () => context.push('/login'),
+      );
+    } else {
+      body = addressState.when(
+        loading: () => const ShimmerList(itemHeight: 120),
+        error: (error, _) => ErrorView(
+          title: "Couldn't load your addresses",
+          error: error,
+          onRetry: () => ref.invalidate(addressListProvider),
+        ),
+        data: (addresses) {
+          if (addresses.isEmpty) {
+            return const EmptyState(
+              icon: Icons.location_on_outlined,
+              title: 'No saved addresses',
+              message: 'Add an address to get your orders delivered.',
+            );
+          }
+          return RadioGroup<String>(
+            groupValue: defaultId,
+            onChanged: (id) =>
+                context.pop(addresses.firstWhere((a) => a.id == id)),
+            child: ListView.separated(
+              padding: const EdgeInsets.all(AppSpacing.m),
+              itemCount: addresses.length,
+              separatorBuilder: (_, _) =>
+                  const SizedBox(height: AppSpacing.cardGap),
+              itemBuilder: (context, i) {
+                final address = addresses[i];
+                return Dismissible(
+                  key: ValueKey(address.id),
+                  direction: DismissDirection.endToStart,
+                  confirmDismiss: (_) => _confirmDelete(context, address),
+                  onDismissed: (_) => _run(context, () async {
+                    try {
+                      await ref
+                          .read(addressListProvider.notifier)
+                          .deleteAddress(address.id);
+                    } catch (_) {
+                      // Bring the dismissed card back.
+                      ref.invalidate(addressListProvider);
+                      rethrow;
+                    }
+                  }, 'Address deleted'),
+                  background: Container(
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.only(right: AppSpacing.xl),
+                    decoration: const BoxDecoration(
+                      color: AppColors.errorBg,
+                      borderRadius: AppRadius.cardAll,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.delete_outline,
+                          color: AppColors.error,
+                        ),
+                        const SizedBox(width: AppSpacing.s),
+                        Text(
+                          'Delete',
+                          style: AppText.label.withColor(AppColors.error),
+                        ),
+                      ],
+                    ),
+                  ),
+                  child: AddressCard(
+                    address: address,
+                    selecting: isSelecting,
+                    isSelected: address.id == defaultId,
+                    onTap: isSelecting ? () => context.pop(address) : null,
+                    onEdit: () => context.push('/edit-address', extra: address),
+                    onSetDefault: () => _run(
+                      context,
+                      () => ref
+                          .read(addressListProvider.notifier)
+                          .setDefault(address.id),
+                      'Default address updated',
+                    ),
+                  ),
+                );
+              },
+            ),
+          );
+        },
+      );
+    }
+
+    return Scaffold(
+      appBar: AppTopBar(
+        title: isSelecting ? 'Choose address' : 'Address book',
+        fallbackRoute: '/account',
+      ),
+      body: body,
+      bottomNavigationBar: signedIn
+          ? SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.l,
+                  AppSpacing.m,
+                  AppSpacing.l,
+                  AppSpacing.xl,
+                ),
+                child: AppButton.primary(
+                  label: 'Add new address',
+                  icon: Icons.add,
+                  onPressed: () => context.push('/add-address'),
+                ),
+              ),
+            )
+          : null,
     );
   }
 }

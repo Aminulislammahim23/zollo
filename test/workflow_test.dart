@@ -56,9 +56,7 @@ void main() {
       const fakeProdRepo = FakeProductRepository([sampleProduct]);
 
       final container = ProviderContainer(
-        overrides: [
-          productRepositoryProvider.overrideWithValue(fakeProdRepo),
-        ],
+        overrides: [productRepositoryProvider.overrideWithValue(fakeProdRepo)],
       );
       addTearDown(container.dispose);
 
@@ -69,54 +67,55 @@ void main() {
   });
 
   group('Day 9-10: Order Repository & Providers Tests', () {
-    test('myOrdersProvider and orderDetailsProvider load correctly with fake repo', () async {
-      final sampleOrder = OrderModel(
-        id: 'ord-999',
-        userId: 'usr-123',
-        items: [
-          const OrderItem(
-            productId: 'p001',
-            productName: 'Wireless Headphones',
-            price: 2499.0,
-            quantity: 1,
-          ),
-        ],
-        shippingAddress: 'Chittagong, Bangladesh',
-        shippingFee: 60.0,
-        status: OrderStatus.confirmed,
-        createdAt: DateTime.utc(2025, 2, 1, 10, 0),
-      );
+    test(
+      'myOrdersProvider and orderDetailsProvider load correctly with fake repo',
+      () async {
+        final sampleOrder = OrderModel(
+          id: 'ord-999',
+          userId: 'usr-123',
+          items: [
+            const OrderItem(
+              productId: 'p001',
+              productName: 'Wireless Headphones',
+              price: 2499.0,
+              quantity: 1,
+            ),
+          ],
+          shippingAddress: 'Chittagong, Bangladesh',
+          shippingFee: 60.0,
+          status: OrderStatus.confirmed,
+          createdAt: DateTime.utc(2025, 2, 1, 10, 0),
+        );
 
-      final fakeRepo = FakeOrderRepository([sampleOrder]);
+        final fakeRepo = FakeOrderRepository([sampleOrder]);
 
-      final container = ProviderContainer(
-        overrides: [
-          orderRepositoryProvider.overrideWithValue(fakeRepo),
-        ],
-      );
-      addTearDown(container.dispose);
+        final container = ProviderContainer(
+          overrides: [orderRepositoryProvider.overrideWithValue(fakeRepo)],
+        );
+        addTearDown(container.dispose);
 
-      // Test order history / myOrdersProvider
-      final orders = await container.read(myOrdersProvider.future);
-      expect(orders.length, 1);
-      expect(orders.first.id, 'ord-999');
-      expect(orders.first.status, OrderStatus.confirmed);
+        // Test order history / myOrdersProvider
+        final orders = await container.read(myOrdersProvider.future);
+        expect(orders.length, 1);
+        expect(orders.first.id, 'ord-999');
+        expect(orders.first.status, OrderStatus.confirmed);
 
-      // Test order details / orderByIdProvider (orderDetailsProvider)
-      final fetchedOrder = await container.read(orderDetailsProvider('ord-999').future);
-      expect(fetchedOrder, isNotNull);
-      expect(fetchedOrder?.shippingAddress, 'Chittagong, Bangladesh');
-      expect(fetchedOrder?.items.first.productName, 'Wireless Headphones');
-      expect(fetchedOrder?.total, 2559.0);
-    });
+        // Test order details / orderByIdProvider (orderDetailsProvider)
+        final fetchedOrder = await container.read(
+          orderDetailsProvider('ord-999').future,
+        );
+        expect(fetchedOrder, isNotNull);
+        expect(fetchedOrder?.shippingAddress, 'Chittagong, Bangladesh');
+        expect(fetchedOrder?.items.first.productName, 'Wireless Headphones');
+        expect(fetchedOrder?.total, 2559.0);
+      },
+    );
 
     test('placeOrderProvider saves order and invalidates history', () async {
       final fakeRepo = FakeOrderRepository([]);
 
       final container = ProviderContainer(
-        overrides: [
-          orderRepositoryProvider.overrideWithValue(fakeRepo),
-        ],
+        overrides: [orderRepositoryProvider.overrideWithValue(fakeRepo)],
       );
       addTearDown(container.dispose);
 
@@ -137,7 +136,9 @@ void main() {
         createdAt: DateTime.utc(2025, 2, 2, 14, 0),
       );
 
-      final placed = await container.read(placeOrderProvider.notifier).placeOrder(newOrder);
+      final placed = await container
+          .read(placeOrderProvider.notifier)
+          .placeOrder(newOrder);
       expect(placed.id, 'ord-888');
 
       final orders = await container.read(myOrdersProvider.future);

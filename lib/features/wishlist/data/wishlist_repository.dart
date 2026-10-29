@@ -1,4 +1,3 @@
-
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class WishlistRepository {
@@ -22,22 +21,17 @@ class WishlistRepository {
         .select('product_id')
         .eq('user_id', _userId);
 
-    return response
-        .map<String>(
-          (row) => row['product_id'] as String,
-    )
-        .toSet();
+    return response.map<String>((row) => row['product_id'] as String).toSet();
   }
 
   Future<void> add(String productId) async {
-    await _client.from('wishlist').upsert(
-      {
-        'user_id': _userId,
-        'product_id': productId,
-      },
-      onConflict: 'user_id,product_id',
-      ignoreDuplicates: true,
-    );
+    await _client
+        .from('wishlist')
+        .upsert(
+          {'user_id': _userId, 'product_id': productId},
+          onConflict: 'user_id,product_id',
+          ignoreDuplicates: true,
+        );
   }
 
   Future<void> remove(String productId) async {

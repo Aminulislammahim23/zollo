@@ -1,139 +1,134 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
-class HomeHeader extends StatelessWidget {
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_text.dart';
+import '../../../../core/widgets/search_field.dart';
+import '../../../address/presentation/providers/address_provider.dart';
+import '../../../auth/domain/providers/auth_provider.dart';
+import '../../../notifications/presentation/providers/notification_providers.dart';
+import '../../../../core/widgets/app_bottom_nav.dart';
+
+class HomeHeader extends ConsumerWidget {
   const HomeHeader({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(currentUserProvider);
+    final address = user == null
+        ? null
+        : ref.watch(defaultAddressProvider).value;
+    final unread = ref.watch(unreadNotificationCountProvider);
+
+    final String deliverTo;
+    final VoidCallback onDeliverTap;
+    if (address != null) {
+      final place = [
+        address.area,
+        address.district,
+      ].where((part) => part.trim().isNotEmpty).join(', ');
+      deliverTo = 'Deliver to ${place.isEmpty ? address.city : place}';
+      onDeliverTap = () => context.push('/addresses');
+    } else {
+      deliverTo = 'Add a delivery address';
+      onDeliverTap = () =>
+          context.push(user == null ? '/login' : '/add-address');
+    }
+
     return Container(
-      color: const Color(0xFF006B54),
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
+      color: AppColors.primary,
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.l,
+        MediaQuery.paddingOf(context).top + 20,
+        AppSpacing.l,
+        AppSpacing.l,
+      ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1E1E1E),
-                      borderRadius: BorderRadius.circular(8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Semantics(
+                      header: true,
+                      child: Text(
+                        'zollo',
+                        style: AppText.bannerTitle.copyWith(
+                          color: AppColors.white,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
                     ),
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        Positioned(
-                          bottom: 4,
-                          right: 4,
-                          child: Container(
-                            width: 14,
-                            height: 9,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFF76D743),
-                              borderRadius: BorderRadius.only(
-                                topLeft: Radius.circular(4),
-                                bottomRight: Radius.circular(4),
+                    Semantics(
+                      button: true,
+                      child: InkWell(
+                        onTap: onDeliverTap,
+                        borderRadius: AppRadius.badgeAll,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 2),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.location_on_outlined,
+                                size: 14,
+                                color: AppColors.onPrimaryMuted,
                               ),
-                            ),
+                              const SizedBox(width: 2),
+                              Flexible(
+                                child: Text(
+                                  deliverTo,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: AppText.caption.withColor(
+                                    AppColors.onPrimaryMuted,
+                                  ),
+                                ),
+                              ),
+                              const Icon(
+                                Icons.expand_more,
+                                size: 16,
+                                color: AppColors.onPrimaryMuted,
+                              ),
+                            ],
                           ),
                         ),
-                        Positioned(
-                          top: 8,
-                          left: 4,
-                          child: Container(
-                            width: 11,
-                            height: 7,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFF76D743),
-                              borderRadius: BorderRadius.only(
-                                topLeft: Radius.circular(3),
-                                bottomRight: Radius.circular(3),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const Icon(
-                          Icons.bolt,
-                          color: Colors.white,
-                          size: 22,
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'ZOLLO',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 2.5,
-                    ),
-                  ),
-                ],
-              ),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.15),
-                  shape: BoxShape.circle,
+                  ],
                 ),
-                child: IconButton(
-                  icon: const Icon(
+              ),
+              IconButton(
+                tooltip: unread > 0
+                    ? 'Notifications, $unread unread'
+                    : 'Notifications',
+                onPressed: () => context.push('/notifications'),
+                style: IconButton.styleFrom(
+                  backgroundColor: AppColors.primaryOnDark,
+                  minimumSize: const Size.square(44),
+                ),
+                icon: CartBadge(
+                  count: unread,
+                  child: const Icon(
                     Icons.notifications_none,
-                    color: Colors.white,
+                    color: AppColors.white,
+                    size: AppSpacing.iconBar,
                   ),
-                  onPressed: () {},
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              const Icon(
-                Icons.location_on_outlined,
-                size: 14,
-                color: Colors.white70,
-              ),
-              const SizedBox(width: 4),
-              Text(
-                'Deliver to Dhanmondi, Dhaka',
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.9),
-                  fontSize: 13,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Container(
+          const SizedBox(height: 14),
+          SearchField(
+            readOnly: true,
             height: 46,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
-            ),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Search products, brands and shops',
-                hintStyle: TextStyle(
-                  color: Colors.grey.shade400,
-                  fontSize: 14,
-                ),
-                prefixIcon: const Icon(
-                  Icons.search,
-                  color: Colors.grey,
-                ),
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(
-                  vertical: 12,
-                ),
-              ),
-            ),
+            fillColor: AppColors.surface,
+            onTap: () => context.push('/search'),
           ),
         ],
       ),

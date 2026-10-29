@@ -20,70 +20,78 @@ void main() {
       prefs = await SharedPreferences.getInstance();
     });
 
-    Widget createSplashWidget({
-      required GoRouter router,
-      User? fakeUser,
-    }) {
+    Widget createSplashWidget({required GoRouter router, User? fakeUser}) {
       return ProviderScope(
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
           currentUserProvider.overrideWithValue(fakeUser),
         ],
-        child: MaterialApp.router(
-          routerConfig: router,
-        ),
+        child: MaterialApp.router(routerConfig: router),
       );
     }
 
-    testWidgets('SplashScreen renders logo, title, tagline and progress indicator', (tester) async {
-      final router = GoRouter(
-        initialLocation: '/splash',
-        routes: [
-          GoRoute(
-            path: '/splash',
-            builder: (context, state) => const SplashScreen(),
-          ),
-          GoRoute(
-            path: '/onboarding',
-            builder: (context, state) => const Scaffold(body: Text('Onboarding Screen')),
-          ),
-        ],
-      );
+    testWidgets(
+      'SplashScreen renders logo, title, tagline and progress indicator',
+      (tester) async {
+        final router = GoRouter(
+          initialLocation: '/splash',
+          routes: [
+            GoRoute(
+              path: '/splash',
+              builder: (context, state) => const SplashScreen(),
+            ),
+            GoRoute(
+              path: '/onboarding',
+              builder: (context, state) =>
+                  const Scaffold(body: Text('Onboarding Screen')),
+            ),
+          ],
+        );
 
-      await tester.pumpWidget(createSplashWidget(router: router));
-      await tester.pump(); // Initial frame
+        await tester.pumpWidget(createSplashWidget(router: router));
+        await tester.pump(); // Initial frame
 
-      expect(find.text('zollo'), findsOneWidget);
-      expect(find.text('Your Ultimate Marketplace'), findsOneWidget);
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+        expect(find.text('zollo'), findsOneWidget);
+        expect(
+          find.text('Everything you need, delivered across Bangladesh'),
+          findsOneWidget,
+        );
+        expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
-      await tester.pump(const Duration(milliseconds: 1600));
-      await tester.pumpAndSettle();
-    });
+        await tester.pump(const Duration(milliseconds: 1600));
+        await tester.pumpAndSettle();
+      },
+    );
 
-    testWidgets('Navigates to /onboarding on first launch when onboarding incomplete', (tester) async {
-      final router = GoRouter(
-        initialLocation: '/splash',
-        routes: [
-          GoRoute(
-            path: '/splash',
-            builder: (context, state) => const SplashScreen(),
-          ),
-          GoRoute(
-            path: '/onboarding',
-            builder: (context, state) => const Scaffold(body: Text('Onboarding Screen')),
-          ),
-        ],
-      );
+    testWidgets(
+      'Navigates to /onboarding on first launch when onboarding incomplete',
+      (tester) async {
+        final router = GoRouter(
+          initialLocation: '/splash',
+          routes: [
+            GoRoute(
+              path: '/splash',
+              builder: (context, state) => const SplashScreen(),
+            ),
+            GoRoute(
+              path: '/onboarding',
+              builder: (context, state) =>
+                  const Scaffold(body: Text('Onboarding Screen')),
+            ),
+          ],
+        );
 
-      await tester.pumpWidget(createSplashWidget(router: router));
-      await tester.pump(const Duration(milliseconds: 1600));
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(createSplashWidget(router: router));
+        await tester.pump(const Duration(milliseconds: 1600));
+        await tester.pumpAndSettle();
 
-      expect(find.text('Onboarding Screen'), findsOneWidget);
-    });
+        expect(find.text('Onboarding Screen'), findsOneWidget);
+      },
+    );
 
-    testWidgets('Navigates to /login for returning unauthenticated user', (tester) async {
+    testWidgets('Navigates to /login for returning unauthenticated user', (
+      tester,
+    ) async {
       final repo = OnboardingRepository(prefs);
       await repo.setOnboardingCompleted();
 
@@ -96,12 +104,15 @@ void main() {
           ),
           GoRoute(
             path: '/login',
-            builder: (context, state) => const Scaffold(body: Text('Login Screen')),
+            builder: (context, state) =>
+                const Scaffold(body: Text('Login Screen')),
           ),
         ],
       );
 
-      await tester.pumpWidget(createSplashWidget(router: router, fakeUser: null));
+      await tester.pumpWidget(
+        createSplashWidget(router: router, fakeUser: null),
+      );
       await tester.pump(const Duration(milliseconds: 1600));
       await tester.pumpAndSettle();
 

@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../domain/address_model.dart';
 
 class AddressRepository {
@@ -129,9 +130,7 @@ class AddressRepository {
 
     await _supabase
         .from('addresses')
-        .update({
-          'is_default': true,
-        })
+        .update({'is_default': true})
         .eq('id', id)
         .eq('user_id', user.id);
   }

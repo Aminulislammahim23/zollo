@@ -1,9 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_text.dart';
+import '../../../../core/utils/formatters.dart';
+import '../../../../core/utils/support.dart';
+import '../../../../core/widgets/widgets.dart';
+import '../../../orders/domain/models/order_model.dart';
+import '../../../orders/presentation/providers/order_provider.dart';
+import '../../domain/tracking_event_model.dart';
 import '../../providers/tracking_provider.dart';
 import '../widgets/tracking_timeline.dart';
 
+/// `/tracking/:orderId`, spec C15.
 class TrackingScreen extends ConsumerWidget {
   final String orderId;
 
@@ -11,167 +22,142 @@ class TrackingScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final shipmentsAsync = ref.watch(shipmentsByOrderProvider(orderId));
-    final formattedOrderId = orderId.length > 12
-        ? 'BD${orderId.substring(0, 10).toUpperCase()}'
-        : orderId;
+    final orderAsync = ref.watch(orderDetailsProvider(orderId));
+    // Shipments are optional: without them the timeline follows the order status.
+    final shipments =
+        ref.watch(shipmentsByOrderProvider(orderId)).value ??
+        const <Shipment>[];
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF9F9F7),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new,
-            size: 18,
-            color: Colors.black87,
-          ),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Track package 1',
-              style: TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-                fontSize: 17,
-              ),
-            ),
-            Text(
-              'Order $formattedOrderId',
-              style: TextStyle(
-                color: Colors.grey.shade600,
-                fontSize: 12,
-                fontWeight: FontWeight.normal,
-              ),
-            ),
-          ],
-        ),
+      appBar: AppTopBar(
+        title: 'Track order',
+        subtitle: 'Order ${formatOrderNumber(orderId)}',
+        fallbackRoute: '/order-history',
       ),
-      body: shipmentsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(child: Text('Error: $error')),
-        data: (shipments) {
-          final shipment = shipments.isNotEmpty ? shipments.first : null;
-          final courier = shipment?.courierName ?? 'RedX';
-          final trkNo = shipment?.trackingNumber ?? 'TRK12345678';
-
-          return ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              // Top Status Card
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF006B54),
-                  borderRadius: BorderRadius.circular(16),
+      body: orderAsync.when(
+        loading: () => const ShimmerList(count: 2, itemHeight: 160),
+        error: (error, _) => ErrorView(
+          title: "Couldn't load tracking",
+          error: error,
+          onRetry: () {
+            ref.invalidate(orderDetailsProvider(orderId));
+            ref.invalidate(shipmentsByOrderProvider(orderId));
+          },
+        ),
+        data: (order) {
+          if (order == null) {
+            return const EmptyState(
+              icon: Icons.local_shipping_outlined,
+              title: 'Order not found',
+              message: "We couldn't find tracking for this order.",
+            );
+          }
+          final shipment = shipments.isEmpty ? null : shipments.first;
+          return RefreshIndicator(
+            color: AppColors.primary,
+            onRefresh: () async {
+              ref.invalidate(orderDetailsProvider(orderId));
+              ref.invalidate(shipmentsByOrderProvider(orderId));
+            },
+            child: ListView(
+              padding: const EdgeInsets.all(AppSpacing.m),
+              children: [
+                _StatusCard(order: order, shipment: shipment),
+                const SizedBox(height: AppSpacing.cardGap),
+                InfoCard(
+                  padding: const EdgeInsets.all(AppSpacing.l),
+                  child: TrackingTimeline(
+                    steps:
+                        shipment != null &&
+                            shipment.events.isNotEmpty &&
+                            order.status != OrderStatus.cancelled
+                        ? TimelineStep.fromEvents(shipment.events)
+                        : TimelineStep.fromOrder(order),
+                  ),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                const SizedBox(height: AppSpacing.l),
+                Row(
                   children: [
-                    const Text(
-                      'IN TRANSIT',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1,
+                    Expanded(
+                      child: AppButton.outline(
+                        label: 'Chat with seller',
+                        height: 48,
+                        onPressed: () => context.push('/messages'),
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    const Text(
-                      'Arriving in 2 days',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'With $courier · Tracking $trkNo',
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.85),
-                        fontSize: 13,
+                    const SizedBox(width: AppSpacing.m),
+                    Expanded(
+                      child: AppButton.outline(
+                        label: 'Get help',
+                        height: 48,
+                        onPressed: () => contactSupport(
+                          context,
+                          subject:
+                              'Delivery help for ${formatOrderNumber(order.id)}',
+                        ),
                       ),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 16),
-
-              // Tracking Timeline Card
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.grey.shade200),
-                ),
-                child: const TrackingTimeline(events: []),
-              ),
-              const SizedBox(height: 16),
-
-              // Action Buttons Row
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        side: BorderSide(color: Colors.grey.shade300),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      onPressed: () {},
-                      icon: const Icon(
-                        Icons.chat_bubble_outline,
-                        size: 18,
-                        color: Colors.black87,
-                      ),
-                      label: const Text(
-                        'Chat with seller',
-                        style: TextStyle(
-                          color: Colors.black87,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        side: BorderSide(color: Colors.grey.shade300),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      onPressed: () {},
-                      icon: const Icon(
-                        Icons.help_outline,
-                        size: 18,
-                        color: Colors.black87,
-                      ),
-                      label: const Text(
-                        'Get help',
-                        style: TextStyle(
-                          color: Colors.black87,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+              ],
+            ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _StatusCard extends StatelessWidget {
+  const _StatusCard({required this.order, required this.shipment});
+
+  final OrderModel order;
+  final Shipment? shipment;
+
+  @override
+  Widget build(BuildContext context) {
+    final eta = shipment?.estimatedDeliveryDate;
+    final headline = switch (order.status) {
+      OrderStatus.delivered => 'Delivered',
+      OrderStatus.cancelled => 'Order cancelled',
+      _ =>
+        eta != null ? 'Arriving by ${formatDate(eta)}' : 'Preparing your order',
+    };
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: order.status == OrderStatus.cancelled
+            ? AppColors.error
+            : AppColors.primary,
+        borderRadius: AppRadius.bannerAll,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            StatusText.labelOf(order.status).toUpperCase(),
+            style: AppText.captionStrong.copyWith(
+              color: AppColors.onPrimaryMuted,
+              letterSpacing: 0.6,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(headline, style: AppText.bannerTitle.withColor(AppColors.white)),
+          if (shipment != null) ...[
+            const SizedBox(height: 6),
+            Text(
+              [
+                if (shipment!.courierName != null &&
+                    shipment!.courierName!.isNotEmpty)
+                  'With ${shipment!.courierName}',
+                if (shipment!.trackingNumber.isNotEmpty)
+                  'Tracking ${shipment!.trackingNumber}',
+              ].join(' · '),
+              style: AppText.meta.withColor(AppColors.onPrimaryMuted),
+            ),
+          ],
+        ],
       ),
     );
   }
