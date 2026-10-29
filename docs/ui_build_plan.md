@@ -721,7 +721,7 @@ The canvas uses a 390×844 phone. Sizes are in logical pixels (dp). "Card" means
   6. Label: chips Home / Office / Other (`AppChip`, 40 high).
   7. A "Make this my default address" checkbox.
 - **Bottom**: `AppButton.primary` "Save address".
-- **Note for this step**: AddressRepository currently drops division, district, area and label. The UI must still collect them; the data fix comes in the optional Prompt D.
+- **Note for this step**: AddressRepository currently drops division, district, area and label. The UI must still collect them; the data fix comes in Prompt D.
 
 ### C24. My vouchers (`/vouchers`)
 
@@ -802,39 +802,48 @@ The canvas uses a 390×844 phone. Sizes are in logical pixels (dp). "Card" means
 
 ---
 
-# Optional — Prompt D · Fix the data bugs found in the code review
+# Prompt D · Connect the app to the new database (run before Prompt 8)
 
-Run this **before Prompt 8** if you want real orders to work correctly. It changes data code and the Supabase schema, so commit first.
+The database work is already done in two migration files (`supabase/migrations/20261030000100_hardening.sql` and `20261030000200_variants_payments_place_order.sql`). Run them in the Supabase SQL editor first (file 1, then file 2), commit them to the repo, then paste this prompt. It changes data code, so commit before you start.
 
 ```
-Read docs/ui_build_plan.md Part A. Fix these data bugs, one commit each, with tests:
-1. Orders: SupabaseOrderRepository sends an `items` column that doesn't exist and inserts
-   order_items with `price` instead of `unit_price`; the error is swallowed, so orders are
-   saved without items. Insert into orders (with subtotal, shipping_fee, total_amount,
-   payment_method, shipping_name, shipping_phone, shipping_address) and then into
-   order_items (unit_price, quantity, product_name, product_id). Remove the fallback retries
-   and stop swallowing errors. Read items back from order_items with an embedded select:
-   orders.select('*, order_items(*)'), instead of one query per order.
-2. Map PaymentMethod to the DB values: cashOnDelivery -> 'cash_on_delivery'.
-3. AddressRepository: also save and read division, district, area and label; add a `label`
-   text column via a migration (see below). getAddresses must not swallow errors.
-4. Tracking: order tracking_events by occurred_at (not timestamp) and read occurred_at and
-   estimated_delivery in the models; align ShipmentStatus with the DB values
+Read docs/ui_build_plan.md Part A and the two files in supabase/migrations/.
+The database now has: product_variants, product_images, payments, order_status_history,
+app_config, a products.rating column, addresses.label, unique constraints on wishlist,
+product_reviews and cart_items, RLS on every table, and these functions:
+  place_order(p_items jsonb, p_address_id uuid, p_payment_method text, p_idempotency_key text)
+    -> returns the new orders row; p_items = [{"product_id": "...", "quantity": 2}]
+       (or "variant_id" instead of "product_id")
+  cancel_order(p_order_id uuid, p_reason text) -> returns the orders row
+  set_default_address(p_address_id uuid)
+Errors come back as PostgrestException with message OUT_OF_STOCK, PRODUCT_UNAVAILABLE,
+ADDRESS_NOT_FOUND, EMPTY_CART, INVALID_QUANTITY, INVALID_PAYMENT_METHOD, NOT_AUTHENTICATED,
+ORDER_NOT_FOUND or ORDER_NOT_CANCELLABLE.
+
+Update the Flutter data layer, one commit per item, with tests using fake repositories:
+1. Orders: SupabaseOrderRepository.saveOrder must call rpc('place_order') with the cart items,
+   the selected address id, the payment method ('cash_on_delivery' for COD) and a UUID
+   idempotency key created once per checkout attempt (keep it if the user taps again).
+   Delete the direct inserts into orders / order_items and all the fallback retries.
+   Read orders with select('*, order_items(*)') in one query (no query per order), reading
+   unit_price, line_total and image_snapshot from order_items.
+   Map the error codes above to friendly messages in the checkout screen.
+2. Add cancelOrder(orderId) using rpc('cancel_order'); show 'Cancel order' on pending
+   orders in order details.
+3. Addresses: save and read label, division, district and area as well; use
+   rpc('set_default_address') instead of the two separate updates; stop swallowing
+   errors in getAddresses.
+4. Tracking: order tracking_events by occurred_at; read occurred_at and estimated_delivery;
+   map ShipmentStatus to the DB values
    (pending, confirmed, processing, shipped, out_for_delivery, delivered, cancelled, failed).
-5. Wishlist and reviews upsert need unique constraints.
-Write all schema changes in supabase/migrations/<timestamp>_fix_constraints.sql:
-  - alter table wishlist alter column user_id set not null, alter column product_id set not null;
-  - create unique index on wishlist(user_id, product_id);
-  - create unique index on product_reviews(product_id, user_id);
-  - create unique index on cart_items(user_id, product_id);
-  - alter table addresses add column if not exists label text default 'Home';
-  - indexes on every user_id, order_id, product_id, shipment_id foreign key column;
-  - a trigger that inserts a profiles row (id, full_name, phone from raw_user_meta_data)
-    on auth.users insert, plus a backfill for existing users;
-  - RLS enabled on all tables with own-row policies for wishlist, cart_items, addresses,
-    orders, order_items (via the parent order), product_reviews, and public read for active
-    products and categories.
-Do not run the migration yourself. Show me the SQL so I can run it in the Supabase SQL editor.
-Later, the order insert should move to a place_order() Postgres function so prices come from
-the database; leave a TODO for that.
+5. Products: read compare_at_price (discount badge), rating and rating_count from products.
+   Keep price and stock_quantity as they are; the database keeps them in sync.
+6. Reviews: the verified-buyer check is now enforced by RLS (order must be delivered).
+   Keep canUserReviewProvider, but base it on a delivered order containing the product,
+   and show the RLS error as 'You can review this after it is delivered.'
+7. Delivery fee: read app_config where key = 'delivery_fee' at start-up (fallback
+   AppConstants.deliveryFee) and use that value everywhere.
+Do not edit the SQL migrations. When everything works, tell me so I can run the LOCKDOWN
+block at the end of migration 2 (it removes the temporary insert policies).
+Finish with the A2.10 checks.
 ```
