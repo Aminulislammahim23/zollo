@@ -137,6 +137,7 @@ Future<void> pumpRoutes(
   List overrides = const [],
   User? user,
   FakeAuthRepository? auth,
+  FakeWishlistRepository? wishlist,
   Map<String, Object> prefs = const {},
 }) async {
   SharedPreferences.setMockInitialValues(prefs);
@@ -154,7 +155,7 @@ Future<void> pumpRoutes(
           ref.watch(authControllerProvider);
           return authRepo.currentUser;
         }),
-        wishlistRepositoryProvider.overrideWithValue(FakeWishlistRepository()),
+        wishlistRepositoryProvider.overrideWithValue(wishlist ?? FakeWishlistRepository()),
         ...overrides.cast(),
       ],
       child: MaterialApp.router(theme: AppTheme.light, routerConfig: router),
