@@ -7,7 +7,9 @@ abstract final class AuthValidators {
   static String? email(String? value) {
     final text = value?.trim() ?? '';
     if (text.isEmpty) return 'Enter your email';
-    if (!_email.hasMatch(text)) return 'Enter a valid email, e.g. you@example.com';
+    if (!_email.hasMatch(text)) {
+      return 'Enter a valid email, e.g. you@example.com';
+    }
     return null;
   }
 
@@ -53,13 +55,16 @@ abstract final class AuthValidators {
     if (error is AuthException) {
       final code = error.code ?? '';
       final text = error.message.toLowerCase();
-      if (code == 'invalid_credentials' || text.contains('invalid login credentials')) {
+      if (code == 'invalid_credentials' ||
+          text.contains('invalid login credentials')) {
         return 'That email and password do not match. Try again.';
       }
-      if (code == 'email_not_confirmed' || text.contains('email not confirmed')) {
+      if (code == 'email_not_confirmed' ||
+          text.contains('email not confirmed')) {
         return 'Please confirm your email first. Check your inbox for the link.';
       }
-      if (code == 'user_already_exists' || text.contains('already registered')) {
+      if (code == 'user_already_exists' ||
+          text.contains('already registered')) {
         return 'An account with this email already exists. Try logging in.';
       }
       if (code == 'weak_password' || text.contains('password should')) {
@@ -74,7 +79,8 @@ abstract final class AuthValidators {
       return error.message;
     }
     final text = error.toString();
-    if (text.contains('SocketException') || text.contains('Failed host lookup')) {
+    if (text.contains('SocketException') ||
+        text.contains('Failed host lookup')) {
       return 'No internet connection. Check your network and try again.';
     }
     return text.replaceFirst('Exception: ', '').replaceFirst('Bad state: ', '');

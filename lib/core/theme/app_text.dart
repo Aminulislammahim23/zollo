@@ -38,14 +38,38 @@ abstract final class AppText {
   static final TextStyle label = _m(13, FontWeight.w700);
   static final TextStyle caption = _m(12, FontWeight.w500);
   static final TextStyle micro = _m(11, FontWeight.w600);
-  static final TextStyle price =
-      _m(16, FontWeight.w800, color: AppColors.primary);
+  static final TextStyle price = _m(
+    16,
+    FontWeight.w800,
+    color: AppColors.primary,
+  );
   static final TextStyle priceOld = _m(
     12,
     FontWeight.w500,
     color: AppColors.muted,
     decoration: TextDecoration.lineThrough,
   );
+
+  // Named spec combinations used by screens (rule A2.2: no raw sizes in screens).
+  static final TextStyle bannerTitle = _m(22, FontWeight.w800);
+  static final TextStyle bodyMedium = _m(14, FontWeight.w500);
+  static final TextStyle bodyPlain = _m(15, FontWeight.w500);
+  static final TextStyle bubbleTime = _m(10, FontWeight.w500);
+  static final TextStyle campaignTitle = _m(24, FontWeight.w800);
+  static final TextStyle captionHeavy = _m(12, FontWeight.w800);
+  static final TextStyle captionStrong = _m(12, FontWeight.w700);
+  static final TextStyle cardTitle = _m(15, FontWeight.w800);
+  static final TextStyle inputText = _m(15, FontWeight.w600);
+  static final TextStyle labelHeavy = _m(13, FontWeight.w800);
+  static final TextStyle menuLabel = _m(14, FontWeight.w600);
+  static final TextStyle meta = _m(13, FontWeight.w500);
+  static final TextStyle microStrong = _m(11, FontWeight.w700);
+  static final TextStyle productTitle = _m(16, FontWeight.w700);
+  static final TextStyle ratingAverage = _m(32, FontWeight.w800);
+  static final TextStyle rowTitle = _m(14, FontWeight.w800);
+  static final TextStyle tag = _m(11, FontWeight.w800);
+  static final TextStyle timestamp = _m(11, FontWeight.w500);
+  static final TextStyle totalPrice = _m(20, FontWeight.w800);
 
   /// Builds an ad-hoc Manrope style for the few spec values that are not one
   /// of the named styles (e.g. the 40 / w800 splash wordmark).
@@ -56,33 +80,32 @@ abstract final class AppText {
     double? height,
     double? letterSpacing,
     TextDecoration? decoration,
-  }) =>
-      _m(
-        size,
-        weight,
-        color: color,
-        height: height,
-        letterSpacing: letterSpacing,
-        decoration: decoration,
-      );
+  }) => _m(
+    size,
+    weight,
+    color: color,
+    height: height,
+    letterSpacing: letterSpacing,
+    decoration: decoration,
+  );
 
   static TextTheme get textTheme => TextTheme(
-        displayLarge: display,
-        displayMedium: display,
-        displaySmall: display,
-        headlineLarge: headline,
-        headlineMedium: headline,
-        headlineSmall: title,
-        titleLarge: title,
-        titleMedium: section,
-        titleSmall: bodyStrong,
-        bodyLarge: body,
-        bodyMedium: _m(14, FontWeight.w500),
-        bodySmall: caption,
-        labelLarge: label,
-        labelMedium: caption,
-        labelSmall: micro,
-      );
+    displayLarge: display,
+    displayMedium: display,
+    displaySmall: display,
+    headlineLarge: headline,
+    headlineMedium: headline,
+    headlineSmall: title,
+    titleLarge: title,
+    titleMedium: section,
+    titleSmall: bodyStrong,
+    bodyLarge: body,
+    bodyMedium: _m(14, FontWeight.w500),
+    bodySmall: caption,
+    labelLarge: label,
+    labelMedium: caption,
+    labelSmall: micro,
+  );
 }
 
 extension TextStyleX on TextStyle {
@@ -90,9 +113,9 @@ extension TextStyleX on TextStyle {
       copyWith(color: color, decorationColor: color);
 
   TextStyle withWeight(FontWeight weight) => copyWith(
-        fontWeight: weight,
-        fontVariations: [FontVariation('wght', weight.value.toDouble())],
-      );
+    fontWeight: weight,
+    fontVariations: [FontVariation('wght', weight.value.toDouble())],
+  );
 
   TextStyle withSize(double size) => copyWith(fontSize: size);
 }

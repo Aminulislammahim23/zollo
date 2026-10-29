@@ -51,7 +51,9 @@ class PhoneField extends StatelessWidget {
   static String? validate(String? value, {bool required = false}) {
     final text = value?.trim() ?? '';
     if (text.isEmpty) return required ? 'Enter your phone number' : null;
-    if (!isValid(text)) return 'Enter a valid BD mobile number, e.g. 1712345678';
+    if (!isValid(text)) {
+      return 'Enter a valid BD mobile number, e.g. 1712345678';
+    }
     return null;
   }
 
@@ -81,7 +83,10 @@ class PhoneField extends StatelessWidget {
           color: AppColors.surfaceAlt,
           borderRadius: BorderRadius.horizontal(left: Radius.circular(11)),
         ),
-        child: Text('+880', style: AppText.custom(15, FontWeight.w700, color: AppColors.inkSoft)),
+        child: Text(
+          '+880',
+          style: AppText.custom(15, FontWeight.w700, color: AppColors.inkSoft),
+        ),
       ),
     );
   }

@@ -20,19 +20,30 @@ void main() {
   ];
 
   final overrides = [
-    productsProvider.overrideWith((ref) async => [
-          sampleProduct(id: 'p1', title: 'Earbuds', originalPrice: 2400),
-          sampleProduct(id: 'p2', title: 'Keyboard', price: 4200),
-          sampleProduct(id: 'p3', title: 'Smart Watch', price: 3500),
-        ]),
-    categoriesProvider.overrideWith((ref) async => const [
-          Category(id: 'c1', name: 'Electronics'),
-          Category(id: 'c2', name: 'Fashion'),
-        ]),
+    productsProvider.overrideWith(
+      (ref) async => [
+        sampleProduct(id: 'p1', title: 'Earbuds', originalPrice: 2400),
+        sampleProduct(id: 'p2', title: 'Keyboard', price: 4200),
+        sampleProduct(id: 'p3', title: 'Smart Watch', price: 3500),
+      ],
+    ),
+    categoriesProvider.overrideWith(
+      (ref) async => const [
+        Category(id: 'c1', name: 'Electronics'),
+        Category(id: 'c2', name: 'Fashion'),
+      ],
+    ),
   ];
 
-  testWidgets('Home renders header, categories, flash sale and grid', (tester) async {
-    await pumpRoutes(tester, routes: routes, initialLocation: '/home', overrides: overrides);
+  testWidgets('Home renders header, categories, flash sale and grid', (
+    tester,
+  ) async {
+    await pumpRoutes(
+      tester,
+      routes: routes,
+      initialLocation: '/home',
+      overrides: overrides,
+    );
     await tester.pump(const Duration(milliseconds: 100));
 
     expect(find.text('zollo'), findsOneWidget);
@@ -45,13 +56,23 @@ void main() {
     await tester.scrollUntilVisible(
       find.text('Just for you'),
       300,
-      scrollable: find.descendant(of: find.byType(CustomScrollView), matching: find.byType(Scrollable)).first,
+      scrollable: find
+          .descendant(
+            of: find.byType(CustomScrollView),
+            matching: find.byType(Scrollable),
+          )
+          .first,
     );
     expect(find.text('Just for you'), findsOneWidget);
   });
 
   testWidgets('Search bar opens the search screen', (tester) async {
-    await pumpRoutes(tester, routes: routes, initialLocation: '/home', overrides: overrides);
+    await pumpRoutes(
+      tester,
+      routes: routes,
+      initialLocation: '/home',
+      overrides: overrides,
+    );
     await tester.pump(const Duration(milliseconds: 100));
 
     await tester.tap(find.text('Search products, brands and shops'));
@@ -65,7 +86,9 @@ void main() {
       routes: routes,
       initialLocation: '/home',
       overrides: [
-        productsProvider.overrideWith((ref) async => throw Exception('offline')),
+        productsProvider.overrideWith(
+          (ref) async => throw Exception('offline'),
+        ),
         categoriesProvider.overrideWith((ref) async => const <Category>[]),
       ],
     );

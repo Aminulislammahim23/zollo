@@ -36,23 +36,41 @@ class OrderConfirmationScreen extends StatelessWidget {
             children: [
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.xxl, AppSpacing.xl, AppSpacing.l),
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.xl,
+                    AppSpacing.xxl,
+                    AppSpacing.xl,
+                    AppSpacing.l,
+                  ),
                   child: Column(
                     children: [
                       Container(
                         width: 96,
                         height: 96,
-                        decoration: const BoxDecoration(color: AppColors.primaryTint, shape: BoxShape.circle),
+                        decoration: const BoxDecoration(
+                          color: AppColors.primaryTint,
+                          shape: BoxShape.circle,
+                        ),
                         alignment: Alignment.center,
                         child: Container(
                           width: 64,
                           height: 64,
-                          decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
-                          child: const Icon(Icons.check_rounded, size: 36, color: AppColors.white),
+                          decoration: const BoxDecoration(
+                            color: AppColors.primary,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.check_rounded,
+                            size: 36,
+                            color: AppColors.white,
+                          ),
                         ),
                       ),
                       const SizedBox(height: AppSpacing.l),
-                      Semantics(header: true, child: Text('Order placed', style: AppText.headline)),
+                      Semantics(
+                        header: true,
+                        child: Text('Order placed', style: AppText.headline),
+                      ),
                       const SizedBox(height: AppSpacing.s),
                       Text(
                         "We've received your order. You'll get updates as it moves.",
@@ -62,8 +80,14 @@ class OrderConfirmationScreen extends StatelessWidget {
                       const SizedBox(height: AppSpacing.xl),
                       Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.l, vertical: 14),
-                        decoration: const BoxDecoration(color: AppColors.background, borderRadius: AppRadius.cardAll),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.l,
+                          vertical: 14,
+                        ),
+                        decoration: const BoxDecoration(
+                          color: AppColors.background,
+                          borderRadius: AppRadius.cardAll,
+                        ),
                         child: Column(
                           children: [
                             for (var i = 0; i < rows.length; i++) ...[
@@ -75,14 +99,20 @@ class OrderConfirmationScreen extends StatelessWidget {
                                     width: 110,
                                     child: Text(
                                       rows[i].$1,
-                                      style: AppText.custom(13, FontWeight.w500, color: AppColors.muted),
+                                      style: AppText.meta.withColor(
+                                        AppColors.muted,
+                                      ),
                                     ),
                                   ),
                                   Expanded(
                                     child: Text(
                                       rows[i].$2,
                                       textAlign: TextAlign.end,
-                                      style: AppText.custom(13, i == 0 ? FontWeight.w800 : FontWeight.w700),
+                                      style: AppText.meta.withWeight(
+                                        i == 0
+                                            ? FontWeight.w800
+                                            : FontWeight.w700,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -96,7 +126,12 @@ class OrderConfirmationScreen extends StatelessWidget {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(AppSpacing.xl, 0, AppSpacing.xl, AppSpacing.xxl),
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.xl,
+                  0,
+                  AppSpacing.xl,
+                  AppSpacing.xxl,
+                ),
                 child: Column(
                   children: [
                     AppButton.primary(
@@ -107,7 +142,10 @@ class OrderConfirmationScreen extends StatelessWidget {
                       },
                     ),
                     const SizedBox(height: AppSpacing.m),
-                    AppButton.outline(label: 'Continue shopping', onPressed: () => context.go('/home')),
+                    AppButton.outline(
+                      label: 'Continue shopping',
+                      onPressed: () => context.go('/home'),
+                    ),
                   ],
                 ),
               ),

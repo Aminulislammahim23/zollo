@@ -9,8 +9,8 @@ final notificationRepositoryProvider = Provider<NotificationRepository>((ref) {
 
 final notificationsProvider =
     AsyncNotifierProvider<NotificationsController, List<AppNotification>>(
-  NotificationsController.new,
-);
+      NotificationsController.new,
+    );
 
 class NotificationsController extends AsyncNotifier<List<AppNotification>> {
   NotificationRepository get _repo => ref.read(notificationRepositoryProvider);
@@ -20,7 +20,9 @@ class NotificationsController extends AsyncNotifier<List<AppNotification>> {
 
   Future<void> markRead(String id) async {
     final current = state.value ?? const [];
-    state = AsyncData([for (final n in current) n.id == id ? n.copyWith(read: true) : n]);
+    state = AsyncData([
+      for (final n in current) n.id == id ? n.copyWith(read: true) : n,
+    ]);
     await _repo.markRead(id);
   }
 

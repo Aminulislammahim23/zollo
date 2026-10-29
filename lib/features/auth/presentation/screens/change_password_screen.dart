@@ -14,7 +14,8 @@ class ChangePasswordScreen extends ConsumerStatefulWidget {
   const ChangePasswordScreen({super.key});
 
   @override
-  ConsumerState<ChangePasswordScreen> createState() => _ChangePasswordScreenState();
+  ConsumerState<ChangePasswordScreen> createState() =>
+      _ChangePasswordScreenState();
 }
 
 class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
@@ -45,15 +46,16 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
 
     setState(() => _saving = true);
     try {
-      await ref.read(authControllerProvider.notifier).changePassword(
+      await ref
+          .read(authControllerProvider.notifier)
+          .changePassword(
             currentPassword: _current.text,
             newPassword: _new.text,
             signOutOtherDevices: _signOutOthers,
           );
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Password updated.')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Password updated.')));
       context.pop();
     } catch (error) {
       if (!mounted) return;
@@ -61,7 +63,9 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            text.contains('do not match') ? 'Your current password is incorrect.' : text,
+            text.contains('do not match')
+                ? 'Your current password is incorrect.'
+                : text,
           ),
         ),
       );
@@ -74,17 +78,25 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.surface,
-      appBar: const AppTopBar(title: 'Change password', fallbackRoute: '/settings'),
+      appBar: const AppTopBar(
+        title: 'Change password',
+        fallbackRoute: '/settings',
+      ),
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: AppSpacing.xl),
+          padding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: AppSpacing.xl,
+          ),
           children: [
             PasswordField(
               label: 'Current password',
               controller: _current,
               textInputAction: TextInputAction.next,
-              validator: (v) => (v == null || v.isEmpty) ? 'Enter your current password' : null,
+              validator: (v) => (v == null || v.isEmpty)
+                  ? 'Enter your current password'
+                  : null,
             ),
             Align(
               alignment: Alignment.centerRight,
@@ -101,7 +113,9 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
               validator: (v) {
                 final rule = AuthValidators.strongPassword(v);
                 if (rule != null) return rule;
-                if (v == _current.text) return 'Use a password you have not used here';
+                if (v == _current.text) {
+                  return 'Use a password you have not used here';
+                }
                 return null;
               },
             ),
@@ -112,7 +126,8 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
               textInputAction: TextInputAction.done,
               autofillHints: const [AutofillHints.newPassword],
               onSubmitted: (_) => _submit(),
-              validator: (v) => v != _new.text ? 'Passwords do not match' : null,
+              validator: (v) =>
+                  v != _new.text ? 'Passwords do not match' : null,
             ),
             const SizedBox(height: AppSpacing.l),
             PasswordRulesChecklist(password: _new.text),
@@ -124,12 +139,13 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                 children: [
                   Checkbox(
                     value: _signOutOthers,
-                    onChanged: (v) => setState(() => _signOutOthers = v ?? false),
+                    onChanged: (v) =>
+                        setState(() => _signOutOthers = v ?? false),
                   ),
                   Expanded(
                     child: Text(
                       'Log out of all other devices',
-                      style: AppText.custom(14, FontWeight.w600, color: AppColors.inkSoft),
+                      style: AppText.menuLabel.withColor(AppColors.inkSoft),
                     ),
                   ),
                 ],
@@ -140,8 +156,17 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
       ),
       bottomNavigationBar: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, AppSpacing.m, 20, AppSpacing.xl),
-          child: AppButton.primary(label: 'Update password', loading: _saving, onPressed: _submit),
+          padding: const EdgeInsets.fromLTRB(
+            20,
+            AppSpacing.m,
+            20,
+            AppSpacing.xl,
+          ),
+          child: AppButton.primary(
+            label: 'Update password',
+            loading: _saving,
+            onPressed: _submit,
+          ),
         ),
       ),
     );

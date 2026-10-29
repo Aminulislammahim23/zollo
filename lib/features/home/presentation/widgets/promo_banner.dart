@@ -61,7 +61,8 @@ class _PromoBannerState extends State<PromoBanner> {
   @override
   Widget build(BuildContext context) {
     final campaigns = PromoBanner.campaigns;
-    final height = 140 * MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 1.4);
+    final height =
+        140 * MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 1.4);
 
     return Column(
       children: [
@@ -72,7 +73,9 @@ class _PromoBannerState extends State<PromoBanner> {
             itemCount: campaigns.length,
             onPageChanged: (i) => setState(() => _page = i),
             itemBuilder: (context, i) => Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screen),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.screen,
+              ),
               child: _CampaignCard(campaign: campaigns[i]),
             ),
           ),
@@ -111,13 +114,19 @@ class _CampaignCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: const BoxDecoration(color: AppColors.deep, borderRadius: AppRadius.bannerAll),
+      decoration: const BoxDecoration(
+        color: AppColors.deep,
+        borderRadius: AppRadius.bannerAll,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             campaign.label,
-            style: AppText.custom(12, FontWeight.w700, color: AppColors.accent, letterSpacing: 1),
+            style: AppText.captionStrong.copyWith(
+              color: AppColors.accent,
+              letterSpacing: 1,
+            ),
           ),
           const SizedBox(height: AppSpacing.xs),
           Flexible(
@@ -125,7 +134,10 @@ class _CampaignCard extends StatelessWidget {
               campaign.title,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: AppText.custom(24, FontWeight.w800, color: AppColors.white, height: 1.15),
+              style: AppText.campaignTitle.copyWith(
+                color: AppColors.white,
+                height: 1.15,
+              ),
             ),
           ),
           const Spacer(),
@@ -136,10 +148,13 @@ class _CampaignCard extends StatelessWidget {
               customBorder: const StadiumBorder(),
               onTap: () => context.push(campaign.route),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: AppSpacing.s),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: AppSpacing.s,
+                ),
                 child: Text(
                   campaign.cta,
-                  style: AppText.custom(13, FontWeight.w700, color: AppColors.onAccent),
+                  style: AppText.label.withColor(AppColors.onAccent),
                 ),
               ),
             ),

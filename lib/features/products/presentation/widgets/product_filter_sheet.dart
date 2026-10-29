@@ -33,7 +33,11 @@ class ProductFilterSheet extends StatefulWidget {
     return showModalBottomSheet<ProductFilter>(
       context: context,
       isScrollControlled: true,
-      builder: (_) => ProductFilterSheet(filter: filter, categories: categories, maxPrice: maxPrice),
+      builder: (_) => ProductFilterSheet(
+        filter: filter,
+        categories: categories,
+        maxPrice: maxPrice,
+      ),
     );
   }
 
@@ -59,11 +63,14 @@ class _ProductFilterSheetState extends State<ProductFilterSheet> {
 
   void _apply() {
     final isFullRange = _range.start <= 0 && _range.end >= _ceiling;
-    Navigator.of(context).pop(widget.filter.copyWith(
-      categoryIds: _categories,
-      minPrice: () => isFullRange || _range.start <= 0 ? null : _range.start,
-      maxPrice: () => isFullRange || _range.end >= _ceiling ? null : _range.end,
-    ));
+    Navigator.of(context).pop(
+      widget.filter.copyWith(
+        categoryIds: _categories,
+        minPrice: () => isFullRange || _range.start <= 0 ? null : _range.start,
+        maxPrice: () =>
+            isFullRange || _range.end >= _ceiling ? null : _range.end,
+      ),
+    );
   }
 
   @override
@@ -77,7 +84,12 @@ class _ProductFilterSheetState extends State<ProductFilterSheet> {
           Expanded(
             child: ListView(
               controller: scrollController,
-              padding: const EdgeInsets.fromLTRB(AppSpacing.l, 0, AppSpacing.l, AppSpacing.l),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.l,
+                0,
+                AppSpacing.l,
+                AppSpacing.l,
+              ),
               children: [
                 Row(
                   children: [
@@ -103,7 +115,10 @@ class _ProductFilterSheetState extends State<ProductFilterSheet> {
                   min: 0,
                   max: _ceiling,
                   divisions: 50,
-                  labels: RangeLabels(formatTaka(_range.start.round()), formatTaka(_range.end.round())),
+                  labels: RangeLabels(
+                    formatTaka(_range.start.round()),
+                    formatTaka(_range.end.round()),
+                  ),
                   onChanged: (v) => setState(() => _range = v),
                 ),
                 if (widget.categories.isNotEmpty) ...[
@@ -114,9 +129,11 @@ class _ProductFilterSheetState extends State<ProductFilterSheet> {
                     CheckboxListTile(
                       value: _categories.contains(c.id),
                       onChanged: (v) => setState(() {
-                        v == true ? _categories.add(c.id) : _categories.remove(c.id);
+                        v == true
+                            ? _categories.add(c.id)
+                            : _categories.remove(c.id);
                       }),
-                      title: Text(c.name, style: AppText.custom(14, FontWeight.w600)),
+                      title: Text(c.name, style: AppText.menuLabel),
                       controlAffinity: ListTileControlAffinity.leading,
                       contentPadding: EdgeInsets.zero,
                       dense: true,
@@ -128,8 +145,16 @@ class _ProductFilterSheetState extends State<ProductFilterSheet> {
           SafeArea(
             top: false,
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(AppSpacing.l, AppSpacing.s, AppSpacing.l, AppSpacing.l),
-              child: AppButton.primary(label: 'Show results', onPressed: _apply),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.l,
+                AppSpacing.s,
+                AppSpacing.l,
+                AppSpacing.l,
+              ),
+              child: AppButton.primary(
+                label: 'Show results',
+                onPressed: _apply,
+              ),
             ),
           ),
         ],

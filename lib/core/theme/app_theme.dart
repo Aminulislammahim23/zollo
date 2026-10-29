@@ -27,10 +27,15 @@ class AppTheme {
     );
 
     final buttonText = AppText.custom(15, FontWeight.w800);
-    const buttonShape = RoundedRectangleBorder(borderRadius: AppRadius.buttonAll);
+    const buttonShape = RoundedRectangleBorder(
+      borderRadius: AppRadius.buttonAll,
+    );
     const buttonSize = Size(64, 52);
 
-    OutlineInputBorder inputBorder(Color color, [double width = AppBorders.thin]) {
+    OutlineInputBorder inputBorder(
+      Color color, [
+      double width = AppBorders.thin,
+    ]) {
       return OutlineInputBorder(
         borderRadius: AppRadius.inputAll,
         borderSide: BorderSide(color: color, width: width),
@@ -51,10 +56,16 @@ class AppTheme {
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
-        iconTheme: const IconThemeData(color: AppColors.ink, size: AppSpacing.iconBar),
+        iconTheme: const IconThemeData(
+          color: AppColors.ink,
+          size: AppSpacing.iconBar,
+        ),
         titleTextStyle: AppText.title,
       ),
-      iconTheme: const IconThemeData(color: AppColors.ink, size: AppSpacing.iconInline),
+      iconTheme: const IconThemeData(
+        color: AppColors.ink,
+        size: AppSpacing.iconInline,
+      ),
       cardTheme: const CardThemeData(
         elevation: 0,
         color: AppColors.surface,
@@ -66,7 +77,10 @@ class AppTheme {
         filled: true,
         fillColor: AppColors.surface,
         isDense: true,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 16,
+        ),
         hintStyle: AppText.custom(15, FontWeight.w500, color: AppColors.hint),
         labelStyle: AppText.label,
         errorStyle: AppText.caption.withColor(AppColors.error),
@@ -105,7 +119,10 @@ class AppTheme {
           minimumSize: buttonSize,
           shape: buttonShape,
           textStyle: buttonText,
-          side: const BorderSide(color: AppColors.primary, width: AppBorders.selected),
+          side: const BorderSide(
+            color: AppColors.primary,
+            width: AppBorders.selected,
+          ),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
@@ -137,15 +154,17 @@ class AppTheme {
         ),
         checkColor: const WidgetStatePropertyAll(AppColors.white),
         side: const BorderSide(color: AppColors.border, width: 1.5),
-        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4))),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(4)),
+        ),
       ),
       radioTheme: RadioThemeData(
         fillColor: WidgetStateProperty.resolveWith(
           (states) => states.contains(WidgetState.disabled)
               ? AppColors.switchOff
               : states.contains(WidgetState.selected)
-                  ? AppColors.primary
-                  : AppColors.border,
+              ? AppColors.primary
+              : AppColors.border,
         ),
       ),
       switchTheme: SwitchThemeData(
@@ -168,7 +187,9 @@ class AppTheme {
         showDragHandle: true,
         dragHandleColor: AppColors.border,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.banner)),
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(AppRadius.banner),
+          ),
         ),
       ),
       dialogTheme: DialogThemeData(

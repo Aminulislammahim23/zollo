@@ -18,8 +18,18 @@ void main() {
     id: 'order-1',
     userId: 'user-1',
     items: const [
-      OrderItem(productId: 'p1', productName: 'Earbuds', price: 1850, quantity: 1),
-      OrderItem(productId: 'p2', productName: 'Charger', price: 650, quantity: 1),
+      OrderItem(
+        productId: 'p1',
+        productName: 'Earbuds',
+        price: 1850,
+        quantity: 1,
+      ),
+      OrderItem(
+        productId: 'p2',
+        productName: 'Charger',
+        price: 650,
+        quantity: 1,
+      ),
     ],
     shippingAddress: 'Rahim · 017\nDhanmondi',
     shippingFee: 60,
@@ -29,15 +39,25 @@ void main() {
 
   final routes = <RouteBase>[
     GoRoute(path: '/settings', builder: (_, _) => const SettingsScreen()),
-    GoRoute(path: '/return', builder: (_, _) => ReturnRequestScreen(order: order)),
+    GoRoute(
+      path: '/return',
+      builder: (_, _) => ReturnRequestScreen(order: order),
+    ),
     stubRoute('/login', 'Login destination'),
     stubRoute('/settings/change-password', 'Change password destination'),
     stubRoute('/account'),
     stubRoute('/order-history'),
   ];
 
-  testWidgets('settings saves language and notification toggles', (tester) async {
-    await pumpRoutes(tester, routes: routes, initialLocation: '/settings', user: FakeUser());
+  testWidgets('settings saves language and notification toggles', (
+    tester,
+  ) async {
+    await pumpRoutes(
+      tester,
+      routes: routes,
+      initialLocation: '/settings',
+      user: FakeUser(),
+    );
 
     await tester.tap(find.text('বাংলা'));
     await tester.pump();
@@ -52,7 +72,12 @@ void main() {
   testWidgets('settings logs out to the login screen', (tester) async {
     useTallViewport(tester);
     final auth = FakeAuthRepository(user: FakeUser());
-    await pumpRoutes(tester, routes: routes, initialLocation: '/settings', auth: auth);
+    await pumpRoutes(
+      tester,
+      routes: routes,
+      initialLocation: '/settings',
+      auth: auth,
+    );
 
     await tester.tap(find.text('Log out'));
     await tester.pumpAndSettle();
@@ -62,7 +87,12 @@ void main() {
 
   testWidgets('delete account explains how to contact support', (tester) async {
     useTallViewport(tester);
-    await pumpRoutes(tester, routes: routes, initialLocation: '/settings', user: FakeUser());
+    await pumpRoutes(
+      tester,
+      routes: routes,
+      initialLocation: '/settings',
+      user: FakeUser(),
+    );
     await tester.tap(find.text('Delete my account'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Continue'));

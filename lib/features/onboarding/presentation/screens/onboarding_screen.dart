@@ -25,7 +25,8 @@ class OnboardingScreen extends ConsumerStatefulWidget {
     ),
     OnboardingPageData(
       title: 'Track every order to your door',
-      description: 'Live updates from packing to delivery, and easy 7-day returns.',
+      description:
+          'Live updates from packing to delivery, and easy 7-day returns.',
       icon: Icons.local_shipping_outlined,
     ),
   ];
@@ -80,14 +81,19 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       backgroundColor: AppColors.surface,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.l, AppSpacing.xl, 40),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.xl,
+            AppSpacing.l,
+            AppSpacing.xl,
+            40,
+          ),
           child: Column(
             children: [
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: _completing ? null : _completeAndNavigate,
-                  style: TextButton.styleFrom(textStyle: AppText.custom(14, FontWeight.w700)),
+                  style: TextButton.styleFrom(textStyle: AppText.bodyStrong),
                   child: const Text('Skip'),
                 ),
               ),
@@ -96,8 +102,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 child: PageView.builder(
                   controller: _pageController,
                   itemCount: _pages.length,
-                  onPageChanged: (index) => setState(() => _currentPage = index),
-                  itemBuilder: (context, index) => OnboardingPage(data: _pages[index]),
+                  onPageChanged: (index) =>
+                      setState(() => _currentPage = index),
+                  itemBuilder: (context, index) =>
+                      OnboardingPage(data: _pages[index]),
                 ),
               ),
               const SizedBox(height: 28),
@@ -112,7 +120,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         width: i == _currentPage ? 22 : 6,
                         height: 6,
                         decoration: BoxDecoration(
-                          color: i == _currentPage ? AppColors.primary : AppColors.border,
+                          color: i == _currentPage
+                              ? AppColors.primary
+                              : AppColors.border,
                           borderRadius: BorderRadius.circular(3),
                         ),
                       ),

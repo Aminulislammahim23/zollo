@@ -22,9 +22,7 @@ class ProductReview {
       userId: map['user_id'] as String,
       rating: map['rating'] as int,
       comment: map['comment'] as String?,
-      createdAt: DateTime.parse(
-        map['created_at'] as String,
-      ),
+      createdAt: DateTime.parse(map['created_at'] as String),
     );
   }
 

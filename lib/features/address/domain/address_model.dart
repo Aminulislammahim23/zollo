@@ -37,22 +37,31 @@ class Address {
 
   /// "House 12, Road 4, Dhanmondi, Dhaka City, Dhaka".
   String get displayAddress {
-    final parts = <String>[addressLine, area, district, division]
-        .map((p) => p.trim())
-        .where((p) => p.isNotEmpty)
-        .toList();
+    final parts = <String>[
+      addressLine,
+      area,
+      district,
+      division,
+    ].map((p) => p.trim()).where((p) => p.isNotEmpty).toList();
     // Drop consecutive duplicates such as "Dhaka City, Dhaka City".
     final unique = <String>[];
     for (final p in parts) {
-      if (unique.isEmpty || unique.last.toLowerCase() != p.toLowerCase()) unique.add(p);
+      if (unique.isEmpty || unique.last.toLowerCase() != p.toLowerCase()) {
+        unique.add(p);
+      }
     }
     if (unique.isEmpty) return formattedAddress;
-    return postalCode.trim().isEmpty ? unique.join(', ') : '${unique.join(', ')} - $postalCode';
+    return postalCode.trim().isEmpty
+        ? unique.join(', ')
+        : '${unique.join(', ')} - $postalCode';
   }
 
   /// "Dhanmondi, Dhaka City".
   String get shortArea {
-    final parts = [area, district].map((p) => p.trim()).where((p) => p.isNotEmpty);
+    final parts = [
+      area,
+      district,
+    ].map((p) => p.trim()).where((p) => p.isNotEmpty);
     return parts.isEmpty ? city : parts.join(', ');
   }
 
@@ -60,52 +69,55 @@ class Address {
     return Address(
       id: map['id'] as String? ?? '',
       userId: map['user_id'] as String? ?? '',
-      fullName: map['recipient_name'] as String? ??
-          map['full_name'] as String? ??
-          '',
+      fullName:
+          map['recipient_name'] as String? ?? map['full_name'] as String? ?? '',
       phone: map['phone'] as String? ?? '',
-      addressLine: map['address_line'] as String? ??
+      addressLine:
+          map['address_line'] as String? ??
           map['full_address'] as String? ??
           '',
       city: map['city'] as String? ?? '',
       postalCode: map['postal_code'] as String? ?? '',
       country: map['country'] as String? ?? 'Bangladesh',
       division: map['division'] as String? ?? 'Dhaka',
-      district: map['district'] as String? ?? map['city'] as String? ?? 'Dhaka City',
+      district:
+          map['district'] as String? ?? map['city'] as String? ?? 'Dhaka City',
       area: map['area'] as String? ?? '',
       label: map['label'] as String? ?? 'HOME',
       isDefault: map['is_default'] as bool? ?? false,
       createdAt:
-          DateTime.tryParse(map['created_at'] as String? ?? '') ?? DateTime.now(),
+          DateTime.tryParse(map['created_at'] as String? ?? '') ??
+          DateTime.now(),
       updatedAt:
-          DateTime.tryParse(map['updated_at'] as String? ?? '') ?? DateTime.now(),
+          DateTime.tryParse(map['updated_at'] as String? ?? '') ??
+          DateTime.now(),
     );
   }
 
   Map<String, dynamic> toMap() => {
-        'id': id,
-        'user_id': userId,
-        'recipient_name': fullName,
-        'phone': phone,
-        'address_line': addressLine,
-        'city': city,
-        'postal_code': postalCode,
-        'country': country,
-        'is_default': isDefault,
-        'created_at': createdAt.toUtc().toIso8601String(),
-        'updated_at': updatedAt.toUtc().toIso8601String(),
-      };
+    'id': id,
+    'user_id': userId,
+    'recipient_name': fullName,
+    'phone': phone,
+    'address_line': addressLine,
+    'city': city,
+    'postal_code': postalCode,
+    'country': country,
+    'is_default': isDefault,
+    'created_at': createdAt.toUtc().toIso8601String(),
+    'updated_at': updatedAt.toUtc().toIso8601String(),
+  };
 
   Map<String, dynamic> toInsertMap() => {
-        'user_id': userId,
-        'recipient_name': fullName,
-        'phone': phone,
-        'address_line': addressLine,
-        'city': city,
-        'postal_code': postalCode.isEmpty ? null : postalCode,
-        'country': country,
-        'is_default': isDefault,
-      };
+    'user_id': userId,
+    'recipient_name': fullName,
+    'phone': phone,
+    'address_line': addressLine,
+    'city': city,
+    'postal_code': postalCode.isEmpty ? null : postalCode,
+    'country': country,
+    'is_default': isDefault,
+  };
 
   Address copyWith({
     String? id,

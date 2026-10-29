@@ -24,7 +24,9 @@ class TrackingScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final orderAsync = ref.watch(orderDetailsProvider(orderId));
     // Shipments are optional: without them the timeline follows the order status.
-    final shipments = ref.watch(shipmentsByOrderProvider(orderId)).value ?? const <Shipment>[];
+    final shipments =
+        ref.watch(shipmentsByOrderProvider(orderId)).value ??
+        const <Shipment>[];
 
     return Scaffold(
       appBar: AppTopBar(
@@ -65,7 +67,10 @@ class TrackingScreen extends ConsumerWidget {
                 InfoCard(
                   padding: const EdgeInsets.all(AppSpacing.l),
                   child: TrackingTimeline(
-                    steps: shipment != null && shipment.events.isNotEmpty && order.status != OrderStatus.cancelled
+                    steps:
+                        shipment != null &&
+                            shipment.events.isNotEmpty &&
+                            order.status != OrderStatus.cancelled
                         ? TimelineStep.fromEvents(shipment.events)
                         : TimelineStep.fromOrder(order),
                   ),
@@ -87,7 +92,8 @@ class TrackingScreen extends ConsumerWidget {
                         height: 48,
                         onPressed: () => contactSupport(
                           context,
-                          subject: 'Delivery help for ${formatOrderNumber(order.id)}',
+                          subject:
+                              'Delivery help for ${formatOrderNumber(order.id)}',
                         ),
                       ),
                     ),
@@ -114,13 +120,16 @@ class _StatusCard extends StatelessWidget {
     final headline = switch (order.status) {
       OrderStatus.delivered => 'Delivered',
       OrderStatus.cancelled => 'Order cancelled',
-      _ => eta != null ? 'Arriving by ${formatDate(eta)}' : 'Preparing your order',
+      _ =>
+        eta != null ? 'Arriving by ${formatDate(eta)}' : 'Preparing your order',
     };
 
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: order.status == OrderStatus.cancelled ? AppColors.error : AppColors.primary,
+        color: order.status == OrderStatus.cancelled
+            ? AppColors.error
+            : AppColors.primary,
         borderRadius: AppRadius.bannerAll,
       ),
       child: Column(
@@ -128,18 +137,24 @@ class _StatusCard extends StatelessWidget {
         children: [
           Text(
             StatusText.labelOf(order.status).toUpperCase(),
-            style: AppText.custom(12, FontWeight.w700, color: AppColors.onPrimaryMuted, letterSpacing: 0.6),
+            style: AppText.captionStrong.copyWith(
+              color: AppColors.onPrimaryMuted,
+              letterSpacing: 0.6,
+            ),
           ),
           const SizedBox(height: 6),
-          Text(headline, style: AppText.custom(22, FontWeight.w800, color: AppColors.white)),
+          Text(headline, style: AppText.bannerTitle.withColor(AppColors.white)),
           if (shipment != null) ...[
             const SizedBox(height: 6),
             Text(
               [
-                if (shipment!.courierName != null && shipment!.courierName!.isNotEmpty) 'With ${shipment!.courierName}',
-                if (shipment!.trackingNumber.isNotEmpty) 'Tracking ${shipment!.trackingNumber}',
+                if (shipment!.courierName != null &&
+                    shipment!.courierName!.isNotEmpty)
+                  'With ${shipment!.courierName}',
+                if (shipment!.trackingNumber.isNotEmpty)
+                  'Tracking ${shipment!.trackingNumber}',
               ].join(' · '),
-              style: AppText.custom(13, FontWeight.w500, color: AppColors.onPrimaryMuted),
+              style: AppText.meta.withColor(AppColors.onPrimaryMuted),
             ),
           ],
         ],

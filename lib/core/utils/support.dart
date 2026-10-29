@@ -28,13 +28,15 @@ Future<void> contactSupport(BuildContext context, {String? subject}) async {
 Future<void> openExternalUrl(BuildContext context, String url) async {
   var opened = false;
   try {
-    opened = await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    opened = await launchUrl(
+      Uri.parse(url),
+      mode: LaunchMode.externalApplication,
+    );
   } catch (_) {
     opened = false;
   }
   if (!opened && context.mounted) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Couldn't open $url")),
-    );
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text("Couldn't open $url")));
   }
 }

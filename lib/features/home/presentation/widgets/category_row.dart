@@ -34,7 +34,8 @@ class CategoryRow extends ConsumerWidget {
           _CategoryTile(
             icon: c.icon,
             label: c.name,
-            onTap: () => context.push('/products?category=${Uri.encodeComponent(c.id)}'),
+            onTap: () =>
+                context.push('/products?category=${Uri.encodeComponent(c.id)}'),
           ),
         _AllTile(),
       ],
@@ -47,7 +48,9 @@ class CategoryRow extends ConsumerWidget {
         children: [
           for (var i = 0; i < 5; i++) ...[
             if (i > 0) const SizedBox(width: AppSpacing.s),
-            Expanded(child: i < tiles.length ? tiles[i] : const SizedBox.shrink()),
+            Expanded(
+              child: i < tiles.length ? tiles[i] : const SizedBox.shrink(),
+            ),
           ],
         ],
       ),
@@ -67,7 +70,11 @@ class _AllTile extends StatelessWidget {
 }
 
 class _CategoryTile extends StatelessWidget {
-  const _CategoryTile({required this.icon, required this.label, required this.onTap});
+  const _CategoryTile({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
 
   final IconData icon;
   final String label;
@@ -89,7 +96,10 @@ class _CategoryTile extends StatelessWidget {
               Container(
                 width: 52,
                 height: 52,
-                decoration: const BoxDecoration(color: AppColors.surface, borderRadius: AppRadius.bannerAll),
+                decoration: const BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: AppRadius.bannerAll,
+                ),
                 child: Icon(icon, size: 24, color: AppColors.primary),
               ),
               const SizedBox(height: 6),

@@ -22,7 +22,8 @@ class ProductReviewsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final reviewsAsync = ref.watch(productReviewsProvider(product.id));
-    final canReview = ref.watch(canUserReviewProvider(product.id)).value ?? false;
+    final canReview =
+        ref.watch(canUserReviewProvider(product.id)).value ?? false;
 
     return Scaffold(
       appBar: const AppTopBar(title: 'Ratings & reviews'),
@@ -46,11 +47,13 @@ class ProductReviewsScreen extends ConsumerWidget {
           final summary = ReviewSummary.from(reviews);
           return RefreshIndicator(
             color: AppColors.primary,
-            onRefresh: () async => ref.invalidate(productReviewsProvider(product.id)),
+            onRefresh: () async =>
+                ref.invalidate(productReviewsProvider(product.id)),
             child: ListView.separated(
               padding: const EdgeInsets.all(AppSpacing.m),
               itemCount: reviews.length + 1,
-              separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.cardGap),
+              separatorBuilder: (_, _) =>
+                  const SizedBox(height: AppSpacing.cardGap),
               itemBuilder: (context, i) {
                 if (i == 0) {
                   return Column(
@@ -62,7 +65,8 @@ class ProductReviewsScreen extends ConsumerWidget {
                         AppButton.outline(
                           label: 'Write a review',
                           icon: Icons.edit_outlined,
-                          onPressed: () => context.push('/write-review', extra: product),
+                          onPressed: () =>
+                              context.push('/write-review', extra: product),
                         ),
                       ],
                     ],
@@ -90,7 +94,10 @@ class ReviewSummaryCard extends StatelessWidget {
         children: [
           Column(
             children: [
-              Text(summary.average.toStringAsFixed(1), style: AppText.custom(32, FontWeight.w800)),
+              Text(
+                summary.average.toStringAsFixed(1),
+                style: AppText.ratingAverage,
+              ),
               RatingStars(rating: summary.average),
               const SizedBox(height: AppSpacing.xs),
               Text(
@@ -111,12 +118,17 @@ class ReviewSummaryCard extends StatelessWidget {
                       excludeSemantics: true,
                       child: Row(
                         children: [
-                          SizedBox(width: 22, child: Text('$stars★', style: AppText.caption)),
+                          SizedBox(
+                            width: 22,
+                            child: Text('$stars★', style: AppText.caption),
+                          ),
                           Expanded(
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(3),
                               child: LinearProgressIndicator(
-                                value: summary.count == 0 ? 0 : summary.countFor(stars) / summary.count,
+                                value: summary.count == 0
+                                    ? 0
+                                    : summary.countFor(stars) / summary.count,
                                 minHeight: 6,
                                 backgroundColor: AppColors.divider,
                                 color: AppColors.star,
@@ -160,14 +172,26 @@ class ReviewCard extends StatelessWidget {
             children: [
               RatingStars(rating: review.rating),
               const Spacer(),
-              Text(formatDate(review.createdAt), style: AppText.caption.withColor(AppColors.muted)),
+              Text(
+                formatDate(review.createdAt),
+                style: AppText.caption.withColor(AppColors.muted),
+              ),
             ],
           ),
           const SizedBox(height: 6),
-          Text('Verified buyer', style: AppText.custom(12, FontWeight.w700, color: AppColors.primary)),
+          Text(
+            'Verified buyer',
+            style: AppText.captionStrong.withColor(AppColors.primary),
+          ),
           if (comment != null && comment.isNotEmpty) ...[
             const SizedBox(height: 6),
-            Text(comment, style: AppText.custom(14, FontWeight.w500, color: AppColors.inkSoft, height: 1.45)),
+            Text(
+              comment,
+              style: AppText.bodyMedium.copyWith(
+                color: AppColors.inkSoft,
+                height: 1.45,
+              ),
+            ),
           ],
         ],
       ),

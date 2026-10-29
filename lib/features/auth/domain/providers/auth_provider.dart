@@ -27,7 +27,8 @@ final currentUserProvider = Provider<User?>((ref) {
 /// Display helpers read from the user's metadata.
 extension UserProfileX on User {
   String get displayName {
-    final name = (userMetadata?['full_name'] ?? userMetadata?['name']) as String?;
+    final name =
+        (userMetadata?['full_name'] ?? userMetadata?['name']) as String?;
     if (name != null && name.trim().isNotEmpty) return name.trim();
     return email?.split('@').first ?? 'zollo shopper';
   }
@@ -38,13 +39,13 @@ extension UserProfileX on User {
     return (phone != null && phone!.isNotEmpty) ? phone : null;
   }
 
-  String get initial => displayName.isEmpty ? 'Z' : displayName[0].toUpperCase();
+  String get initial =>
+      displayName.isEmpty ? 'Z' : displayName[0].toUpperCase();
 
   bool get isEmailVerified => emailConfirmedAt != null;
 }
 
-final authControllerProvider =
-    AsyncNotifierProvider<AuthController, User?>(
+final authControllerProvider = AsyncNotifierProvider<AuthController, User?>(
   AuthController.new,
 );
 
@@ -81,10 +82,7 @@ class AuthController extends AsyncNotifier<User?> {
   }
 
   /// Returns true when the user is signed in.
-  Future<bool> signIn({
-    required String email,
-    required String password,
-  }) async {
+  Future<bool> signIn({required String email, required String password}) async {
     state = const AsyncLoading();
 
     state = await AsyncValue.guard(() async {

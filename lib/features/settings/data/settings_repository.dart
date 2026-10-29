@@ -28,5 +28,6 @@ class SettingsRepository {
 
   bool isEnabled(NotificationPref pref) => _prefs.getBool(pref.key) ?? true;
 
-  Future<void> setEnabled(NotificationPref pref, bool value) => _prefs.setBool(pref.key, value);
+  Future<void> setEnabled(NotificationPref pref, bool value) =>
+      _prefs.setBool(pref.key, value);
 }

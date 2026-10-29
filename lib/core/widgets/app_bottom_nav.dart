@@ -132,7 +132,11 @@ class CartBadge extends StatelessWidget {
             alignment: Alignment.center,
             child: Text(
               count > 99 ? '99+' : '$count',
-              style: AppText.custom(10, FontWeight.w800, color: AppColors.white),
+              style: AppText.custom(
+                10,
+                FontWeight.w800,
+                color: AppColors.white,
+              ),
             ),
           ),
         ),

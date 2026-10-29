@@ -51,11 +51,14 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   }
 
   Future<void> _open(String url) async {
-    final ok = await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    final ok = await launchUrl(
+      Uri.parse(url),
+      mode: LaunchMode.externalApplication,
+    );
     if (!ok && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Couldn't open the link.")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Couldn't open the link.")));
     }
   }
 
@@ -64,7 +67,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final phone = _phone.text.trim();
-    final response = await ref.read(authControllerProvider.notifier).signUp(
+    final response = await ref
+        .read(authControllerProvider.notifier)
+        .signUp(
           email: _email.text,
           password: _password.text,
           fullName: _name.text,
@@ -75,7 +80,11 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     if (response == null) {
       final error = ref.read(authControllerProvider).error;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AuthValidators.message(error ?? 'Could not create your account.'))),
+        SnackBar(
+          content: Text(
+            AuthValidators.message(error ?? 'Could not create your account.'),
+          ),
+        ),
       );
       return;
     }
@@ -92,18 +101,24 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     if (_confirmationSentTo != null) {
       return AuthScaffold(
         content: [
-          const AuthIconTile(icon: Icons.mark_email_unread_outlined, circle: true),
+          const AuthIconTile(
+            icon: Icons.mark_email_unread_outlined,
+            circle: true,
+          ),
           AuthHeading(
             title: 'Check your email',
             subtitle: 'We sent a confirmation link to $_confirmationSentTo.',
           ),
-          AppButton.primary(label: 'Back to log in', onPressed: () => context.go('/login')),
+          AppButton.primary(
+            label: 'Back to log in',
+            onPressed: () => context.go('/login'),
+          ),
         ],
       );
     }
 
     final isLoading = ref.watch(authControllerProvider).isLoading;
-    final linkStyle = AppText.custom(13, FontWeight.w700, color: AppColors.primary);
+    final linkStyle = AppText.label.withColor(AppColors.primary);
 
     return AuthScaffold(
       gap: 20,
@@ -156,7 +171,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 const SizedBox(height: 14),
                 FormField<bool>(
                   initialValue: false,
-                  validator: (v) => v == true ? null : 'Please accept the terms to continue',
+                  validator: (v) =>
+                      v == true ? null : 'Please accept the terms to continue',
                   builder: (field) => Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -167,19 +183,29 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                             value: field.value ?? false,
                             onChanged: (v) => field.didChange(v),
                             side: BorderSide(
-                              color: field.hasError ? AppColors.error : AppColors.border,
+                              color: field.hasError
+                                  ? AppColors.error
+                                  : AppColors.border,
                               width: 1.5,
                             ),
                           ),
                           Expanded(
                             child: Text.rich(
                               TextSpan(
-                                style: AppText.custom(13, FontWeight.w500, color: AppColors.muted),
+                                style: AppText.meta.withColor(AppColors.muted),
                                 children: [
                                   const TextSpan(text: 'I agree to the '),
-                                  TextSpan(text: 'Terms of use', style: linkStyle, recognizer: _termsTap),
+                                  TextSpan(
+                                    text: 'Terms of use',
+                                    style: linkStyle,
+                                    recognizer: _termsTap,
+                                  ),
                                   const TextSpan(text: ' and '),
-                                  TextSpan(text: 'Privacy policy', style: linkStyle, recognizer: _privacyTap),
+                                  TextSpan(
+                                    text: 'Privacy policy',
+                                    style: linkStyle,
+                                    recognizer: _privacyTap,
+                                  ),
                                 ],
                               ),
                             ),
@@ -201,7 +227,11 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             ),
           ),
         ),
-        AppButton.primary(label: 'Create account', loading: isLoading, onPressed: _submit),
+        AppButton.primary(
+          label: 'Create account',
+          loading: isLoading,
+          onPressed: _submit,
+        ),
       ],
       footer: [
         AuthLinkText(

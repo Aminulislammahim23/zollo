@@ -25,12 +25,12 @@ class AppNotification {
   String get tag => type == NotificationType.order ? 'OR' : '%';
 
   AppNotification copyWith({bool? read}) => AppNotification(
-        id: id,
-        type: type,
-        title: title,
-        body: body,
-        createdAt: createdAt,
-        read: read ?? this.read,
-        deepLink: deepLink,
-      );
+    id: id,
+    type: type,
+    title: title,
+    body: body,
+    createdAt: createdAt,
+    read: read ?? this.read,
+    deepLink: deepLink,
+  );
 }

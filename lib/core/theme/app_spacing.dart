@@ -38,10 +38,14 @@ abstract final class AppRadius {
   static const double chip = 999;
   static const double badge = 6;
 
-  static const BorderRadius buttonAll = BorderRadius.all(Radius.circular(button));
+  static const BorderRadius buttonAll = BorderRadius.all(
+    Radius.circular(button),
+  );
   static const BorderRadius inputAll = BorderRadius.all(Radius.circular(input));
   static const BorderRadius cardAll = BorderRadius.all(Radius.circular(card));
-  static const BorderRadius bannerAll = BorderRadius.all(Radius.circular(banner));
+  static const BorderRadius bannerAll = BorderRadius.all(
+    Radius.circular(banner),
+  );
   static const BorderRadius tileAll = BorderRadius.all(Radius.circular(tile));
   static const BorderRadius chipAll = BorderRadius.all(Radius.circular(chip));
   static const BorderRadius badgeAll = BorderRadius.all(Radius.circular(badge));

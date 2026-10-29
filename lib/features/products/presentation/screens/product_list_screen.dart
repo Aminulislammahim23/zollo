@@ -25,11 +25,14 @@ class ProductListScreen extends ConsumerStatefulWidget {
 }
 
 class _ProductListScreenState extends ConsumerState<ProductListScreen> {
-  late final TextEditingController _search = TextEditingController(text: widget.query ?? '');
+  late final TextEditingController _search = TextEditingController(
+    text: widget.query ?? '',
+  );
   late ProductFilter _filter = ProductFilter(
     query: widget.query ?? '',
     categoryIds: {
-      if (widget.categoryId != null && widget.categoryId!.isNotEmpty) widget.categoryId!,
+      if (widget.categoryId != null && widget.categoryId!.isNotEmpty)
+        widget.categoryId!,
     },
   );
 
@@ -54,8 +57,14 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
     setState(() => _filter = const ProductFilter());
   }
 
-  Future<void> _openFilters(List<Product> products, List<Category> categories) async {
-    final maxPrice = products.fold<double>(0, (m, p) => p.price > m ? p.price : m);
+  Future<void> _openFilters(
+    List<Product> products,
+    List<Category> categories,
+  ) async {
+    final maxPrice = products.fold<double>(
+      0,
+      (m, p) => p.price > m ? p.price : m,
+    );
     final result = await ProductFilterSheet.show(
       context,
       filter: _filter,
@@ -68,7 +77,8 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
   @override
   Widget build(BuildContext context) {
     final productsAsync = ref.watch(productsProvider);
-    final categories = ref.watch(categoriesProvider).value ?? const <Category>[];
+    final categories =
+        ref.watch(categoriesProvider).value ?? const <Category>[];
     final categoryNames = {for (final c in categories) c.id: c.name};
 
     final sort = _filter.sort;
@@ -86,7 +96,12 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
             color: AppColors.surface,
             padding: EdgeInsets.only(top: MediaQuery.paddingOf(context).top),
             child: Container(
-              padding: const EdgeInsets.fromLTRB(AppSpacing.xs, AppSpacing.m, AppSpacing.xs, AppSpacing.m),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.xs,
+                AppSpacing.m,
+                AppSpacing.xs,
+                AppSpacing.m,
+              ),
               decoration: const BoxDecoration(
                 border: Border(bottom: BorderSide(color: AppColors.divider)),
               ),
@@ -96,14 +111,21 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                     children: [
                       IconButton(
                         tooltip: 'Back',
-                        icon: const Icon(Icons.arrow_back_ios_new, size: AppSpacing.iconSmall),
-                        onPressed: () => context.canPop() ? context.pop() : context.go('/home'),
+                        icon: const Icon(
+                          Icons.arrow_back_ios_new,
+                          size: AppSpacing.iconSmall,
+                        ),
+                        onPressed: () => context.canPop()
+                            ? context.pop()
+                            : context.go('/home'),
                       ),
                       Expanded(
                         child: SearchField(
                           controller: _search,
                           hint: 'Search products',
-                          onChanged: (v) => setState(() => _filter = _filter.copyWith(query: v)),
+                          onChanged: (v) => setState(
+                            () => _filter = _filter.copyWith(query: v),
+                          ),
                         ),
                       ),
                       const CartIconButton(),
@@ -112,13 +134,19 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                   const SizedBox(height: AppSpacing.m),
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.m),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.m,
+                    ),
                     child: Row(
                       children: [
                         AppChip(
                           label: 'Popular',
                           selected: sort == ProductSort.popular,
-                          onTap: () => setState(() => _filter = _filter.copyWith(sort: ProductSort.popular)),
+                          onTap: () => setState(
+                            () => _filter = _filter.copyWith(
+                              sort: ProductSort.popular,
+                            ),
+                          ),
                         ),
                         const SizedBox(width: AppSpacing.s),
                         AppChip(
@@ -131,15 +159,22 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                           label: '4★ & up',
                           selected: _filter.minRating4,
                           onTap: () => setState(
-                            () => _filter = _filter.copyWith(minRating4: !_filter.minRating4),
+                            () => _filter = _filter.copyWith(
+                              minRating4: !_filter.minRating4,
+                            ),
                           ),
                         ),
                         const SizedBox(width: AppSpacing.s),
                         AppChip(
                           label: 'Free delivery',
-                          onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Free delivery offers are coming soon.')),
-                          ),
+                          onTap: () => ScaffoldMessenger.of(context)
+                              .showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Free delivery offers are coming soon.',
+                                  ),
+                                ),
+                              ),
                         ),
                       ],
                     ),
@@ -160,33 +195,53 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                 onRetry: () => ref.invalidate(productsProvider),
               ),
               data: (products) {
-                final results = _filter.apply(products, categoryNames: categoryNames);
+                final results = _filter.apply(
+                  products,
+                  categoryNames: categoryNames,
+                );
                 return RefreshIndicator(
                   color: AppColors.primary,
                   onRefresh: () async {
                     ref.invalidate(productsProvider);
-                    await ref.read(productsProvider.future).catchError((_) => <Product>[]);
+                    await ref
+                        .read(productsProvider.future)
+                        .catchError((_) => <Product>[]);
                   },
                   child: CustomScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
                     slivers: [
                       SliverPadding(
-                        padding: const EdgeInsets.fromLTRB(AppSpacing.screen, AppSpacing.xs, AppSpacing.xs, 0),
+                        padding: const EdgeInsets.fromLTRB(
+                          AppSpacing.screen,
+                          AppSpacing.xs,
+                          AppSpacing.xs,
+                          0,
+                        ),
                         sliver: SliverToBoxAdapter(
                           child: Row(
                             children: [
                               Expanded(
                                 child: Text(
                                   '${results.length} ${results.length == 1 ? 'result' : 'results'}',
-                                  style: AppText.custom(13, FontWeight.w500, color: AppColors.muted),
+                                  style: AppText.meta.withColor(
+                                    AppColors.muted,
+                                  ),
                                 ),
                               ),
                               TextButton.icon(
-                                onPressed: () => _openFilters(products, categories),
-                                style: TextButton.styleFrom(foregroundColor: AppColors.ink),
-                                icon: const Icon(Icons.tune, size: AppSpacing.iconSmall),
+                                onPressed: () =>
+                                    _openFilters(products, categories),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: AppColors.ink,
+                                ),
+                                icon: const Icon(
+                                  Icons.tune,
+                                  size: AppSpacing.iconSmall,
+                                ),
                                 label: Text(
-                                  _filter.categoryIds.isNotEmpty || _filter.minPrice != null || _filter.maxPrice != null
+                                  _filter.categoryIds.isNotEmpty ||
+                                          _filter.minPrice != null ||
+                                          _filter.maxPrice != null
                                       ? 'Filters •'
                                       : 'Filters',
                                 ),
@@ -202,14 +257,18 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                             icon: Icons.search_off_outlined,
                             title: 'No products found',
                             message: 'Try a different search or filter.',
-                            actionLabel: _filter.hasFilters ? 'Clear filters' : null,
+                            actionLabel: _filter.hasFilters
+                                ? 'Clear filters'
+                                : null,
                             onAction: _clearFilters,
                             actionVariant: AppButtonVariant.outline,
                           ),
                         )
                       else
                         SliverProductGrid(products: results),
-                      const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xl)),
+                      const SliverToBoxAdapter(
+                        child: SizedBox(height: AppSpacing.xl),
+                      ),
                     ],
                   ),
                 );

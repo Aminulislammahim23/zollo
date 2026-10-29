@@ -51,7 +51,10 @@ class ProductFilter {
 
   /// [categoryNames] maps category id → name so products that only carry the
   /// joined name (no `category_id`) still match.
-  List<Product> apply(List<Product> products, {Map<String, String> categoryNames = const {}}) {
+  List<Product> apply(
+    List<Product> products, {
+    Map<String, String> categoryNames = const {},
+  }) {
     final q = query.trim().toLowerCase();
     final wantedNames = {
       for (final id in categoryIds)

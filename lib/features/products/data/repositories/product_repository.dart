@@ -3,7 +3,7 @@ import 'package:zollo/features/products/domain/models/product.dart';
 
 class ProductRepository {
   ProductRepository({SupabaseClient? client})
-      : _client = client ?? Supabase.instance.client;
+    : _client = client ?? Supabase.instance.client;
 
   final SupabaseClient _client;
 
@@ -24,9 +24,7 @@ class ProductRepository {
     } catch (_) {
       try {
         // Fallback 1: query without is_active filter
-        response = await _client
-            .from('products')
-            .select('''
+        response = await _client.from('products').select('''
               *,
               categories (
                 name
@@ -35,9 +33,7 @@ class ProductRepository {
       } catch (_) {
         try {
           // Fallback 2: simple select without joins or filters
-          response = await _client
-              .from('products')
-              .select('*');
+          response = await _client.from('products').select('*');
         } catch (e) {
           rethrow;
         }

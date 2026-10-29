@@ -25,14 +25,18 @@ class AppNetworkImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget fallback({bool broken = false}) => Container(
-          width: width,
-          height: height,
-          color: AppColors.placeholder,
-          alignment: Alignment.center,
-          child: broken
-              ? const Icon(Icons.broken_image_outlined, color: AppColors.hint, size: 24)
-              : null,
-        );
+      width: width,
+      height: height,
+      color: AppColors.placeholder,
+      alignment: Alignment.center,
+      child: broken
+          ? const Icon(
+              Icons.broken_image_outlined,
+              color: AppColors.hint,
+              size: 24,
+            )
+          : null,
+    );
 
     final Widget image = url.isEmpty
         ? fallback(broken: true)

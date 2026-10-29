@@ -77,16 +77,21 @@ class _StylePreviewScreenState extends State<StylePreviewScreen> {
   );
 
   Widget _heading(String text) => Padding(
-        padding: const EdgeInsets.only(top: AppSpacing.xl, bottom: AppSpacing.s),
-        child: Text(text, style: AppText.section),
-      );
+    padding: const EdgeInsets.only(top: AppSpacing.xl, bottom: AppSpacing.s),
+    child: Text(text, style: AppText.section),
+  );
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const AppTopBar(title: 'Style preview'),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(AppSpacing.l, 0, AppSpacing.l, AppSpacing.xxl),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.l,
+          0,
+          AppSpacing.l,
+          AppSpacing.xxl,
+        ),
         children: [
           _heading('Colours'),
           Wrap(
@@ -118,18 +123,29 @@ class _StylePreviewScreenState extends State<StylePreviewScreen> {
           for (final entry in _styles.entries)
             Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.s),
-              child: Text('${entry.key} · ${formatTaka(2450)}', style: entry.value),
+              child: Text(
+                '${entry.key} · ${formatTaka(2450)}',
+                style: entry.value,
+              ),
             ),
           _heading('Buttons'),
           AppButton.primary(label: 'Primary', onPressed: () {}),
           AppSpacing.gapS,
           AppButton.outline(label: 'Outline', onPressed: () {}),
           AppSpacing.gapS,
-          AppButton.deal(label: 'Deal', icon: Icons.bolt_outlined, onPressed: () {}),
+          AppButton.deal(
+            label: 'Deal',
+            icon: Icons.bolt_outlined,
+            onPressed: () {},
+          ),
           AppSpacing.gapS,
           AppButton.danger(label: 'Danger', onPressed: () {}),
           AppSpacing.gapS,
-          const AppButton.primary(label: 'Loading', loading: true, onPressed: null),
+          const AppButton.primary(
+            label: 'Loading',
+            loading: true,
+            onPressed: null,
+          ),
           AppSpacing.gapS,
           const AppButton.primary(label: 'Disabled', onPressed: null),
           AppSpacing.gapS,
@@ -163,8 +179,16 @@ class _StylePreviewScreenState extends State<StylePreviewScreen> {
             spacing: AppSpacing.s,
             runSpacing: AppSpacing.s,
             children: [
-              AppChip(label: 'Selected', selected: _chip, onTap: () => setState(() => _chip = !_chip)),
-              AppChip(label: 'Unselected', selected: !_chip, onTap: () => setState(() => _chip = !_chip)),
+              AppChip(
+                label: 'Selected',
+                selected: _chip,
+                onTap: () => setState(() => _chip = !_chip),
+              ),
+              AppChip(
+                label: 'Unselected',
+                selected: !_chip,
+                onTap: () => setState(() => _chip = !_chip),
+              ),
               const DiscountBadge.percent(23),
               const DiscountBadge.priceDrop(),
               const DiscountBadge.outOfStock(),
@@ -193,7 +217,11 @@ class _StylePreviewScreenState extends State<StylePreviewScreen> {
           SectionHeader(title: 'Just for you', onAction: () {}),
           SizedBox(
             width: 180,
-            child: ProductCard(product: _sample, showWishlist: false, onTap: () {}),
+            child: ProductCard(
+              product: _sample,
+              showWishlist: false,
+              onTap: () {},
+            ),
           ),
           _heading('Info card'),
           const InfoCard(child: Text('InfoCard: white, radius 14, padding 14')),
@@ -210,13 +238,20 @@ class _StylePreviewScreenState extends State<StylePreviewScreen> {
           ),
           SizedBox(
             height: 260,
-            child: ErrorView(message: 'Could not load products.', onRetry: () {}),
+            child: ErrorView(
+              message: 'Could not load products.',
+              onRetry: () {},
+            ),
           ),
           _heading('Logo'),
           Container(
             color: AppColors.primary,
             padding: const EdgeInsets.all(AppSpacing.l),
-            child: const ZolloLogo(onPrimary: true, showMark: true, markSize: 56),
+            child: const ZolloLogo(
+              onPrimary: true,
+              showMark: true,
+              markSize: 56,
+            ),
           ),
           AppSpacing.gapS,
           const ZolloLogo(fontSize: 28),

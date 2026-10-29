@@ -17,20 +17,24 @@ class HomeHeader extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
-    final address = user == null ? null : ref.watch(defaultAddressProvider).value;
+    final address = user == null
+        ? null
+        : ref.watch(defaultAddressProvider).value;
     final unread = ref.watch(unreadNotificationCountProvider);
 
     final String deliverTo;
     final VoidCallback onDeliverTap;
     if (address != null) {
-      final place = [address.area, address.district]
-          .where((part) => part.trim().isNotEmpty)
-          .join(', ');
+      final place = [
+        address.area,
+        address.district,
+      ].where((part) => part.trim().isNotEmpty).join(', ');
       deliverTo = 'Deliver to ${place.isEmpty ? address.city : place}';
       onDeliverTap = () => context.push('/addresses');
     } else {
       deliverTo = 'Add a delivery address';
-      onDeliverTap = () => context.push(user == null ? '/login' : '/add-address');
+      onDeliverTap = () =>
+          context.push(user == null ? '/login' : '/add-address');
     }
 
     return Container(
@@ -54,7 +58,10 @@ class HomeHeader extends ConsumerWidget {
                       header: true,
                       child: Text(
                         'zollo',
-                        style: AppText.custom(22, FontWeight.w800, color: AppColors.white, letterSpacing: -0.5),
+                        style: AppText.bannerTitle.copyWith(
+                          color: AppColors.white,
+                          letterSpacing: -0.5,
+                        ),
                       ),
                     ),
                     Semantics(
@@ -67,17 +74,27 @@ class HomeHeader extends ConsumerWidget {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.location_on_outlined, size: 14, color: AppColors.onPrimaryMuted),
+                              const Icon(
+                                Icons.location_on_outlined,
+                                size: 14,
+                                color: AppColors.onPrimaryMuted,
+                              ),
                               const SizedBox(width: 2),
                               Flexible(
                                 child: Text(
                                   deliverTo,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: AppText.caption.withColor(AppColors.onPrimaryMuted),
+                                  style: AppText.caption.withColor(
+                                    AppColors.onPrimaryMuted,
+                                  ),
                                 ),
                               ),
-                              const Icon(Icons.expand_more, size: 16, color: AppColors.onPrimaryMuted),
+                              const Icon(
+                                Icons.expand_more,
+                                size: 16,
+                                color: AppColors.onPrimaryMuted,
+                              ),
                             ],
                           ),
                         ),
@@ -87,7 +104,9 @@ class HomeHeader extends ConsumerWidget {
                 ),
               ),
               IconButton(
-                tooltip: unread > 0 ? 'Notifications, $unread unread' : 'Notifications',
+                tooltip: unread > 0
+                    ? 'Notifications, $unread unread'
+                    : 'Notifications',
                 onPressed: () => context.push('/notifications'),
                 style: IconButton.styleFrom(
                   backgroundColor: AppColors.primaryOnDark,
@@ -95,7 +114,11 @@ class HomeHeader extends ConsumerWidget {
                 ),
                 icon: CartBadge(
                   count: unread,
-                  child: const Icon(Icons.notifications_none, color: AppColors.white, size: AppSpacing.iconBar),
+                  child: const Icon(
+                    Icons.notifications_none,
+                    color: AppColors.white,
+                    size: AppSpacing.iconBar,
+                  ),
                 ),
               ),
             ],

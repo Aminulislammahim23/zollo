@@ -33,7 +33,8 @@ class _ShimmerBoxState extends State<ShimmerBox> {
 
   @override
   Widget build(BuildContext context) {
-    final disableAnimations = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    final disableAnimations =
+        MediaQuery.maybeDisableAnimationsOf(context) ?? false;
     return Semantics(
       label: 'Loading',
       child: AnimatedOpacity(
@@ -76,7 +77,8 @@ class ShimmerList extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       itemCount: count,
       separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.cardGap),
-      itemBuilder: (_, _) => ShimmerBox(height: itemHeight, radius: AppRadius.card),
+      itemBuilder: (_, _) =>
+          ShimmerBox(height: itemHeight, radius: AppRadius.card),
     );
   }
 }
@@ -101,7 +103,8 @@ class ShimmerGrid extends StatelessWidget {
         mainAxisExtent: 240,
       ),
       itemCount: count,
-      itemBuilder: (_, _) => const ShimmerBox(height: 240, radius: AppRadius.card),
+      itemBuilder: (_, _) =>
+          const ShimmerBox(height: 240, radius: AppRadius.card),
     );
   }
 }

@@ -14,15 +14,25 @@ void main() {
   final routes = <RouteBase>[
     GoRoute(path: '/login', builder: (_, _) => const LoginScreen()),
     GoRoute(path: '/signup', builder: (_, _) => const SignupScreen()),
-    GoRoute(path: '/forgot-password', builder: (_, _) => const ForgotPasswordScreen()),
+    GoRoute(
+      path: '/forgot-password',
+      builder: (_, _) => const ForgotPasswordScreen(),
+    ),
     GoRoute(path: '/change', builder: (_, _) => const ChangePasswordScreen()),
     stubRoute('/home', 'Home destination'),
   ];
 
   group('LoginScreen', () {
-    testWidgets('validates email and password before signing in', (tester) async {
+    testWidgets('validates email and password before signing in', (
+      tester,
+    ) async {
       final auth = FakeAuthRepository();
-      await pumpRoutes(tester, routes: routes, initialLocation: '/login', auth: auth);
+      await pumpRoutes(
+        tester,
+        routes: routes,
+        initialLocation: '/login',
+        auth: auth,
+      );
 
       expect(find.text('Welcome back'), findsOneWidget);
       await tester.tap(find.text('Log in'));
@@ -34,9 +44,17 @@ void main() {
 
     testWidgets('signs in and opens home', (tester) async {
       final auth = FakeAuthRepository();
-      await pumpRoutes(tester, routes: routes, initialLocation: '/login', auth: auth);
+      await pumpRoutes(
+        tester,
+        routes: routes,
+        initialLocation: '/login',
+        auth: auth,
+      );
 
-      await tester.enterText(find.byType(TextFormField).at(0), 'rahim@example.com');
+      await tester.enterText(
+        find.byType(TextFormField).at(0),
+        'rahim@example.com',
+      );
       await tester.enterText(find.byType(TextFormField).at(1), 'Secret123');
       await tester.tap(find.text('Log in'));
       await tester.pumpAndSettle();
@@ -45,19 +63,35 @@ void main() {
       expect(find.text('Home destination'), findsOneWidget);
     });
 
-    testWidgets('shows a plain-language message for wrong credentials', (tester) async {
+    testWidgets('shows a plain-language message for wrong credentials', (
+      tester,
+    ) async {
       final auth = FakeAuthRepository(
-        error: const AuthException('Invalid login credentials', code: 'invalid_credentials'),
+        error: const AuthException(
+          'Invalid login credentials',
+          code: 'invalid_credentials',
+        ),
       );
-      await pumpRoutes(tester, routes: routes, initialLocation: '/login', auth: auth);
+      await pumpRoutes(
+        tester,
+        routes: routes,
+        initialLocation: '/login',
+        auth: auth,
+      );
 
-      await tester.enterText(find.byType(TextFormField).at(0), 'rahim@example.com');
+      await tester.enterText(
+        find.byType(TextFormField).at(0),
+        'rahim@example.com',
+      );
       await tester.enterText(find.byType(TextFormField).at(1), 'wrong-pass');
       await tester.tap(find.text('Log in'));
       await tester.pump();
       await tester.pump();
 
-      expect(find.text('That email and password do not match. Try again.'), findsOneWidget);
+      expect(
+        find.text('That email and password do not match. Try again.'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('Continue as guest opens home', (tester) async {
@@ -79,7 +113,12 @@ void main() {
 
     testWidgets('requires the terms checkbox', (tester) async {
       final auth = FakeAuthRepository();
-      await pumpRoutes(tester, routes: routes, initialLocation: '/signup', auth: auth);
+      await pumpRoutes(
+        tester,
+        routes: routes,
+        initialLocation: '/signup',
+        auth: auth,
+      );
 
       await fillForm(tester);
       await tester.ensureVisible(find.text('Create account'));
@@ -90,9 +129,16 @@ void main() {
       expect(auth.calls, isEmpty);
     });
 
-    testWidgets('saves the phone and shows the confirmation state', (tester) async {
+    testWidgets('saves the phone and shows the confirmation state', (
+      tester,
+    ) async {
       final auth = FakeAuthRepository(requireConfirmation: true);
-      await pumpRoutes(tester, routes: routes, initialLocation: '/signup', auth: auth);
+      await pumpRoutes(
+        tester,
+        routes: routes,
+        initialLocation: '/signup',
+        auth: auth,
+      );
 
       await fillForm(tester, phone: '01712345678');
       await tester.ensureVisible(find.byType(Checkbox));
@@ -106,9 +152,16 @@ void main() {
     });
   });
 
-  testWidgets('ForgotPasswordScreen sends a link and shows the inbox state', (tester) async {
+  testWidgets('ForgotPasswordScreen sends a link and shows the inbox state', (
+    tester,
+  ) async {
     final auth = FakeAuthRepository();
-    await pumpRoutes(tester, routes: routes, initialLocation: '/forgot-password', auth: auth);
+    await pumpRoutes(
+      tester,
+      routes: routes,
+      initialLocation: '/forgot-password',
+      auth: auth,
+    );
 
     await tester.enterText(find.byType(TextFormField), 'rahim@example.com');
     await tester.tap(find.text('Send reset link'));
@@ -118,9 +171,16 @@ void main() {
     expect(find.text('Check your inbox'), findsOneWidget);
   });
 
-  testWidgets('ChangePasswordScreen checks rules and confirmation', (tester) async {
+  testWidgets('ChangePasswordScreen checks rules and confirmation', (
+    tester,
+  ) async {
     final auth = FakeAuthRepository(user: FakeUser());
-    await pumpRoutes(tester, routes: routes, initialLocation: '/change', auth: auth);
+    await pumpRoutes(
+      tester,
+      routes: routes,
+      initialLocation: '/change',
+      auth: auth,
+    );
 
     final fields = find.byType(TextFormField);
     await tester.enterText(fields.at(0), 'OldPass1');

@@ -16,17 +16,22 @@ import '../../support/test_helpers.dart';
 import '../../workflow_test.dart' show FakeOrderRepository;
 
 OrderModel _order(String id, OrderStatus status, {int items = 1}) => OrderModel(
-      id: id,
-      userId: 'user-1',
-      items: [
-        for (var i = 0; i < items; i++)
-          OrderItem(productId: 'p$i', productName: 'Product $i', price: 500, quantity: 1),
-      ],
-      shippingAddress: 'Rahim · 01712345678\nHouse 12, Dhanmondi, Dhaka',
-      shippingFee: 60,
-      status: status,
-      createdAt: DateTime(2026, 10, 13),
-    );
+  id: id,
+  userId: 'user-1',
+  items: [
+    for (var i = 0; i < items; i++)
+      OrderItem(
+        productId: 'p$i',
+        productName: 'Product $i',
+        price: 500,
+        quantity: 1,
+      ),
+  ],
+  shippingAddress: 'Rahim · 01712345678\nHouse 12, Dhanmondi, Dhaka',
+  shippingFee: 60,
+  status: status,
+  createdAt: DateTime(2026, 10, 13),
+);
 
 void main() {
   final orders = [
@@ -36,9 +41,20 @@ void main() {
   ];
 
   final routes = <RouteBase>[
-    GoRoute(path: '/orders', builder: (_, s) => OrderHistoryScreen(initialTab: OrderTab.fromQuery(s.uri.queryParameters['tab']))),
-    GoRoute(path: '/order-details/:id', builder: (_, s) => OrderDetailsScreen(orderId: s.pathParameters['id']!)),
-    GoRoute(path: '/tracking/:id', builder: (_, s) => TrackingScreen(orderId: s.pathParameters['id']!)),
+    GoRoute(
+      path: '/orders',
+      builder: (_, s) => OrderHistoryScreen(
+        initialTab: OrderTab.fromQuery(s.uri.queryParameters['tab']),
+      ),
+    ),
+    GoRoute(
+      path: '/order-details/:id',
+      builder: (_, s) => OrderDetailsScreen(orderId: s.pathParameters['id']!),
+    ),
+    GoRoute(
+      path: '/tracking/:id',
+      builder: (_, s) => TrackingScreen(orderId: s.pathParameters['id']!),
+    ),
     stubRoute('/home'),
     stubRoute('/account'),
     stubRoute('/order-history'),
@@ -55,7 +71,13 @@ void main() {
   ];
 
   testWidgets('history filters orders by tab', (tester) async {
-    await pumpRoutes(tester, routes: routes, initialLocation: '/orders', user: FakeUser(), overrides: overrides);
+    await pumpRoutes(
+      tester,
+      routes: routes,
+      initialLocation: '/orders',
+      user: FakeUser(),
+      overrides: overrides,
+    );
     await tester.pumpAndSettle();
 
     expect(find.text('Product 0 + 1 more'), findsOneWidget);
@@ -68,7 +90,13 @@ void main() {
   });
 
   testWidgets('history opens on the tab from the query', (tester) async {
-    await pumpRoutes(tester, routes: routes, initialLocation: '/orders?tab=shipped', user: FakeUser(), overrides: overrides);
+    await pumpRoutes(
+      tester,
+      routes: routes,
+      initialLocation: '/orders?tab=shipped',
+      user: FakeUser(),
+      overrides: overrides,
+    );
     await tester.pumpAndSettle();
     expect(find.text('#ZL-BBBBBB'), findsOneWidget);
     expect(find.text('#ZL-AAAAAA'), findsNothing);
@@ -78,7 +106,13 @@ void main() {
     tester.view.physicalSize = const Size(400, 1400);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
-    await pumpRoutes(tester, routes: routes, initialLocation: '/order-details/cccccc-3', user: FakeUser(), overrides: overrides);
+    await pumpRoutes(
+      tester,
+      routes: routes,
+      initialLocation: '/order-details/cccccc-3',
+      user: FakeUser(),
+      overrides: overrides,
+    );
     await tester.pumpAndSettle();
 
     expect(find.text('Delivered'), findsWidgets);
@@ -89,7 +123,13 @@ void main() {
   });
 
   testWidgets('tracking derives steps from the order status', (tester) async {
-    await pumpRoutes(tester, routes: routes, initialLocation: '/tracking/bbbbbb-2', user: FakeUser(), overrides: overrides);
+    await pumpRoutes(
+      tester,
+      routes: routes,
+      initialLocation: '/tracking/bbbbbb-2',
+      user: FakeUser(),
+      overrides: overrides,
+    );
     await tester.pumpAndSettle();
 
     expect(find.text('Preparing your order'), findsOneWidget);
@@ -108,7 +148,9 @@ void main() {
       TimelineStepState.todo,
     ]);
 
-    final cancelled = TimelineStep.fromOrder(_order('y', OrderStatus.cancelled));
+    final cancelled = TimelineStep.fromOrder(
+      _order('y', OrderStatus.cancelled),
+    );
     expect(cancelled.single.state, TimelineStepState.cancelled);
   });
 }

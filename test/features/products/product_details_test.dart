@@ -23,29 +23,60 @@ class FakeReviewRepository implements ReviewRepository {
   Future<bool> hasUserCompletedOrderForProduct(String productId) async => true;
 
   @override
-  Future<void> submitReview({required String productId, required int rating, String? comment}) async {
+  Future<void> submitReview({
+    required String productId,
+    required int rating,
+    String? comment,
+  }) async {
     submitted.add('$productId:$rating:$comment');
   }
 }
 
 void main() {
   final reviews = [
-    ProductReview(id: 'r1', productId: 'p1', userId: 'u', rating: 5, comment: 'Great sound', createdAt: DateTime(2026, 10, 13)),
-    ProductReview(id: 'r2', productId: 'p1', userId: 'u2', rating: 3, createdAt: DateTime(2026, 10, 12)),
+    ProductReview(
+      id: 'r1',
+      productId: 'p1',
+      userId: 'u',
+      rating: 5,
+      comment: 'Great sound',
+      createdAt: DateTime(2026, 10, 13),
+    ),
+    ProductReview(
+      id: 'r2',
+      productId: 'p1',
+      userId: 'u2',
+      rating: 3,
+      createdAt: DateTime(2026, 10, 12),
+    ),
   ];
 
   List<RouteBase> routes(Product product) => [
-        GoRoute(path: '/details', builder: (_, _) => ProductDetailsScreen(product: product)),
-        GoRoute(path: '/product-reviews', builder: (_, s) => ProductReviewsScreen(product: s.extra as Product)),
-        GoRoute(path: '/write-review', builder: (_, s) => WriteReviewScreen(product: s.extra as Product)),
-        stubRoute('/cart', 'Cart destination'),
-        stubRoute('/home'),
-        stubRoute('/login'),
-      ];
+    GoRoute(
+      path: '/details',
+      builder: (_, _) => ProductDetailsScreen(product: product),
+    ),
+    GoRoute(
+      path: '/product-reviews',
+      builder: (_, s) => ProductReviewsScreen(product: s.extra as Product),
+    ),
+    GoRoute(
+      path: '/write-review',
+      builder: (_, s) => WriteReviewScreen(product: s.extra as Product),
+    ),
+    stubRoute('/cart', 'Cart destination'),
+    stubRoute('/home'),
+    stubRoute('/login'),
+  ];
 
   late ProviderContainer container;
 
-  Future<void> pumpDetails(WidgetTester tester, Product product, {bool canReview = false, ReviewRepository? repo}) async {
+  Future<void> pumpDetails(
+    WidgetTester tester,
+    Product product, {
+    bool canReview = false,
+    ReviewRepository? repo,
+  }) async {
     tester.view.physicalSize = const Size(400, 1600);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -61,7 +92,9 @@ void main() {
       ],
     );
     await tester.pump();
-    container = ProviderScope.containerOf(tester.element(find.byType(ProductDetailsScreen)));
+    container = ProviderScope.containerOf(
+      tester.element(find.byType(ProductDetailsScreen)),
+    );
   }
 
   testWidgets('shows price, rating summary and colour options', (tester) async {
@@ -77,7 +110,9 @@ void main() {
     expect(find.text('Navy'), findsNWidgets(2));
   });
 
-  testWidgets('Add to cart stores the colour; Buy now opens the cart', (tester) async {
+  testWidgets('Add to cart stores the colour; Buy now opens the cart', (
+    tester,
+  ) async {
     await pumpDetails(tester, sampleProduct());
 
     await tester.tap(find.text('White'));
@@ -97,7 +132,9 @@ void main() {
     expect(find.text('Out of stock'), findsNWidgets(2));
   });
 
-  testWidgets('Write a review is only offered to verified buyers', (tester) async {
+  testWidgets('Write a review is only offered to verified buyers', (
+    tester,
+  ) async {
     await pumpDetails(tester, sampleProduct());
     expect(find.text('Write a review'), findsNothing);
   });
@@ -121,7 +158,9 @@ void main() {
     expect(repo.submitted, ['p1:4:Solid bass']);
   });
 
-  testWidgets('reviews screen shows the distribution and cards', (tester) async {
+  testWidgets('reviews screen shows the distribution and cards', (
+    tester,
+  ) async {
     await pumpDetails(tester, sampleProduct());
     await tester.ensureVisible(find.text('See all (2)'));
     await tester.tap(find.text('See all (2)'));

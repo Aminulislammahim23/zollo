@@ -7,20 +7,14 @@ class ReviewRepository {
 
   final SupabaseClient _supabase;
 
-  Future<List<ProductReview>> getReviews(
-    String productId,
-  ) async {
+  Future<List<ProductReview>> getReviews(String productId) async {
     final rows = await _supabase
         .from('product_reviews')
         .select()
         .eq('product_id', productId)
         .order('created_at', ascending: false);
 
-    return rows
-        .map(
-          (row) => ProductReview.fromMap(row),
-        )
-        .toList();
+    return rows.map((row) => ProductReview.fromMap(row)).toList();
   }
 
   /// Verifies whether the logged-in user has completed an order containing this product.
@@ -95,17 +89,14 @@ class ReviewRepository {
 
     final normalizedComment = comment?.trim();
 
-    await _supabase.from('product_reviews').upsert(
-      {
-        'product_id': productId,
-        'user_id': user.id,
-        'rating': rating,
-        'comment': normalizedComment == null || normalizedComment.isEmpty
-            ? null
-            : normalizedComment,
-        'updated_at': DateTime.now().toUtc().toIso8601String(),
-      },
-      onConflict: 'product_id,user_id',
-    );
+    await _supabase.from('product_reviews').upsert({
+      'product_id': productId,
+      'user_id': user.id,
+      'rating': rating,
+      'comment': normalizedComment == null || normalizedComment.isEmpty
+          ? null
+          : normalizedComment,
+      'updated_at': DateTime.now().toUtc().toIso8601String(),
+    }, onConflict: 'product_id,user_id');
   }
 }

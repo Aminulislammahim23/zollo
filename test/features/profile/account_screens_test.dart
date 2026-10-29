@@ -30,7 +30,8 @@ class FakeAddressRepository implements AddressRepository {
   }
 
   @override
-  Future<void> deleteAddress(String id) async => addresses.removeWhere((a) => a.id == id);
+  Future<void> deleteAddress(String id) async =>
+      addresses.removeWhere((a) => a.id == id);
 
   @override
   Future<void> setDefaultAddress(String id) async {
@@ -40,7 +41,8 @@ class FakeAddressRepository implements AddressRepository {
   }
 }
 
-Address _address(String id, {bool isDefault = false, String label = 'HOME'}) => Address(
+Address _address(String id, {bool isDefault = false, String label = 'HOME'}) =>
+    Address(
       id: id,
       userId: 'user-1',
       fullName: 'Rahim Uddin',
@@ -58,13 +60,24 @@ Address _address(String id, {bool isDefault = false, String label = 'HOME'}) => 
 void main() {
   final routes = <RouteBase>[
     GoRoute(path: '/account', builder: (_, _) => const ProfileScreen()),
-    GoRoute(path: '/edit-profile', builder: (_, _) => const EditProfileScreen()),
+    GoRoute(
+      path: '/edit-profile',
+      builder: (_, _) => const EditProfileScreen(),
+    ),
     GoRoute(
       path: '/addresses',
-      builder: (_, s) => AddressListScreen(isSelecting: s.uri.queryParameters['select'] == 'true'),
+      builder: (_, s) => AddressListScreen(
+        isSelecting: s.uri.queryParameters['select'] == 'true',
+      ),
     ),
-    GoRoute(path: '/add-address', builder: (_, _) => const AddEditAddressScreen()),
-    GoRoute(path: '/edit-address', builder: (_, s) => AddEditAddressScreen(address: s.extra as Address)),
+    GoRoute(
+      path: '/add-address',
+      builder: (_, _) => const AddEditAddressScreen(),
+    ),
+    GoRoute(
+      path: '/edit-address',
+      builder: (_, s) => AddEditAddressScreen(address: s.extra as Address),
+    ),
     stubRoute('/login', 'Login destination'),
     stubRoute('/order-history', 'Orders destination'),
     stubRoute('/wishlist'),
@@ -72,7 +85,12 @@ void main() {
   ];
 
   testWidgets('Account shows the user and opens order tabs', (tester) async {
-    await pumpRoutes(tester, routes: routes, initialLocation: '/account', user: FakeUser());
+    await pumpRoutes(
+      tester,
+      routes: routes,
+      initialLocation: '/account',
+      user: FakeUser(),
+    );
     await tester.pump();
 
     expect(find.text('Rahim Uddin'), findsOneWidget);
@@ -94,7 +112,12 @@ void main() {
 
   testWidgets('Edit profile saves name and phone', (tester) async {
     final auth = FakeAuthRepository(user: FakeUser());
-    await pumpRoutes(tester, routes: routes, initialLocation: '/edit-profile', auth: auth);
+    await pumpRoutes(
+      tester,
+      routes: routes,
+      initialLocation: '/edit-profile',
+      auth: auth,
+    );
 
     expect(find.text('Verified'), findsOneWidget);
     await tester.enterText(find.byType(TextFormField).at(0), 'Karim Ahmed');
@@ -107,7 +130,10 @@ void main() {
   });
 
   testWidgets('Address book sets default and select mode pops', (tester) async {
-    final repo = FakeAddressRepository([_address('a1', isDefault: true), _address('a2', label: 'OFFICE')]);
+    final repo = FakeAddressRepository([
+      _address('a1', isDefault: true),
+      _address('a2', label: 'OFFICE'),
+    ]);
     await pumpRoutes(
       tester,
       routes: routes,
@@ -149,7 +175,10 @@ void main() {
     await tester.enterText(fields.at(3), 'House 12, Road 4');
     await tester.tap(find.text('Save address'));
     await tester.pump();
-    expect(find.text('Enter a valid BD mobile number, e.g. 1712345678'), findsOneWidget);
+    expect(
+      find.text('Enter a valid BD mobile number, e.g. 1712345678'),
+      findsOneWidget,
+    );
     expect(repo.addresses, isEmpty);
 
     await tester.enterText(fields.at(1), '01712345678');

@@ -36,7 +36,13 @@ class DashedBorder extends StatelessWidget {
 
 /// A single vertical dashed line, e.g. a ticket perforation.
 class DashedVerticalLine extends StatelessWidget {
-  const DashedVerticalLine({super.key, required this.color, this.width = 2, this.dash = 5, this.gap = 4});
+  const DashedVerticalLine({
+    super.key,
+    required this.color,
+    this.width = 2,
+    this.dash = 5,
+    this.gap = 4,
+  });
 
   final Color color;
   final double width;
@@ -47,7 +53,12 @@ class DashedVerticalLine extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomPaint(
       size: Size(width, double.infinity),
-      painter: _DashedLinePainter(color: color, width: width, dash: dash, gap: gap),
+      painter: _DashedLinePainter(
+        color: color,
+        width: width,
+        dash: dash,
+        gap: gap,
+      ),
     );
   }
 }
@@ -71,7 +82,12 @@ class _DashedRectPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final inset = strokeWidth / 2;
     final rect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(inset, inset, size.width - strokeWidth, size.height - strokeWidth),
+      Rect.fromLTWH(
+        inset,
+        inset,
+        size.width - strokeWidth,
+        size.height - strokeWidth,
+      ),
       Radius.circular(radius),
     );
     final paint = Paint()
@@ -90,11 +106,18 @@ class _DashedRectPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_DashedRectPainter old) =>
-      old.color != color || old.radius != radius || old.strokeWidth != strokeWidth;
+      old.color != color ||
+      old.radius != radius ||
+      old.strokeWidth != strokeWidth;
 }
 
 class _DashedLinePainter extends CustomPainter {
-  _DashedLinePainter({required this.color, required this.width, required this.dash, required this.gap});
+  _DashedLinePainter({
+    required this.color,
+    required this.width,
+    required this.dash,
+    required this.gap,
+  });
 
   final Color color;
   final double width;
@@ -108,7 +131,11 @@ class _DashedLinePainter extends CustomPainter {
       ..strokeWidth = width;
     var y = 0.0;
     while (y < size.height) {
-      canvas.drawLine(Offset(width / 2, y), Offset(width / 2, (y + dash).clamp(0, size.height)), paint);
+      canvas.drawLine(
+        Offset(width / 2, y),
+        Offset(width / 2, (y + dash).clamp(0, size.height)),
+        paint,
+      );
       y += dash + gap;
     }
   }

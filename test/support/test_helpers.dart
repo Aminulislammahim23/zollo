@@ -14,15 +14,17 @@ import 'package:zollo/features/wishlist/presentation/providers/wishlist_provider
 
 class FakeUser extends User {
   FakeUser({String email = 'rahim@example.com', Map<String, dynamic>? metadata})
-      : super(
-          id: 'user-1',
-          appMetadata: const {},
-          userMetadata: metadata ?? const {'full_name': 'Rahim Uddin', 'phone': '+8801712345678'},
-          aud: 'authenticated',
-          email: email,
-          createdAt: DateTime(2026).toIso8601String(),
-          emailConfirmedAt: DateTime(2026).toIso8601String(),
-        );
+    : super(
+        id: 'user-1',
+        appMetadata: const {},
+        userMetadata:
+            metadata ??
+            const {'full_name': 'Rahim Uddin', 'phone': '+8801712345678'},
+        aud: 'authenticated',
+        email: email,
+        createdAt: DateTime(2026).toIso8601String(),
+        emailConfirmedAt: DateTime(2026).toIso8601String(),
+      );
 }
 
 class FakeAuthRepository implements AuthRepository {
@@ -45,10 +47,16 @@ class FakeAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<AuthResponse> signIn({required String email, required String password}) async {
+  Future<AuthResponse> signIn({
+    required String email,
+    required String password,
+  }) async {
     await _maybeThrow('signIn');
     user = FakeUser(email: email);
-    return AuthResponse(user: user, session: Session(accessToken: 't', tokenType: 'bearer', user: user!));
+    return AuthResponse(
+      user: user,
+      session: Session(accessToken: 't', tokenType: 'bearer', user: user!),
+    );
   }
 
   @override
@@ -62,19 +70,22 @@ class FakeAuthRepository implements AuthRepository {
     final newUser = FakeUser(email: email);
     if (requireConfirmation) return AuthResponse(user: newUser);
     user = newUser;
-    return AuthResponse(user: user, session: Session(accessToken: 't', tokenType: 'bearer', user: user!));
+    return AuthResponse(
+      user: user,
+      session: Session(accessToken: 't', tokenType: 'bearer', user: user!),
+    );
   }
 
   @override
-  Future<void> sendPasswordResetEmail(String email) => _maybeThrow('reset:$email');
+  Future<void> sendPasswordResetEmail(String email) =>
+      _maybeThrow('reset:$email');
 
   @override
   Future<void> changePassword({
     required String currentPassword,
     required String newPassword,
     bool signOutOtherDevices = false,
-  }) =>
-      _maybeThrow('changePassword:$signOutOtherDevices');
+  }) => _maybeThrow('changePassword:$signOutOtherDevices');
 
   @override
   Future<UserResponse> updateProfile({
@@ -84,7 +95,13 @@ class FakeAuthRepository implements AuthRepository {
     String? birthday,
   }) async {
     await _maybeThrow('updateProfile:$fullName:$phone');
-    return UserResponse.fromJson({'id': 'user-1', 'aud': 'authenticated', 'created_at': '2026-01-01', 'app_metadata': {}, 'user_metadata': {'full_name': fullName}});
+    return UserResponse.fromJson({
+      'id': 'user-1',
+      'aud': 'authenticated',
+      'created_at': '2026-01-01',
+      'app_metadata': {},
+      'user_metadata': {'full_name': fullName},
+    });
   }
 
   @override
@@ -115,19 +132,18 @@ Product sampleProduct({
   String category = 'Electronics',
   String categoryId = 'c1',
   double? originalPrice,
-}) =>
-    Product(
-      id: id,
-      title: title,
-      description: 'Noise isolating earbuds with 24 hour battery life.',
-      price: price,
-      imageUrl: '',
-      category: category,
-      rating: rating,
-      stock: stock,
-      categoryId: categoryId,
-      originalPrice: originalPrice,
-    );
+}) => Product(
+  id: id,
+  title: title,
+  description: 'Noise isolating earbuds with 24 hour battery life.',
+  price: price,
+  imageUrl: '',
+  category: category,
+  rating: rating,
+  stock: stock,
+  categoryId: categoryId,
+  originalPrice: originalPrice,
+);
 
 /// Builds a themed app around [routes] with the common providers faked.
 Future<void> pumpRoutes(
@@ -155,7 +171,9 @@ Future<void> pumpRoutes(
           ref.watch(authControllerProvider);
           return authRepo.currentUser;
         }),
-        wishlistRepositoryProvider.overrideWithValue(wishlist ?? FakeWishlistRepository()),
+        wishlistRepositoryProvider.overrideWithValue(
+          wishlist ?? FakeWishlistRepository(),
+        ),
         ...overrides.cast(),
       ],
       child: MaterialApp.router(theme: AppTheme.light, routerConfig: router),
@@ -166,12 +184,16 @@ Future<void> pumpRoutes(
 
 /// A placeholder destination that just shows [label].
 GoRoute stubRoute(String path, [String? label]) => GoRoute(
-      path: path,
-      builder: (context, state) => Scaffold(body: Text(label ?? 'Route $path')),
-    );
+  path: path,
+  builder: (context, state) => Scaffold(body: Text(label ?? 'Route $path')),
+);
 
 /// A tall phone-width surface so long scrolling screens build fully.
-void useTallViewport(WidgetTester tester, {double width = 400, double height = 1600}) {
+void useTallViewport(
+  WidgetTester tester, {
+  double width = 400,
+  double height = 1600,
+}) {
   tester.view.physicalSize = Size(width, height);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);

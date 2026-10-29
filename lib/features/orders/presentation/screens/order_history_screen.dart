@@ -24,15 +24,17 @@ enum OrderTab {
   final String label;
 
   bool matches(OrderModel order) => switch (this) {
-        OrderTab.all => true,
-        OrderTab.processing => order.isActive,
-        OrderTab.shipped => order.status == OrderStatus.shipped,
-        OrderTab.delivered => order.status == OrderStatus.delivered,
-        OrderTab.cancelled => order.status == OrderStatus.cancelled,
-      };
+    OrderTab.all => true,
+    OrderTab.processing => order.isActive,
+    OrderTab.shipped => order.status == OrderStatus.shipped,
+    OrderTab.delivered => order.status == OrderStatus.delivered,
+    OrderTab.cancelled => order.status == OrderStatus.cancelled,
+  };
 
-  static OrderTab fromQuery(String? value) =>
-      OrderTab.values.firstWhere((t) => t.name == value, orElse: () => OrderTab.all);
+  static OrderTab fromQuery(String? value) => OrderTab.values.firstWhere(
+    (t) => t.name == value,
+    orElse: () => OrderTab.all,
+  );
 }
 
 /// `/order-history?tab=<all|processing|shipped|delivered|cancelled>`, spec C13.
@@ -104,7 +106,9 @@ class _OrderList extends ConsumerWidget {
       color: AppColors.primary,
       onRefresh: () async {
         ref.invalidate(myOrdersProvider);
-        await ref.read(myOrdersProvider.future).catchError((_) => <OrderModel>[]);
+        await ref
+            .read(myOrdersProvider.future)
+            .catchError((_) => <OrderModel>[]);
       },
       child: ListView.separated(
         padding: const EdgeInsets.all(AppSpacing.m),
@@ -125,7 +129,9 @@ class OrderCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final first = order.items.isNotEmpty ? order.items.first : null;
     final more = order.items.length - 1;
-    final firstProduct = first == null ? null : ref.watch(productLookupProvider)[first.productId];
+    final firstProduct = first == null
+        ? null
+        : ref.watch(productLookupProvider)[first.productId];
     final canReview = order.status == OrderStatus.delivered && first != null
         ? ref.watch(canUserReviewProvider(first.productId)).value ?? false
         : false;
@@ -133,11 +139,14 @@ class OrderCard extends ConsumerWidget {
     void openDetails() => context.push('/order-details/${order.id}');
 
     final (String label, VoidCallback action) = switch (order.status) {
-      OrderStatus.shipped => ('Track', () => context.push('/tracking/${order.id}')),
+      OrderStatus.shipped => (
+        'Track',
+        () => context.push('/tracking/${order.id}'),
+      ),
       OrderStatus.delivered when canReview && firstProduct != null => (
-          'Write review',
-          () => context.push('/write-review', extra: firstProduct),
-        ),
+        'Write review',
+        () => context.push('/write-review', extra: firstProduct),
+      ),
       _ => ('Details', openDetails),
     };
 
@@ -148,7 +157,9 @@ class OrderCard extends ConsumerWidget {
         children: [
           Row(
             children: [
-              Expanded(child: Text(formatOrderNumber(order.id), style: AppText.custom(13, FontWeight.w700))),
+              Expanded(
+                child: Text(formatOrderNumber(order.id), style: AppText.label),
+              ),
               StatusText(order.status),
             ],
           ),
@@ -165,8 +176,8 @@ class OrderCard extends ConsumerWidget {
                       first == null
                           ? 'Order'
                           : more > 0
-                              ? '${first.productName} + $more more'
-                              : first.productName,
+                          ? '${first.productName} + $more more'
+                          : first.productName,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: AppText.bodySmall,
@@ -174,7 +185,7 @@ class OrderCard extends ConsumerWidget {
                     const SizedBox(height: AppSpacing.xs),
                     Text(
                       '${order.itemCount} ${order.itemCount == 1 ? 'item' : 'items'} · placed ${formatDate(order.createdAt)}',
-                      style: AppText.custom(13, FontWeight.w500, color: AppColors.muted),
+                      style: AppText.meta.withColor(AppColors.muted),
                     ),
                   ],
                 ),
@@ -190,10 +201,13 @@ class OrderCard extends ConsumerWidget {
               Expanded(
                 child: Text.rich(
                   TextSpan(
-                    style: AppText.custom(13, FontWeight.w500, color: AppColors.muted),
+                    style: AppText.meta.withColor(AppColors.muted),
                     children: [
                       const TextSpan(text: 'Total '),
-                      TextSpan(text: formatTaka(order.total), style: AppText.custom(13, FontWeight.w800)),
+                      TextSpan(
+                        text: formatTaka(order.total),
+                        style: AppText.labelHeavy,
+                      ),
                     ],
                   ),
                 ),

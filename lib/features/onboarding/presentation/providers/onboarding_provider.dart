@@ -17,9 +17,7 @@ final onboardingRepositoryProvider = Provider<OnboardingRepository>((ref) {
 
 /// Controller to manage onboarding completion state.
 final onboardingControllerProvider =
-    AsyncNotifierProvider<OnboardingController, bool>(
-  OnboardingController.new,
-);
+    AsyncNotifierProvider<OnboardingController, bool>(OnboardingController.new);
 
 class OnboardingController extends AsyncNotifier<bool> {
   @override

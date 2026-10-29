@@ -11,7 +11,8 @@ class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
 
   @override
-  ConsumerState<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
+  ConsumerState<ForgotPasswordScreen> createState() =>
+      _ForgotPasswordScreenState();
 }
 
 class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
@@ -26,7 +27,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     super.dispose();
   }
 
-  void _backToLogin() => context.canPop() ? context.pop() : context.go('/login');
+  void _backToLogin() =>
+      context.canPop() ? context.pop() : context.go('/login');
 
   Future<void> _submit() async {
     FocusScope.of(context).unfocus();
@@ -34,14 +36,15 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
 
     setState(() => _sending = true);
     try {
-      await ref.read(authControllerProvider.notifier).sendPasswordResetEmail(_email.text);
+      await ref
+          .read(authControllerProvider.notifier)
+          .sendPasswordResetEmail(_email.text);
       if (!mounted) return;
       setState(() => _sentTo = _email.text.trim());
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AuthValidators.message(error))),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(AuthValidators.message(error))));
     } finally {
       if (mounted) setState(() => _sending = false);
     }
@@ -84,10 +87,18 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
             onSubmitted: (_) => _submit(),
           ),
         ),
-        AppButton.primary(label: 'Send reset link', loading: _sending, onPressed: _submit),
+        AppButton.primary(
+          label: 'Send reset link',
+          loading: _sending,
+          onPressed: _submit,
+        ),
       ],
       footer: [
-        AuthLinkText(prefix: 'Remembered it?', link: 'Back to log in', onTap: _backToLogin),
+        AuthLinkText(
+          prefix: 'Remembered it?',
+          link: 'Back to log in',
+          onTap: _backToLogin,
+        ),
       ],
     );
   }

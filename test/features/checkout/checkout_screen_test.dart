@@ -28,7 +28,10 @@ void main() {
   );
 
   final routes = <RouteBase>[
-    GoRoute(path: '/checkout', builder: (_, _) => const CheckoutScreen(subtotal: 0)),
+    GoRoute(
+      path: '/checkout',
+      builder: (_, _) => const CheckoutScreen(subtotal: 0),
+    ),
     GoRoute(
       path: '/order-confirmation',
       builder: (_, s) => OrderConfirmationScreen(order: s.extra as OrderModel),
@@ -39,7 +42,9 @@ void main() {
     stubRoute('/addresses'),
   ];
 
-  testWidgets('places a COD order whose total matches the screen', (tester) async {
+  testWidgets('places a COD order whose total matches the screen', (
+    tester,
+  ) async {
     final orders = FakeOrderRepository([]);
     await pumpRoutes(
       tester,
@@ -51,7 +56,9 @@ void main() {
         orderRepositoryProvider.overrideWithValue(orders),
       ],
     );
-    final container = ProviderScope.containerOf(tester.element(find.byType(CheckoutScreen)));
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(CheckoutScreen)),
+    );
     container.read(cartProvider.notifier).addToCart(sampleProduct(price: 1850));
     container.read(cartProvider.notifier).increment('p1');
     await tester.pump();
@@ -80,7 +87,9 @@ void main() {
       user: FakeUser(),
       overrides: [defaultAddressProvider.overrideWith((ref) async => null)],
     );
-    final container = ProviderScope.containerOf(tester.element(find.byType(CheckoutScreen)));
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(CheckoutScreen)),
+    );
     container.read(cartProvider.notifier).addToCart(sampleProduct());
     await tester.pump();
     await tester.pump();
@@ -88,6 +97,9 @@ void main() {
     expect(find.text('Add a delivery address'), findsOneWidget);
     await tester.tap(find.text('Place order'));
     await tester.pump();
-    expect(find.text('Please select or add a delivery address.'), findsOneWidget);
+    expect(
+      find.text('Please select or add a delivery address.'),
+      findsOneWidget,
+    );
   });
 }

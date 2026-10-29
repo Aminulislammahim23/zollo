@@ -20,7 +20,8 @@ class ReturnRequestScreen extends ConsumerStatefulWidget {
   final OrderModel order;
 
   @override
-  ConsumerState<ReturnRequestScreen> createState() => _ReturnRequestScreenState();
+  ConsumerState<ReturnRequestScreen> createState() =>
+      _ReturnRequestScreenState();
 }
 
 class _ReturnRequestScreenState extends ConsumerState<ReturnRequestScreen> {
@@ -48,14 +49,20 @@ class _ReturnRequestScreenState extends ConsumerState<ReturnRequestScreen> {
     }
     setState(() => _submitting = true);
     try {
-      await ref.read(returnRepositoryProvider).submit(ReturnRequest(
-            orderId: widget.order.id,
-            productIds: _selected.toList(),
-            reason: _reason!,
-            details: _details.text.trim(),
-          ));
+      await ref
+          .read(returnRepositoryProvider)
+          .submit(
+            ReturnRequest(
+              orderId: widget.order.id,
+              productIds: _selected.toList(),
+              reason: _reason!,
+              details: _details.text.trim(),
+            ),
+          );
       if (!mounted) return;
-      _snack("Return requested. We'll email you the pickup details within 24 hours.");
+      _snack(
+        "Return requested. We'll email you the pickup details within 24 hours.",
+      );
       context.pop();
     } catch (error) {
       _snack(ErrorView.describe(error));
@@ -72,11 +79,18 @@ class _ReturnRequestScreenState extends ConsumerState<ReturnRequestScreen> {
   @override
   Widget build(BuildContext context) {
     final order = widget.order;
-    final windowEnds = order.createdAt.add(const Duration(days: AppConstants.returnWindowDays + AppConstants.maxDeliveryDays));
+    final windowEnds = order.createdAt.add(
+      const Duration(
+        days: AppConstants.returnWindowDays + AppConstants.maxDeliveryDays,
+      ),
+    );
     final multiple = order.items.length > 1;
 
     return Scaffold(
-      appBar: const AppTopBar(title: 'Request a return', fallbackRoute: '/order-history'),
+      appBar: const AppTopBar(
+        title: 'Request a return',
+        fallbackRoute: '/order-history',
+      ),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.m),
         children: [
@@ -85,28 +99,32 @@ class _ReturnRequestScreenState extends ConsumerState<ReturnRequestScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 if (multiple) ...[
-                  Text('Which items?', style: AppText.custom(15, FontWeight.w800)),
+                  Text('Which items?', style: AppText.cardTitle),
                   const SizedBox(height: AppSpacing.s),
                 ],
                 for (final item in order.items)
                   InkWell(
                     onTap: multiple
                         ? () => setState(() {
-                              _selected.contains(item.productId)
-                                  ? _selected.remove(item.productId)
-                                  : _selected.add(item.productId);
-                            })
+                            _selected.contains(item.productId)
+                                ? _selected.remove(item.productId)
+                                : _selected.add(item.productId);
+                          })
                         : null,
                     borderRadius: AppRadius.tileAll,
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: AppSpacing.xs,
+                      ),
                       child: Row(
                         children: [
                           if (multiple)
                             Checkbox(
                               value: _selected.contains(item.productId),
                               onChanged: (v) => setState(() {
-                                v == true ? _selected.add(item.productId) : _selected.remove(item.productId);
+                                v == true
+                                    ? _selected.add(item.productId)
+                                    : _selected.remove(item.productId);
                               }),
                             ),
                           OrderThumbnail(productId: item.productId, size: 56),
@@ -115,11 +133,18 @@ class _ReturnRequestScreenState extends ConsumerState<ReturnRequestScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(item.productName, maxLines: 2, overflow: TextOverflow.ellipsis, style: AppText.bodySmall),
+                                Text(
+                                  item.productName,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: AppText.bodySmall,
+                                ),
                                 const SizedBox(height: 2),
                                 Text(
                                   '${formatTaka(item.price)} · return window ends ${formatDate(windowEnds)}',
-                                  style: AppText.custom(13, FontWeight.w500, color: AppColors.muted),
+                                  style: AppText.meta.withColor(
+                                    AppColors.muted,
+                                  ),
                                 ),
                               ],
                             ),
@@ -136,7 +161,7 @@ class _ReturnRequestScreenState extends ConsumerState<ReturnRequestScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text('Why are you returning it?', style: AppText.custom(15, FontWeight.w800)),
+                Text('Why are you returning it?', style: AppText.cardTitle),
                 const SizedBox(height: AppSpacing.xs),
                 RadioGroup<ReturnReason>(
                   groupValue: _reason,
@@ -152,7 +177,12 @@ class _ReturnRequestScreenState extends ConsumerState<ReturnRequestScreen> {
                             child: Row(
                               children: [
                                 Radio<ReturnReason>(value: r),
-                                Expanded(child: Text(r.label, style: AppText.custom(14, FontWeight.w500))),
+                                Expanded(
+                                  child: Text(
+                                    r.label,
+                                    style: AppText.bodyMedium,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -187,7 +217,11 @@ class _ReturnRequestScreenState extends ConsumerState<ReturnRequestScreen> {
                         radius: AppRadius.tile,
                         child: const SizedBox.square(
                           dimension: 56,
-                          child: Icon(Icons.add_a_photo_outlined, color: AppColors.muted, size: AppSpacing.iconInline),
+                          child: Icon(
+                            Icons.add_a_photo_outlined,
+                            color: AppColors.muted,
+                            size: AppSpacing.iconInline,
+                          ),
                         ),
                       ),
                     ),
@@ -195,7 +229,7 @@ class _ReturnRequestScreenState extends ConsumerState<ReturnRequestScreen> {
                     Expanded(
                       child: Text(
                         'Photos help us approve your return faster',
-                        style: AppText.custom(13, FontWeight.w500, color: AppColors.muted),
+                        style: AppText.meta.withColor(AppColors.muted),
                       ),
                     ),
                   ],
@@ -207,13 +241,20 @@ class _ReturnRequestScreenState extends ConsumerState<ReturnRequestScreen> {
           InfoCard(
             child: Row(
               children: [
-                const Icon(Icons.account_balance_wallet_outlined, color: AppColors.primary, size: AppSpacing.iconInline),
+                const Icon(
+                  Icons.account_balance_wallet_outlined,
+                  color: AppColors.primary,
+                  size: AppSpacing.iconInline,
+                ),
                 const SizedBox(width: AppSpacing.m),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Refund to bKash or bank', style: AppText.bodyStrong),
+                      Text(
+                        'Refund to bKash or bank',
+                        style: AppText.bodyStrong,
+                      ),
                       Text(
                         'Paid with cash on delivery',
                         style: AppText.caption.withColor(AppColors.muted),
@@ -231,10 +272,19 @@ class _ReturnRequestScreenState extends ConsumerState<ReturnRequestScreen> {
           color: AppColors.surface,
           border: Border(top: BorderSide(color: AppColors.divider)),
         ),
-        padding: const EdgeInsets.fromLTRB(AppSpacing.l, AppSpacing.m, AppSpacing.l, AppSpacing.m),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.l,
+          AppSpacing.m,
+          AppSpacing.l,
+          AppSpacing.m,
+        ),
         child: SafeArea(
           top: false,
-          child: AppButton.primary(label: 'Submit return request', loading: _submitting, onPressed: _submit),
+          child: AppButton.primary(
+            label: 'Submit return request',
+            loading: _submitting,
+            onPressed: _submit,
+          ),
         ),
       ),
     );

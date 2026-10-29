@@ -18,7 +18,8 @@ class AddEditAddressScreen extends ConsumerStatefulWidget {
   const AddEditAddressScreen({super.key, this.address});
 
   @override
-  ConsumerState<AddEditAddressScreen> createState() => _AddEditAddressScreenState();
+  ConsumerState<AddEditAddressScreen> createState() =>
+      _AddEditAddressScreenState();
 }
 
 class _AddEditAddressScreenState extends ConsumerState<AddEditAddressScreen> {
@@ -37,21 +38,31 @@ class _AddEditAddressScreenState extends ConsumerState<AddEditAddressScreen> {
   late bool _isDefault;
   bool _saving = false;
 
-  List<String> get _districts => AppConstants.districtsByDivision[_division] ?? const [];
+  List<String> get _districts =>
+      AppConstants.districtsByDivision[_division] ?? const [];
 
   @override
   void initState() {
     super.initState();
     final a = widget.address;
     _name = TextEditingController(text: a?.fullName ?? '');
-    _phone = TextEditingController(text: a == null ? '' : PhoneField.normalize(a.phone));
+    _phone = TextEditingController(
+      text: a == null ? '' : PhoneField.normalize(a.phone),
+    );
     _area = TextEditingController(text: a?.area ?? '');
     _addressLine = TextEditingController(text: a?.addressLine ?? '');
 
-    _division = AppConstants.divisions.contains(a?.division) ? a!.division : AppConstants.divisions.first;
-    _district = _districts.contains(a?.district) ? a!.district : _districts.first;
+    _division = AppConstants.divisions.contains(a?.division)
+        ? a!.division
+        : AppConstants.divisions.first;
+    _district = _districts.contains(a?.district)
+        ? a!.district
+        : _districts.first;
     final label = (a?.label ?? 'Home').toLowerCase();
-    _label = _labels.firstWhere((l) => l.toLowerCase() == label, orElse: () => 'Other');
+    _label = _labels.firstWhere(
+      (l) => l.toLowerCase() == label,
+      orElse: () => 'Other',
+    );
     _isDefault = a?.isDefault ?? false;
   }
 
@@ -97,16 +108,24 @@ class _AddEditAddressScreenState extends ConsumerState<AddEditAddressScreen> {
 
     try {
       final notifier = ref.read(addressListProvider.notifier);
-      existing == null ? await notifier.addAddress(address) : await notifier.updateAddress(address);
+      existing == null
+          ? await notifier.addAddress(address)
+          : await notifier.updateAddress(address);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(existing == null ? 'Address saved' : 'Address updated')),
+        SnackBar(
+          content: Text(existing == null ? 'Address saved' : 'Address updated'),
+        ),
       );
       context.pop();
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Couldn't save the address. ${ErrorView.describe(error)}")),
+        SnackBar(
+          content: Text(
+            "Couldn't save the address. ${ErrorView.describe(error)}",
+          ),
+        ),
       );
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -123,13 +142,13 @@ class _AddEditAddressScreenState extends ConsumerState<AddEditAddressScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(label, style: AppText.custom(12, FontWeight.w700)),
+        Text(label, style: AppText.captionStrong),
         const SizedBox(height: 6),
         DropdownButtonFormField<String>(
           key: key,
           initialValue: value,
           isExpanded: true,
-          style: AppText.custom(15, FontWeight.w600),
+          style: AppText.inputText,
           icon: const Icon(Icons.expand_more, color: AppColors.muted),
           decoration: const InputDecoration(
             constraints: BoxConstraints(minHeight: _fieldHeight),
@@ -137,7 +156,10 @@ class _AddEditAddressScreenState extends ConsumerState<AddEditAddressScreen> {
           ),
           items: [
             for (final item in items)
-              DropdownMenuItem(value: item, child: Text(item, overflow: TextOverflow.ellipsis)),
+              DropdownMenuItem(
+                value: item,
+                child: Text(item, overflow: TextOverflow.ellipsis),
+              ),
           ],
           onChanged: (v) {
             if (v != null) onChanged(v);
@@ -149,16 +171,22 @@ class _AddEditAddressScreenState extends ConsumerState<AddEditAddressScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final labelStyle = AppText.custom(12, FontWeight.w700);
+    final labelStyle = AppText.captionStrong;
     final isEdit = widget.address != null;
 
     return Scaffold(
       backgroundColor: AppColors.surface,
-      appBar: AppTopBar(title: isEdit ? 'Edit address' : 'Add address', fallbackRoute: '/addresses'),
+      appBar: AppTopBar(
+        title: isEdit ? 'Edit address' : 'Add address',
+        fallbackRoute: '/addresses',
+      ),
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: AppSpacing.l),
+          padding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: AppSpacing.l,
+          ),
           children: [
             Tooltip(
               message: 'Coming soon',
@@ -168,9 +196,11 @@ class _AddEditAddressScreenState extends ConsumerState<AddEditAddressScreen> {
                   minimumSize: const Size.fromHeight(44),
                   backgroundColor: AppColors.primaryTint,
                   disabledBackgroundColor: AppColors.primaryTint,
-                  disabledForegroundColor: AppColors.primary.withValues(alpha: 0.6),
+                  disabledForegroundColor: AppColors.primary.withValues(
+                    alpha: 0.6,
+                  ),
                   side: const BorderSide(color: AppColors.primary),
-                  textStyle: AppText.custom(14, FontWeight.w700),
+                  textStyle: AppText.bodyStrong,
                 ),
                 icon: const Icon(Icons.my_location, size: AppSpacing.iconSmall),
                 label: const Text('Use my current location'),
@@ -185,7 +215,8 @@ class _AddEditAddressScreenState extends ConsumerState<AddEditAddressScreen> {
                 height: _fieldHeight,
                 textCapitalization: TextCapitalization.words,
                 textInputAction: TextInputAction.next,
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? 'Required' : null,
               ),
               right: PhoneField(
                 label: 'Phone',
@@ -223,7 +254,8 @@ class _AddEditAddressScreenState extends ConsumerState<AddEditAddressScreen> {
                 height: _fieldHeight,
                 textCapitalization: TextCapitalization.words,
                 textInputAction: TextInputAction.next,
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? 'Required' : null,
               ),
             ),
             const SizedBox(height: AppSpacing.m),
@@ -235,7 +267,9 @@ class _AddEditAddressScreenState extends ConsumerState<AddEditAddressScreen> {
               maxLines: 2,
               minLines: 2,
               textCapitalization: TextCapitalization.sentences,
-              validator: (v) => (v == null || v.trim().length < 5) ? 'Enter your full address' : null,
+              validator: (v) => (v == null || v.trim().length < 5)
+                  ? 'Enter your full address'
+                  : null,
             ),
             const SizedBox(height: AppSpacing.m),
             Text('Label', style: labelStyle),
@@ -258,15 +292,27 @@ class _AddEditAddressScreenState extends ConsumerState<AddEditAddressScreen> {
               onChanged: (v) => setState(() => _isDefault = v ?? false),
               controlAffinity: ListTileControlAffinity.leading,
               contentPadding: EdgeInsets.zero,
-              title: Text('Make this my default address', style: AppText.custom(14, FontWeight.w600)),
+              title: Text(
+                'Make this my default address',
+                style: AppText.menuLabel,
+              ),
             ),
           ],
         ),
       ),
       bottomNavigationBar: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, AppSpacing.m, 20, AppSpacing.xl),
-          child: AppButton.primary(label: 'Save address', loading: _saving, onPressed: _save),
+          padding: const EdgeInsets.fromLTRB(
+            20,
+            AppSpacing.m,
+            20,
+            AppSpacing.xl,
+          ),
+          child: AppButton.primary(
+            label: 'Save address',
+            loading: _saving,
+            onPressed: _save,
+          ),
         ),
       ),
     );
@@ -282,9 +328,17 @@ class _TwoColumns extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final stacked = MediaQuery.sizeOf(context).width < 360 || MediaQuery.textScalerOf(context).scale(1) > 1.2;
+    final stacked =
+        MediaQuery.sizeOf(context).width < 360 ||
+        MediaQuery.textScalerOf(context).scale(1) > 1.2;
     if (stacked) {
-      return Column(children: [left, const SizedBox(height: AppSpacing.m), right]);
+      return Column(
+        children: [
+          left,
+          const SizedBox(height: AppSpacing.m),
+          right,
+        ],
+      );
     }
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,

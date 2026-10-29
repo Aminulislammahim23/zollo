@@ -48,7 +48,10 @@ class OnboardingPage extends StatelessWidget {
               const SizedBox(height: 28),
               Text(data.title, style: AppText.headline),
               const SizedBox(height: 12),
-              Text(data.description, style: AppText.body.withColor(AppColors.muted)),
+              Text(
+                data.description,
+                style: AppText.body.withColor(AppColors.muted),
+              ),
             ],
           ),
         );

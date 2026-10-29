@@ -81,8 +81,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               children: [
                 IconButton(
                   tooltip: 'Back',
-                  icon: const Icon(Icons.arrow_back_ios_new, size: AppSpacing.iconSmall),
-                  onPressed: () => context.canPop() ? context.pop() : context.go('/home'),
+                  icon: const Icon(
+                    Icons.arrow_back_ios_new,
+                    size: AppSpacing.iconSmall,
+                  ),
+                  onPressed: () =>
+                      context.canPop() ? context.pop() : context.go('/home'),
                 ),
                 Expanded(
                   child: SearchField(
@@ -96,7 +100,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 const IconButton(
                   tooltip: 'Search by photo (coming soon)',
                   onPressed: null,
-                  icon: Icon(Icons.photo_camera_outlined, size: AppSpacing.iconBar),
+                  icon: Icon(
+                    Icons.photo_camera_outlined,
+                    size: AppSpacing.iconBar,
+                  ),
                 ),
               ],
             ),
@@ -124,7 +131,12 @@ class _Suggestions extends ConsumerWidget {
 
     return ListView(
       children: [
-        _SuggestionRow(text: query, query: query, trailing: 'Search all', onTap: () => onPick(query)),
+        _SuggestionRow(
+          text: query,
+          query: query,
+          trailing: 'Search all',
+          onTap: () => onPick(query),
+        ),
         for (final Product p in suggestions)
           _SuggestionRow(
             text: p.title,
@@ -146,7 +158,12 @@ class _Suggestions extends ConsumerWidget {
 }
 
 class _SuggestionRow extends StatelessWidget {
-  const _SuggestionRow({required this.text, required this.query, required this.trailing, required this.onTap});
+  const _SuggestionRow({
+    required this.text,
+    required this.query,
+    required this.trailing,
+    required this.onTap,
+  });
 
   final String text;
   final String query;
@@ -156,12 +173,12 @@ class _SuggestionRow extends StatelessWidget {
   List<TextSpan> _highlight() {
     final lower = text.toLowerCase();
     final start = lower.indexOf(query.toLowerCase());
-    final normal = AppText.custom(14, FontWeight.w500);
+    final normal = AppText.bodyMedium;
     if (start < 0) return [TextSpan(text: text, style: normal)];
     final end = start + query.length;
     return [
       TextSpan(text: text.substring(0, start), style: normal),
-      TextSpan(text: text.substring(start, end), style: AppText.custom(14, FontWeight.w800)),
+      TextSpan(text: text.substring(start, end), style: AppText.rowTitle),
       TextSpan(text: text.substring(end), style: normal),
     ];
   }
@@ -173,7 +190,9 @@ class _SuggestionRow extends StatelessWidget {
       child: Container(
         constraints: const BoxConstraints(minHeight: 48),
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.l),
-        decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.surfaceAlt))),
+        decoration: const BoxDecoration(
+          border: Border(bottom: BorderSide(color: AppColors.surfaceAlt)),
+        ),
         child: Row(
           children: [
             const Icon(Icons.search, size: 16, color: AppColors.hint),
@@ -202,7 +221,8 @@ class _IdleView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final recent = ref.watch(recentSearchesProvider);
-    final trending = ref.watch(trendingSearchesProvider).value ?? const <String>[];
+    final trending =
+        ref.watch(trendingSearchesProvider).value ?? const <String>[];
 
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.l),
@@ -210,9 +230,12 @@ class _IdleView extends ConsumerWidget {
         if (recent.isNotEmpty) ...[
           Row(
             children: [
-              Expanded(child: Text('Recent searches', style: AppText.custom(15, FontWeight.w800))),
+              Expanded(
+                child: Text('Recent searches', style: AppText.cardTitle),
+              ),
               TextButton(
-                onPressed: () => ref.read(recentSearchesProvider.notifier).clear(),
+                onPressed: () =>
+                    ref.read(recentSearchesProvider.notifier).clear(),
                 style: TextButton.styleFrom(foregroundColor: AppColors.muted),
                 child: const Text('Clear'),
               ),
@@ -236,7 +259,7 @@ class _IdleView extends ConsumerWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 14),
                         child: Center(
                           widthFactor: 1,
-                          child: Text(r, style: AppText.custom(13, FontWeight.w600)),
+                          child: Text(r, style: AppText.bodySmall),
                         ),
                       ),
                     ),
@@ -247,7 +270,7 @@ class _IdleView extends ConsumerWidget {
           const SizedBox(height: AppSpacing.xl),
         ],
         if (trending.isNotEmpty) ...[
-          Text('Trending now', style: AppText.custom(15, FontWeight.w800)),
+          Text('Trending now', style: AppText.cardTitle),
           const SizedBox(height: AppSpacing.s),
           LayoutBuilder(
             builder: (context, constraints) => Wrap(
@@ -266,7 +289,9 @@ class _IdleView extends ConsumerWidget {
                               width: 24,
                               child: Text(
                                 '${i + 1}',
-                                style: AppText.custom(14, FontWeight.w800, color: i < 3 ? AppColors.warning : AppColors.muted),
+                                style: AppText.rowTitle.withColor(
+                                  i < 3 ? AppColors.warning : AppColors.muted,
+                                ),
                               ),
                             ),
                             Expanded(
@@ -274,7 +299,7 @@ class _IdleView extends ConsumerWidget {
                                 trending[i],
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: AppText.custom(14, FontWeight.w500),
+                                style: AppText.bodyMedium,
                               ),
                             ),
                           ],

@@ -40,16 +40,20 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
   void _showMessage(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _changeAddress() async {
     final selected = await context.push<Address>('/addresses?select=true');
-    if (selected != null && mounted) setState(() => _selectedAddress = selected);
+    if (selected != null && mounted) {
+      setState(() => _selectedAddress = selected);
+    }
   }
 
   Future<void> _submitOrder() async {
-    final addressToUse = _selectedAddress ?? ref.read(defaultAddressProvider).value;
+    final addressToUse =
+        _selectedAddress ?? ref.read(defaultAddressProvider).value;
     if (addressToUse == null) {
       _showMessage('Please select or add a delivery address.');
       return;
@@ -89,7 +93,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     );
 
     try {
-      final savedOrder = await ref.read(placeOrderProvider.notifier).placeOrder(order);
+      final savedOrder = await ref
+          .read(placeOrderProvider.notifier)
+          .placeOrder(order);
       if (!mounted) return;
       ref.read(cartProvider.notifier).clearCart();
       context.go('/order-confirmation', extra: savedOrder);
@@ -138,7 +144,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               children: [
                 Text(
                   'Package 1 · $itemCount ${itemCount == 1 ? 'item' : 'items'}',
-                  style: AppText.custom(13, FontWeight.w700),
+                  style: AppText.label,
                 ),
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 10),
@@ -146,12 +152,16 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 ),
                 Row(
                   children: [
-                    const Icon(Icons.local_shipping_outlined, size: AppSpacing.iconSmall, color: AppColors.primary),
+                    const Icon(
+                      Icons.local_shipping_outlined,
+                      size: AppSpacing.iconSmall,
+                      color: AppColors.primary,
+                    ),
                     const SizedBox(width: AppSpacing.s),
                     Expanded(
                       child: Text(
                         'Standard delivery · arrives in 2–4 days',
-                        style: AppText.custom(13, FontWeight.w600, color: AppColors.primary),
+                        style: AppText.bodySmall.withColor(AppColors.primary),
                       ),
                     ),
                   ],
@@ -164,7 +174,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text('Payment method', style: AppText.custom(15, FontWeight.w800)),
+                Text('Payment method', style: AppText.cardTitle),
                 const SizedBox(height: AppSpacing.s),
                 RadioGroup<PaymentMethod>(
                   groupValue: _paymentMethod,
@@ -177,9 +187,21 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                         note: 'Pay the rider when it arrives',
                         method: PaymentMethod.cashOnDelivery,
                       ),
-                      _PaymentRow(code: 'bK', title: 'bKash', note: 'Pay with your bKash account'),
-                      _PaymentRow(code: 'Ng', title: 'Nagad', note: 'Pay with your Nagad account'),
-                      _PaymentRow(code: 'Card', title: 'Credit or debit card', note: 'Visa, Mastercard, Amex'),
+                      _PaymentRow(
+                        code: 'bK',
+                        title: 'bKash',
+                        note: 'Pay with your bKash account',
+                      ),
+                      _PaymentRow(
+                        code: 'Ng',
+                        title: 'Nagad',
+                        note: 'Pay with your Nagad account',
+                      ),
+                      _PaymentRow(
+                        code: 'Card',
+                        title: 'Credit or debit card',
+                        note: 'Visa, Mastercard, Amex',
+                      ),
                     ],
                   ),
                 ),
@@ -192,7 +214,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               children: [
                 _SummaryRow(label: 'Items total', value: formatTaka(subtotal)),
                 const SizedBox(height: AppSpacing.s),
-                _SummaryRow(label: 'Delivery', value: formatTaka(widget.deliveryCharge)),
+                _SummaryRow(
+                  label: 'Delivery',
+                  value: formatTaka(widget.deliveryCharge),
+                ),
               ],
             ),
           ),
@@ -203,7 +228,12 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           color: AppColors.surface,
           border: Border(top: BorderSide(color: AppColors.divider)),
         ),
-        padding: const EdgeInsets.fromLTRB(AppSpacing.l, AppSpacing.m, AppSpacing.l, 20),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.l,
+          AppSpacing.m,
+          AppSpacing.l,
+          20,
+        ),
         child: SafeArea(
           top: false,
           child: Row(
@@ -213,8 +243,14 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text('Pay in cash on delivery', style: AppText.caption.withColor(AppColors.muted)),
-                    Text(formatTaka(total), style: AppText.custom(20, FontWeight.w800, color: AppColors.primary)),
+                    Text(
+                      'Pay in cash on delivery',
+                      style: AppText.caption.withColor(AppColors.muted),
+                    ),
+                    Text(
+                      formatTaka(total),
+                      style: AppText.totalPrice.withColor(AppColors.primary),
+                    ),
                   ],
                 ),
               ),
@@ -234,7 +270,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 }
 
 class _AddressCard extends StatelessWidget {
-  const _AddressCard({required this.address, required this.loading, required this.onChange});
+  const _AddressCard({
+    required this.address,
+    required this.loading,
+    required this.onChange,
+  });
 
   final Address? address;
   final bool loading;
@@ -251,9 +291,18 @@ class _AddressCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Icon(Icons.location_on_outlined, size: AppSpacing.iconBar, color: AppColors.primary),
+                const Icon(
+                  Icons.location_on_outlined,
+                  size: AppSpacing.iconBar,
+                  color: AppColors.primary,
+                ),
                 const SizedBox(width: AppSpacing.m),
-                Expanded(child: Text('Add a delivery address', style: AppText.bodyStrong)),
+                Expanded(
+                  child: Text(
+                    'Add a delivery address',
+                    style: AppText.bodyStrong,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: AppSpacing.m),
@@ -273,7 +322,11 @@ class _AddressCard extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.location_on_outlined, size: AppSpacing.iconBar, color: AppColors.primary),
+          const Icon(
+            Icons.location_on_outlined,
+            size: AppSpacing.iconBar,
+            color: AppColors.primary,
+          ),
           const SizedBox(width: AppSpacing.m),
           Expanded(
             child: Column(
@@ -283,7 +336,10 @@ class _AddressCard extends StatelessWidget {
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   a.displayAddress,
-                  style: AppText.custom(13, FontWeight.w500, color: AppColors.muted, height: 1.4),
+                  style: AppText.meta.copyWith(
+                    color: AppColors.muted,
+                    height: 1.4,
+                  ),
                 ),
               ],
             ),
@@ -296,7 +352,12 @@ class _AddressCard extends StatelessWidget {
 }
 
 class _PaymentRow extends StatelessWidget {
-  const _PaymentRow({required this.code, required this.title, required this.note, this.method});
+  const _PaymentRow({
+    required this.code,
+    required this.title,
+    required this.note,
+    this.method,
+  });
 
   final String code;
   final String title;
@@ -320,8 +381,11 @@ class _PaymentRow extends StatelessWidget {
                 width: 36,
                 height: 36,
                 alignment: Alignment.center,
-                decoration: const BoxDecoration(color: AppColors.surfaceAlt, borderRadius: AppRadius.tileAll),
-                child: Text(code, style: AppText.custom(11, FontWeight.w800)),
+                decoration: const BoxDecoration(
+                  color: AppColors.surfaceAlt,
+                  borderRadius: AppRadius.tileAll,
+                ),
+                child: Text(code, style: AppText.tag),
               ),
               const SizedBox(width: AppSpacing.m),
               Expanded(
@@ -329,7 +393,10 @@ class _PaymentRow extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(title, style: AppText.bodyStrong),
-                    Text(note, style: AppText.caption.withColor(AppColors.muted)),
+                    Text(
+                      note,
+                      style: AppText.caption.withColor(AppColors.muted),
+                    ),
                   ],
                 ),
               ),
@@ -337,9 +404,18 @@ class _PaymentRow extends StatelessWidget {
                 Radio<PaymentMethod>(value: method!)
               else
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s, vertical: 3),
-                  decoration: const BoxDecoration(color: AppColors.surfaceAlt, borderRadius: AppRadius.badgeAll),
-                  child: Text('Coming soon', style: AppText.custom(11, FontWeight.w700, color: AppColors.muted)),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.s,
+                    vertical: 3,
+                  ),
+                  decoration: const BoxDecoration(
+                    color: AppColors.surfaceAlt,
+                    borderRadius: AppRadius.badgeAll,
+                  ),
+                  child: Text(
+                    'Coming soon',
+                    style: AppText.microStrong.withColor(AppColors.muted),
+                  ),
                 ),
             ],
           ),
@@ -359,8 +435,10 @@ class _SummaryRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Expanded(child: Text(label, style: AppText.custom(13, FontWeight.w500, color: AppColors.muted))),
-        Text(value, style: AppText.custom(13, FontWeight.w700)),
+        Expanded(
+          child: Text(label, style: AppText.meta.withColor(AppColors.muted)),
+        ),
+        Text(value, style: AppText.label),
       ],
     );
   }

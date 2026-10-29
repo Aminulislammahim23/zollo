@@ -40,7 +40,9 @@ class HomeScreen extends ConsumerWidget {
               child: CustomScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 slivers: [
-                  const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.l)),
+                  const SliverToBoxAdapter(
+                    child: SizedBox(height: AppSpacing.l),
+                  ),
                   const SliverToBoxAdapter(child: PromoBanner()),
                   gap,
                   const SliverToBoxAdapter(child: CategoryRow()),
@@ -49,8 +51,13 @@ class HomeScreen extends ConsumerWidget {
                     loading: () => const [
                       SliverToBoxAdapter(
                         child: Padding(
-                          padding: EdgeInsets.symmetric(horizontal: AppSpacing.screen),
-                          child: ShimmerBox(height: 200, radius: AppRadius.banner),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: AppSpacing.screen,
+                          ),
+                          child: ShimmerBox(
+                            height: 200,
+                            radius: AppRadius.banner,
+                          ),
                         ),
                       ),
                       gap,
@@ -84,12 +91,16 @@ class HomeScreen extends ConsumerWidget {
                             ),
                           ]
                         : [
-                            SliverToBoxAdapter(child: FlashSaleSection(products: products)),
+                            SliverToBoxAdapter(
+                              child: FlashSaleSection(products: products),
+                            ),
                             gap,
                             JustForYouSection(products: products),
                           ],
                   ),
-                  const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xl)),
+                  const SliverToBoxAdapter(
+                    child: SizedBox(height: AppSpacing.xl),
+                  ),
                 ],
               ),
             ),

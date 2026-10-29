@@ -98,7 +98,10 @@ class AppTextField extends StatelessWidget {
         filled: true,
         fillColor: fillColor ?? AppColors.surface,
         constraints: multiline ? null : BoxConstraints(minHeight: height),
-        contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: vertical),
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: vertical,
+        ),
         prefixIcon: prefix,
         prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
         suffixIcon: suffix,

@@ -10,28 +10,31 @@ final orderRepositoryProvider = Provider<OrderRepository>((ref) {
   return SupabaseOrderRepository(Supabase.instance.client);
 });
 
-final orderHistoryProvider =
-    FutureProvider<List<OrderModel>>((ref) async {
+final orderHistoryProvider = FutureProvider<List<OrderModel>>((ref) async {
   ref.watch(currentUserProvider.select((u) => u?.id));
   return ref.watch(orderRepositoryProvider).getOrders();
 });
 
 final myOrdersProvider = orderHistoryProvider;
 
-final orderByIdProvider =
-    FutureProvider.family<OrderModel?, String>((ref, id) async {
+final orderByIdProvider = FutureProvider.family<OrderModel?, String>((
+  ref,
+  id,
+) async {
   return ref.watch(orderRepositoryProvider).getOrderById(id);
 });
 
-final orderDetailsProvider =
-    FutureProvider.family<OrderModel?, String>((ref, id) async {
+final orderDetailsProvider = FutureProvider.family<OrderModel?, String>((
+  ref,
+  id,
+) async {
   return ref.watch(orderRepositoryProvider).getOrderById(id);
 });
 
 final placeOrderProvider =
     AsyncNotifierProvider<PlaceOrderController, OrderModel?>(
-  PlaceOrderController.new,
-);
+      PlaceOrderController.new,
+    );
 
 class PlaceOrderController extends AsyncNotifier<OrderModel?> {
   @override

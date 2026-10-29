@@ -37,7 +37,11 @@ class SliverProductGrid extends StatelessWidget {
 }
 
 class _ProductRow extends StatelessWidget {
-  const _ProductRow({required this.left, required this.right, required this.gap});
+  const _ProductRow({
+    required this.left,
+    required this.right,
+    required this.gap,
+  });
 
   final Product left;
   final Product? right;
@@ -51,7 +55,11 @@ class _ProductRow extends StatelessWidget {
         children: [
           Expanded(child: ProductCard(product: left)),
           SizedBox(width: gap),
-          Expanded(child: right == null ? const SizedBox.shrink() : ProductCard(product: right!)),
+          Expanded(
+            child: right == null
+                ? const SizedBox.shrink()
+                : ProductCard(product: right!),
+          ),
         ],
       ),
     );

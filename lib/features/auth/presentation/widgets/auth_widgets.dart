@@ -35,7 +35,9 @@ class AuthScaffold extends StatelessWidget {
           builder: (context, constraints) => SingleChildScrollView(
             padding: const EdgeInsets.all(AppSpacing.xl),
             child: ConstrainedBox(
-              constraints: BoxConstraints(minHeight: constraints.maxHeight - AppSpacing.xl * 2),
+              constraints: BoxConstraints(
+                minHeight: constraints.maxHeight - AppSpacing.xl * 2,
+              ),
               child: IntrinsicHeight(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -47,7 +49,10 @@ class AuthScaffold extends StatelessWidget {
                           offset: const Offset(-12, 0),
                           child: IconButton(
                             tooltip: 'Back',
-                            icon: const Icon(Icons.arrow_back_ios_new, size: AppSpacing.iconSmall),
+                            icon: const Icon(
+                              Icons.arrow_back_ios_new,
+                              size: AppSpacing.iconSmall,
+                            ),
                             onPressed: () => context.pop(),
                           ),
                         ),
@@ -110,7 +115,8 @@ class AuthLinkText extends StatefulWidget {
 }
 
 class _AuthLinkTextState extends State<AuthLinkText> {
-  late final TapGestureRecognizer _recognizer = TapGestureRecognizer()..onTap = widget.onTap;
+  late final TapGestureRecognizer _recognizer = TapGestureRecognizer()
+    ..onTap = widget.onTap;
 
   @override
   void dispose() {
@@ -133,13 +139,13 @@ class _AuthLinkTextState extends State<AuthLinkText> {
           child: Center(
             child: Text.rich(
               TextSpan(
-                style: AppText.custom(14, FontWeight.w500, color: AppColors.muted),
+                style: AppText.bodyMedium.withColor(AppColors.muted),
                 children: [
                   TextSpan(text: '${widget.prefix} '),
                   TextSpan(
                     text: widget.link,
                     recognizer: _recognizer,
-                    style: AppText.custom(14, FontWeight.w800, color: AppColors.primary),
+                    style: AppText.rowTitle.withColor(AppColors.primary),
                   ),
                 ],
               ),
@@ -207,7 +213,12 @@ class PasswordRulesChecklist extends StatelessWidget {
                     color: met ? AppColors.primary : AppColors.hint,
                   ),
                   const SizedBox(width: AppSpacing.s),
-                  Text(label, style: AppText.custom(13, FontWeight.w500, color: AppColors.muted)),
+                  Flexible(
+                    child: Text(
+                      label,
+                      style: AppText.meta.withColor(AppColors.muted),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -229,7 +240,9 @@ class PasswordStrengthBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final score = AuthValidators.strength(password);
     return Semantics(
-      label: score == 0 ? 'Password strength' : 'Password strength: ${_labels[score]}',
+      label: score == 0
+          ? 'Password strength'
+          : 'Password strength: ${_labels[score]}',
       excludeSemantics: true,
       child: Row(
         children: [

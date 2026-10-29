@@ -1,4 +1,3 @@
-
 class WishlistItem {
   final String userId;
   final String productId;
@@ -14,9 +13,7 @@ class WishlistItem {
     return WishlistItem(
       userId: json['user_id'] as String,
       productId: json['product_id'] as String,
-      createdAt: DateTime.parse(
-        json['created_at'] as String,
-      ),
+      createdAt: DateTime.parse(json['created_at'] as String),
     );
   }
 

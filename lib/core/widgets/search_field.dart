@@ -41,7 +41,8 @@ class SearchField extends StatefulWidget {
 class _SearchFieldState extends State<SearchField> {
   TextEditingController? _own;
 
-  TextEditingController get _controller => widget.controller ?? (_own ??= TextEditingController());
+  TextEditingController get _controller =>
+      widget.controller ?? (_own ??= TextEditingController());
 
   @override
   void initState() {
@@ -72,7 +73,10 @@ class _SearchFieldState extends State<SearchField> {
     final border = OutlineInputBorder(
       borderRadius: AppRadius.inputAll,
       borderSide: widget.outlined
-          ? const BorderSide(color: AppColors.primary, width: AppBorders.selected)
+          ? const BorderSide(
+              color: AppColors.primary,
+              width: AppBorders.selected,
+            )
           : BorderSide.none,
     );
 
@@ -92,12 +96,22 @@ class _SearchFieldState extends State<SearchField> {
         filled: true,
         fillColor: widget.fillColor,
         constraints: BoxConstraints(minHeight: widget.height),
-        contentPadding: EdgeInsets.symmetric(vertical: (widget.height - 20) / 2),
-        prefixIcon: const Icon(Icons.search, size: AppSpacing.iconInline, color: AppColors.muted),
+        contentPadding: EdgeInsets.symmetric(
+          vertical: (widget.height - 20) / 2,
+        ),
+        prefixIcon: const Icon(
+          Icons.search,
+          size: AppSpacing.iconInline,
+          color: AppColors.muted,
+        ),
         suffixIcon: !widget.readOnly && _controller.text.isNotEmpty
             ? IconButton(
                 tooltip: 'Clear search',
-                icon: const Icon(Icons.close, size: AppSpacing.iconSmall, color: AppColors.muted),
+                icon: const Icon(
+                  Icons.close,
+                  size: AppSpacing.iconSmall,
+                  color: AppColors.muted,
+                ),
                 onPressed: () {
                   _controller.clear();
                   widget.onChanged?.call('');
@@ -112,10 +126,6 @@ class _SearchFieldState extends State<SearchField> {
 
     if (!widget.readOnly) return field;
 
-    return Semantics(
-      button: true,
-      label: widget.hint,
-      child: field,
-    );
+    return Semantics(button: true, label: widget.hint, child: field);
   }
 }

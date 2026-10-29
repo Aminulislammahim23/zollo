@@ -48,32 +48,20 @@ final GoRouter appRouter = GoRouter(
       ),
 
     // Start-up and auth
-    GoRoute(
-      path: '/splash',
-      builder: (context, state) => const SplashScreen(),
-    ),
+    GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
     GoRoute(
       path: '/onboarding',
       builder: (context, state) => const OnboardingScreen(),
     ),
-    GoRoute(
-      path: '/login',
-      builder: (context, state) => const LoginScreen(),
-    ),
-    GoRoute(
-      path: '/signup',
-      builder: (context, state) => const SignupScreen(),
-    ),
+    GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
+    GoRoute(path: '/signup', builder: (context, state) => const SignupScreen()),
     GoRoute(
       path: '/forgot-password',
       builder: (context, state) => const ForgotPasswordScreen(),
     ),
 
     // Catalogue
-    GoRoute(
-      path: '/search',
-      builder: (context, state) => const SearchScreen(),
-    ),
+    GoRoute(path: '/search', builder: (context, state) => const SearchScreen()),
     GoRoute(
       path: '/products',
       builder: (context, state) => ProductListScreen(
@@ -83,15 +71,18 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: '/product-details',
-      builder: (context, state) => ProductDetailsScreen(product: state.extra as Product),
+      builder: (context, state) =>
+          ProductDetailsScreen(product: state.extra as Product),
     ),
     GoRoute(
       path: '/product-reviews',
-      builder: (context, state) => ProductReviewsScreen(product: state.extra as Product),
+      builder: (context, state) =>
+          ProductReviewsScreen(product: state.extra as Product),
     ),
     GoRoute(
       path: '/write-review',
-      builder: (context, state) => WriteReviewScreen(product: state.extra as Product),
+      builder: (context, state) =>
+          WriteReviewScreen(product: state.extra as Product),
     ),
 
     // Checkout and orders
@@ -100,13 +91,18 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) {
         final extras = state.extra as Map<String, dynamic>?;
         final subtotal = extras?['subtotal'] as double? ?? 0.0;
-        final deliveryCharge = extras?['deliveryCharge'] as double? ?? AppConstants.deliveryFee;
-        return CheckoutScreen(subtotal: subtotal, deliveryCharge: deliveryCharge);
+        final deliveryCharge =
+            extras?['deliveryCharge'] as double? ?? AppConstants.deliveryFee;
+        return CheckoutScreen(
+          subtotal: subtotal,
+          deliveryCharge: deliveryCharge,
+        );
       },
     ),
     GoRoute(
       path: '/order-confirmation',
-      builder: (context, state) => OrderConfirmationScreen(order: state.extra as OrderModel),
+      builder: (context, state) =>
+          OrderConfirmationScreen(order: state.extra as OrderModel),
     ),
     GoRoute(
       path: '/order-history',
@@ -116,15 +112,18 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: '/order-details/:orderId',
-      builder: (context, state) => OrderDetailsScreen(orderId: state.pathParameters['orderId']!),
+      builder: (context, state) =>
+          OrderDetailsScreen(orderId: state.pathParameters['orderId']!),
     ),
     GoRoute(
       path: '/tracking/:orderId',
-      builder: (context, state) => TrackingScreen(orderId: state.pathParameters['orderId']!),
+      builder: (context, state) =>
+          TrackingScreen(orderId: state.pathParameters['orderId']!),
     ),
     GoRoute(
       path: '/return-request',
-      builder: (context, state) => ReturnRequestScreen(order: state.extra as OrderModel),
+      builder: (context, state) =>
+          ReturnRequestScreen(order: state.extra as OrderModel),
     ),
 
     // Account
@@ -148,7 +147,8 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: '/edit-address',
-      builder: (context, state) => AddEditAddressScreen(address: state.extra as Address),
+      builder: (context, state) =>
+          AddEditAddressScreen(address: state.extra as Address),
     ),
     GoRoute(
       path: '/vouchers',
@@ -184,9 +184,7 @@ final GoRouter appRouter = GoRouter(
     // Bottom-nav tabs
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
-        return MainScaffold(
-          navigationShell: navigationShell,
-        );
+        return MainScaffold(navigationShell: navigationShell);
       },
       branches: [
         StatefulShellBranch(

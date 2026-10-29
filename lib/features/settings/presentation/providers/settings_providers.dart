@@ -8,7 +8,9 @@ final settingsRepositoryProvider = Provider<SettingsRepository>((ref) {
 });
 
 /// Chosen language code. Only stored for now; translations come later.
-final localeProvider = NotifierProvider<LocaleController, String>(LocaleController.new);
+final localeProvider = NotifierProvider<LocaleController, String>(
+  LocaleController.new,
+);
 
 class LocaleController extends Notifier<String> {
   @override
@@ -22,10 +24,11 @@ class LocaleController extends Notifier<String> {
 
 final notificationPrefsProvider =
     NotifierProvider<NotificationPrefsController, Map<NotificationPref, bool>>(
-  NotificationPrefsController.new,
-);
+      NotificationPrefsController.new,
+    );
 
-class NotificationPrefsController extends Notifier<Map<NotificationPref, bool>> {
+class NotificationPrefsController
+    extends Notifier<Map<NotificationPref, bool>> {
   @override
   Map<NotificationPref, bool> build() {
     final repo = ref.read(settingsRepositoryProvider);

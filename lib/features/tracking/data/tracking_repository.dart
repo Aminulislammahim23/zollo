@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../domain/tracking_event_model.dart';
 
 class TrackingRepository {

@@ -1,7 +1,11 @@
 import 'review.dart';
 
 class ReviewSummary {
-  const ReviewSummary({required this.average, required this.count, required this.distribution});
+  const ReviewSummary({
+    required this.average,
+    required this.count,
+    required this.distribution,
+  });
 
   factory ReviewSummary.from(List<ProductReview> reviews) {
     final distribution = List<int>.filled(5, 0);

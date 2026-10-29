@@ -35,7 +35,8 @@ class ProductCard extends StatelessWidget {
         borderRadius: AppRadius.cardAll,
         clipBehavior: Clip.antiAlias,
         child: InkWell(
-          onTap: onTap ?? () => context.push('/product-details', extra: product),
+          onTap:
+              onTap ?? () => context.push('/product-details', extra: product),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisSize: MainAxisSize.min,
@@ -62,7 +63,10 @@ class ProductCard extends StatelessWidget {
                       Positioned(
                         top: 0,
                         left: 0,
-                        child: WishlistButton(productId: product.id, compact: true),
+                        child: WishlistButton(
+                          productId: product.id,
+                          compact: true,
+                        ),
                       ),
                   ],
                 ),
@@ -80,9 +84,15 @@ class ProductCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: AppSpacing.xs),
-                    PriceText(price: product.price, oldPrice: product.originalPrice),
+                    PriceText(
+                      price: product.price,
+                      oldPrice: product.originalPrice,
+                    ),
                     const SizedBox(height: AppSpacing.xs),
-                    RatingRow(rating: product.rating, soldCount: product.soldCount),
+                    RatingRow(
+                      rating: product.rating,
+                      soldCount: product.soldCount,
+                    ),
                   ],
                 ),
               ),

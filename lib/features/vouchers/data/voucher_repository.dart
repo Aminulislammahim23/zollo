@@ -66,12 +66,16 @@ class FakeVoucherRepository implements VoucherRepository {
   @override
   Future<Voucher> redeem(String code) async {
     final normalized = code.trim().toUpperCase();
-    if (normalized.isEmpty) throw const VoucherException('Enter a voucher code.');
+    if (normalized.isEmpty) {
+      throw const VoucherException('Enter a voucher code.');
+    }
     if (_vouchers.any((v) => v.code == normalized)) {
       throw const VoucherException('You already have this voucher.');
     }
     final voucher = _redeemable[normalized];
-    if (voucher == null) throw const VoucherException("That code isn't valid or has expired.");
+    if (voucher == null) {
+      throw const VoucherException("That code isn't valid or has expired.");
+    }
     _vouchers.insert(0, voucher);
     return voucher;
   }

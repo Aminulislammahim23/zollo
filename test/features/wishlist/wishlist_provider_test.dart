@@ -6,22 +6,31 @@ import 'package:zollo/features/wishlist/presentation/providers/wishlist_provider
 import '../../support/test_helpers.dart';
 
 void main() {
-  test('guests get an empty wishlist without touching the repository', () async {
-    final container = ProviderContainer(overrides: [
-      currentUserProvider.overrideWithValue(null),
-      wishlistRepositoryProvider.overrideWithValue(FakeWishlistRepository({'p1'})),
-    ]);
-    addTearDown(container.dispose);
+  test(
+    'guests get an empty wishlist without touching the repository',
+    () async {
+      final container = ProviderContainer(
+        overrides: [
+          currentUserProvider.overrideWithValue(null),
+          wishlistRepositoryProvider.overrideWithValue(
+            FakeWishlistRepository({'p1'}),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
 
-    expect(await container.read(wishlistProvider.future), isEmpty);
-  });
+      expect(await container.read(wishlistProvider.future), isEmpty);
+    },
+  );
 
   test('toggle adds and removes for a signed-in user', () async {
     final repo = FakeWishlistRepository({'p1'});
-    final container = ProviderContainer(overrides: [
-      currentUserProvider.overrideWithValue(FakeUser()),
-      wishlistRepositoryProvider.overrideWithValue(repo),
-    ]);
+    final container = ProviderContainer(
+      overrides: [
+        currentUserProvider.overrideWithValue(FakeUser()),
+        wishlistRepositoryProvider.overrideWithValue(repo),
+      ],
+    );
     addTearDown(container.dispose);
 
     expect(await container.read(wishlistProvider.future), {'p1'});

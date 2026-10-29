@@ -19,9 +19,9 @@ class ProfileScreen extends ConsumerWidget {
     final user = ref.watch(currentUserProvider);
     final wishlistCount = ref.watch(wishlistProvider).value?.length ?? 0;
 
-    void comingSoon(String feature) => ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$feature is coming soon.')),
-        );
+    void comingSoon(String feature) =>
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('$feature is coming soon.')));
 
     return Scaffold(
       body: ListView(
@@ -44,10 +44,15 @@ class ProfileScreen extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Welcome to zollo', style: AppText.title.withColor(AppColors.white)),
+                            Text(
+                              'Welcome to zollo',
+                              style: AppText.title.withColor(AppColors.white),
+                            ),
                             Text(
                               'Log in or sign up',
-                              style: AppText.custom(13, FontWeight.w500, color: AppColors.onPrimaryMuted),
+                              style: AppText.meta.withColor(
+                                AppColors.onPrimaryMuted,
+                              ),
                             ),
                           ],
                         ),
@@ -80,7 +85,9 @@ class ProfileScreen extends ConsumerWidget {
                                   : (user.email ?? ''),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: AppText.custom(13, FontWeight.w500, color: AppColors.onPrimaryMuted),
+                              style: AppText.meta.withColor(
+                                AppColors.onPrimaryMuted,
+                              ),
                             ),
                           ],
                         ),
@@ -92,13 +99,18 @@ class ProfileScreen extends ConsumerWidget {
                           customBorder: const StadiumBorder(),
                           onTap: () => context.push('/edit-profile'),
                           child: Container(
-                            constraints: const BoxConstraints(minHeight: 36, minWidth: 48),
-                            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.m),
+                            constraints: const BoxConstraints(
+                              minHeight: 36,
+                              minWidth: 48,
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.m,
+                            ),
                             alignment: Alignment.center,
                             child: Text(
                               'Edit',
                               semanticsLabel: 'Edit profile',
-                              style: AppText.custom(13, FontWeight.w700, color: AppColors.white),
+                              style: AppText.label.withColor(AppColors.white),
                             ),
                           ),
                         ),
@@ -117,7 +129,9 @@ class ProfileScreen extends ConsumerWidget {
                     children: [
                       Row(
                         children: [
-                          Expanded(child: Text('My orders', style: AppText.custom(15, FontWeight.w800))),
+                          Expanded(
+                            child: Text('My orders', style: AppText.cardTitle),
+                          ),
                           TextButton(
                             onPressed: () => context.push('/order-history'),
                             child: const Text('View all'),
@@ -128,11 +142,31 @@ class ProfileScreen extends ConsumerWidget {
                       const Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _OrderShortcut(icon: Icons.credit_card_outlined, label: 'To pay', tab: 'processing'),
-                          _OrderShortcut(icon: Icons.inventory_2_outlined, label: 'Processing', tab: 'processing'),
-                          _OrderShortcut(icon: Icons.local_shipping_outlined, label: 'Shipped', tab: 'shipped'),
-                          _OrderShortcut(icon: Icons.star_outline_rounded, label: 'To review', tab: 'delivered'),
-                          _OrderShortcut(icon: Icons.assignment_return_outlined, label: 'Returns', tab: 'delivered'),
+                          _OrderShortcut(
+                            icon: Icons.credit_card_outlined,
+                            label: 'To pay',
+                            tab: 'processing',
+                          ),
+                          _OrderShortcut(
+                            icon: Icons.inventory_2_outlined,
+                            label: 'Processing',
+                            tab: 'processing',
+                          ),
+                          _OrderShortcut(
+                            icon: Icons.local_shipping_outlined,
+                            label: 'Shipped',
+                            tab: 'shipped',
+                          ),
+                          _OrderShortcut(
+                            icon: Icons.star_outline_rounded,
+                            label: 'To review',
+                            tab: 'delivered',
+                          ),
+                          _OrderShortcut(
+                            icon: Icons.assignment_return_outlined,
+                            label: 'Returns',
+                            tab: 'delivered',
+                          ),
                         ],
                       ),
                     ],
@@ -146,7 +180,8 @@ class ProfileScreen extends ConsumerWidget {
                       _MenuRow(
                         icon: Icons.favorite_border,
                         label: 'Wishlist',
-                        hint: '$wishlistCount ${wishlistCount == 1 ? 'item' : 'items'}',
+                        hint:
+                            '$wishlistCount ${wishlistCount == 1 ? 'item' : 'items'}',
                         onTap: () => context.push('/wishlist'),
                       ),
                       _MenuRow(
@@ -172,7 +207,8 @@ class ProfileScreen extends ConsumerWidget {
                       _MenuRow(
                         icon: Icons.help_outline,
                         label: 'Help center',
-                        onTap: () => contactSupport(context, subject: 'Help request'),
+                        onTap: () =>
+                            contactSupport(context, subject: 'Help request'),
                       ),
                       _MenuRow(
                         icon: Icons.settings_outlined,
@@ -208,17 +244,27 @@ class _Avatar extends StatelessWidget {
     return Container(
       width: 60,
       height: 60,
-      decoration: const BoxDecoration(color: AppColors.primaryTint, shape: BoxShape.circle),
+      decoration: const BoxDecoration(
+        color: AppColors.primaryTint,
+        shape: BoxShape.circle,
+      ),
       alignment: Alignment.center,
       child: initial == null
           ? const Icon(Icons.person_outline, size: 28, color: AppColors.primary)
-          : Text(initial!, style: AppText.custom(22, FontWeight.w800, color: AppColors.primary)),
+          : Text(
+              initial!,
+              style: AppText.bannerTitle.withColor(AppColors.primary),
+            ),
     );
   }
 }
 
 class _OrderShortcut extends StatelessWidget {
-  const _OrderShortcut({required this.icon, required this.label, required this.tab});
+  const _OrderShortcut({
+    required this.icon,
+    required this.label,
+    required this.tab,
+  });
 
   final IconData icon;
   final String label;
@@ -243,7 +289,11 @@ class _OrderShortcut extends StatelessWidget {
                 children: [
                   Icon(icon, size: 24, color: AppColors.primary),
                   const SizedBox(height: 6),
-                  Text(label, textAlign: TextAlign.center, style: AppText.micro),
+                  Text(
+                    label,
+                    textAlign: TextAlign.center,
+                    style: AppText.micro,
+                  ),
                 ],
               ),
             ),
@@ -277,13 +327,15 @@ class _MenuRow extends StatelessWidget {
         constraints: const BoxConstraints(minHeight: 50),
         padding: const EdgeInsets.symmetric(horizontal: 14),
         decoration: BoxDecoration(
-          border: last ? null : const Border(bottom: BorderSide(color: AppColors.surfaceAlt)),
+          border: last
+              ? null
+              : const Border(bottom: BorderSide(color: AppColors.surfaceAlt)),
         ),
         child: Row(
           children: [
             Icon(icon, size: AppSpacing.iconInline, color: AppColors.inkSoft),
             const SizedBox(width: AppSpacing.m),
-            Expanded(child: Text(label, style: AppText.custom(14, FontWeight.w600))),
+            Expanded(child: Text(label, style: AppText.menuLabel)),
             if (hint != null) ...[
               Text(hint!, style: AppText.caption.withColor(AppColors.muted)),
               const SizedBox(width: AppSpacing.xs),

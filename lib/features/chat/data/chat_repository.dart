@@ -79,7 +79,8 @@ class FakeChatRepository implements ChatRepository {
   var _nextId = 100;
 
   List<Conversation> get _sorted =>
-      [..._conversations]..sort((a, b) => b.lastMessageAt.compareTo(a.lastMessageAt));
+      [..._conversations]
+        ..sort((a, b) => b.lastMessageAt.compareTo(a.lastMessageAt));
 
   /// Emits [snapshot] on listen and after every change, like a realtime query.
   Stream<T> _watch<T>(T Function() snapshot) {
@@ -99,8 +100,9 @@ class FakeChatRepository implements ChatRepository {
   Stream<List<Conversation>> watchConversations() => _watch(() => _sorted);
 
   @override
-  Stream<List<ChatMessage>> watchMessages(String conversationId) =>
-      _watch(() => List<ChatMessage>.unmodifiable(_messages[conversationId] ?? const []));
+  Stream<List<ChatMessage>> watchMessages(String conversationId) => _watch(
+    () => List<ChatMessage>.unmodifiable(_messages[conversationId] ?? const []),
+  );
 
   @override
   Future<void> sendMessage(String conversationId, String text) async {
@@ -116,7 +118,9 @@ class FakeChatRepository implements ChatRepository {
     _messages.putIfAbsent(conversationId, () => []).add(message);
     _conversations = [
       for (final c in _conversations)
-        c.id == conversationId ? c.copyWith(lastMessage: trimmed, lastMessageAt: message.sentAt) : c,
+        c.id == conversationId
+            ? c.copyWith(lastMessage: trimmed, lastMessageAt: message.sentAt)
+            : c,
     ];
     _changes.add(null);
   }
@@ -124,14 +128,17 @@ class FakeChatRepository implements ChatRepository {
   @override
   Future<void> markRead(String conversationId) async {
     _conversations = [
-      for (final c in _conversations) c.id == conversationId ? c.copyWith(unreadCount: 0) : c,
+      for (final c in _conversations)
+        c.id == conversationId ? c.copyWith(unreadCount: 0) : c,
     ];
     _changes.add(null);
   }
 
   @override
   Future<Conversation> conversationForProduct(Product product) async {
-    final existing = _conversations.where((c) => c.product?.id == product.id).firstOrNull;
+    final existing = _conversations
+        .where((c) => c.product?.id == product.id)
+        .firstOrNull;
     if (existing != null) return existing;
 
     final conversation = Conversation(

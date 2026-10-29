@@ -12,7 +12,11 @@ void main() {
     GoRoute(path: '/cart', builder: (_, _) => const CartScreen()),
     GoRoute(
       path: '/checkout',
-      builder: (_, s) => Scaffold(body: Text('Checkout ${(s.extra as Map)['subtotal']} + ${(s.extra as Map)['deliveryCharge']}')),
+      builder: (_, s) => Scaffold(
+        body: Text(
+          'Checkout ${(s.extra as Map)['subtotal']} + ${(s.extra as Map)['deliveryCharge']}',
+        ),
+      ),
     ),
     stubRoute('/home', 'Home destination'),
     stubRoute('/login'),
@@ -30,9 +34,18 @@ void main() {
     expect(find.text('Home destination'), findsOneWidget);
   });
 
-  testWidgets('shows items, totals with delivery and steps quantity', (tester) async {
-    await pumpRoutes(tester, routes: routes, initialLocation: '/cart', user: FakeUser());
-    containerOf(tester).read(cartProvider.notifier).addToCart(sampleProduct(stock: 3), variant: 'Colour: Black');
+  testWidgets('shows items, totals with delivery and steps quantity', (
+    tester,
+  ) async {
+    await pumpRoutes(
+      tester,
+      routes: routes,
+      initialLocation: '/cart',
+      user: FakeUser(),
+    );
+    containerOf(tester)
+        .read(cartProvider.notifier)
+        .addToCart(sampleProduct(stock: 3), variant: 'Colour: Black');
     await tester.pump();
 
     expect(find.text('My cart (1)'), findsOneWidget);

@@ -4,7 +4,7 @@ import '../domain/category.dart';
 
 class CategoryRepository {
   CategoryRepository({SupabaseClient? client})
-      : _client = client ?? Supabase.instance.client;
+    : _client = client ?? Supabase.instance.client;
 
   final SupabaseClient _client;
 

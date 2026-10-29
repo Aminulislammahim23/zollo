@@ -6,10 +6,7 @@ import '../../features/cart/presentation/providers/cart_provider.dart';
 import '../widgets/app_bottom_nav.dart';
 
 class MainScaffold extends ConsumerWidget {
-  const MainScaffold({
-    super.key,
-    required this.navigationShell,
-  });
+  const MainScaffold({super.key, required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
 

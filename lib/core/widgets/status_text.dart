@@ -10,23 +10,22 @@ class StatusText extends StatelessWidget {
   final OrderStatus status;
 
   static String labelOf(OrderStatus status) => switch (status) {
-        OrderStatus.pending => 'Pending',
-        OrderStatus.confirmed => 'Confirmed',
-        OrderStatus.processing => 'Processing',
-        OrderStatus.shipped => 'Shipped',
-        OrderStatus.delivered => 'Delivered',
-        OrderStatus.cancelled => 'Cancelled',
-      };
+    OrderStatus.pending => 'Pending',
+    OrderStatus.confirmed => 'Confirmed',
+    OrderStatus.processing => 'Processing',
+    OrderStatus.shipped => 'Shipped',
+    OrderStatus.delivered => 'Delivered',
+    OrderStatus.cancelled => 'Cancelled',
+  };
 
   static Color colorOf(OrderStatus status) => switch (status) {
-        OrderStatus.pending => AppColors.warning,
-        OrderStatus.confirmed ||
-        OrderStatus.processing ||
-        OrderStatus.shipped =>
-          AppColors.primary,
-        OrderStatus.delivered => AppColors.inkSoft,
-        OrderStatus.cancelled => AppColors.error,
-      };
+    OrderStatus.pending => AppColors.warning,
+    OrderStatus.confirmed ||
+    OrderStatus.processing ||
+    OrderStatus.shipped => AppColors.primary,
+    OrderStatus.delivered => AppColors.inkSoft,
+    OrderStatus.cancelled => AppColors.error,
+  };
 
   @override
   Widget build(BuildContext context) {

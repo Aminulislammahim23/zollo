@@ -23,7 +23,9 @@ class SettingsScreen extends ConsumerWidget {
     final state = ref.read(authControllerProvider);
     if (state.hasError) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Couldn't log out. ${ErrorView.describe(state.error)}")),
+        SnackBar(
+          content: Text("Couldn't log out. ${ErrorView.describe(state.error)}"),
+        ),
       );
       return;
     }
@@ -40,7 +42,10 @@ class SettingsScreen extends ConsumerWidget {
           'This removes your profile, addresses, wishlist and order history. It cannot be undone.',
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: AppColors.error),
@@ -61,7 +66,10 @@ class SettingsScreen extends ConsumerWidget {
           "Email ${AppConstants.supportEmail} from your account's email address.",
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Close')),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Close'),
+          ),
           TextButton(
             onPressed: () {
               Navigator.pop(dialogContext);
@@ -95,7 +103,8 @@ class SettingsScreen extends ConsumerWidget {
                 _SegmentedControl(
                   value: locale,
                   options: const {'en': 'English', 'bn': 'বাংলা'},
-                  onChanged: (code) => ref.read(localeProvider.notifier).set(code),
+                  onChanged: (code) =>
+                      ref.read(localeProvider.notifier).set(code),
                 ),
               ],
             ),
@@ -118,13 +127,20 @@ class SettingsScreen extends ConsumerWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(p.title, style: AppText.bodyStrong),
-                                Text(p.note, style: AppText.caption.withColor(AppColors.muted)),
+                                Text(
+                                  p.note,
+                                  style: AppText.caption.withColor(
+                                    AppColors.muted,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
                           Switch(
                             value: prefs[p] ?? true,
-                            onChanged: (v) => ref.read(notificationPrefsProvider.notifier).set(p, v),
+                            onChanged: (v) => ref
+                                .read(notificationPrefsProvider.notifier)
+                                .set(p, v),
                           ),
                         ],
                       ),
@@ -139,10 +155,14 @@ class SettingsScreen extends ConsumerWidget {
             child: Column(
               children: [
                 if (signedIn)
-                  _LinkRow(label: 'Change password', onTap: () => context.push('/settings/change-password')),
+                  _LinkRow(
+                    label: 'Change password',
+                    onTap: () => context.push('/settings/change-password'),
+                  ),
                 _LinkRow(
                   label: 'Privacy policy',
-                  onTap: () => openExternalUrl(context, AppConstants.privacyPolicyUrl),
+                  onTap: () =>
+                      openExternalUrl(context, AppConstants.privacyPolicyUrl),
                 ),
                 _LinkRow(
                   label: 'Terms of use',
@@ -169,12 +189,15 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
           ] else
-            AppButton.primary(label: 'Log in', onPressed: () => context.push('/login')),
+            AppButton.primary(
+              label: 'Log in',
+              onPressed: () => context.push('/login'),
+            ),
           const SizedBox(height: AppSpacing.s),
           Center(
             child: Text(
               'Version ${AppConstants.appVersion}',
-              style: AppText.custom(11, FontWeight.w500, color: AppColors.hint),
+              style: AppText.timestamp.withColor(AppColors.hint),
             ),
           ),
           const SizedBox(height: AppSpacing.xl),
@@ -193,13 +216,20 @@ class _Caption extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text,
-      style: AppText.custom(12, FontWeight.w800, color: AppColors.muted, letterSpacing: 0.6),
+      style: AppText.captionHeavy.copyWith(
+        color: AppColors.muted,
+        letterSpacing: 0.6,
+      ),
     );
   }
 }
 
 class _SegmentedControl extends StatelessWidget {
-  const _SegmentedControl({required this.value, required this.options, required this.onChanged});
+  const _SegmentedControl({
+    required this.value,
+    required this.options,
+    required this.onChanged,
+  });
 
   final String value;
   final Map<String, String> options;
@@ -209,7 +239,10 @@ class _SegmentedControl extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.xs),
-      decoration: const BoxDecoration(color: AppColors.surfaceAlt, borderRadius: AppRadius.buttonAll),
+      decoration: const BoxDecoration(
+        color: AppColors.surfaceAlt,
+        borderRadius: AppRadius.buttonAll,
+      ),
       child: Row(
         children: [
           for (final entry in options.entries)
@@ -218,7 +251,9 @@ class _SegmentedControl extends StatelessWidget {
                 button: true,
                 selected: entry.key == value,
                 child: Material(
-                  color: entry.key == value ? AppColors.surface : AppColors.transparent,
+                  color: entry.key == value
+                      ? AppColors.surface
+                      : AppColors.transparent,
                   borderRadius: AppRadius.tileAll,
                   child: InkWell(
                     borderRadius: AppRadius.tileAll,
@@ -228,11 +263,17 @@ class _SegmentedControl extends StatelessWidget {
                       child: Center(
                         child: Text(
                           entry.value,
-                          style: AppText.custom(
-                            14,
-                            entry.key == value ? FontWeight.w800 : FontWeight.w600,
-                            color: entry.key == value ? AppColors.primary : AppColors.inkSoft,
-                          ),
+                          style: AppText.menuLabel
+                              .withWeight(
+                                entry.key == value
+                                    ? FontWeight.w800
+                                    : FontWeight.w600,
+                              )
+                              .withColor(
+                                entry.key == value
+                                    ? AppColors.primary
+                                    : AppColors.inkSoft,
+                              ),
                         ),
                       ),
                     ),
@@ -261,11 +302,13 @@ class _LinkRow extends StatelessWidget {
         constraints: const BoxConstraints(minHeight: 50),
         padding: const EdgeInsets.symmetric(horizontal: 14),
         decoration: BoxDecoration(
-          border: last ? null : const Border(bottom: BorderSide(color: AppColors.surfaceAlt)),
+          border: last
+              ? null
+              : const Border(bottom: BorderSide(color: AppColors.surfaceAlt)),
         ),
         child: Row(
           children: [
-            Expanded(child: Text(label, style: AppText.custom(14, FontWeight.w600))),
+            Expanded(child: Text(label, style: AppText.menuLabel)),
             const Icon(Icons.chevron_right, size: 16, color: AppColors.hint),
           ],
         ),

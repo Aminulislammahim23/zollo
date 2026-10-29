@@ -25,9 +25,9 @@ class _CartScreenState extends ConsumerState<CartScreen> {
   final Set<String> _selected = {};
 
   void _toggleEditing() => setState(() {
-        _editing = !_editing;
-        _selected.clear();
-      });
+    _editing = !_editing;
+    _selected.clear();
+  });
 
   void _deleteSelected() {
     final cart = ref.read(cartProvider.notifier);
@@ -40,7 +40,11 @@ class _CartScreenState extends ConsumerState<CartScreen> {
       _editing = false;
     });
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Removed $count ${count == 1 ? 'item' : 'items'} from your cart.')),
+      SnackBar(
+        content: Text(
+          'Removed $count ${count == 1 ? 'item' : 'items'} from your cart.',
+        ),
+      ),
     );
   }
 
@@ -49,15 +53,18 @@ class _CartScreenState extends ConsumerState<CartScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('Log in to check out.'),
-          action: SnackBarAction(label: 'Log in', onPressed: () => context.push('/login')),
+          action: SnackBarAction(
+            label: 'Log in',
+            onPressed: () => context.push('/login'),
+          ),
         ),
       );
       return;
     }
-    context.push('/checkout', extra: {
-      'subtotal': subtotal,
-      'deliveryCharge': AppConstants.deliveryFee,
-    });
+    context.push(
+      '/checkout',
+      extra: {'subtotal': subtotal, 'deliveryCharge': AppConstants.deliveryFee},
+    );
   }
 
   @override
@@ -104,7 +111,9 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                       for (var i = 0; i < items.length; i++) ...[
                         if (i > 0)
                           const Padding(
-                            padding: EdgeInsets.symmetric(vertical: AppSpacing.m),
+                            padding: EdgeInsets.symmetric(
+                              vertical: AppSpacing.m,
+                            ),
                             child: Divider(),
                           ),
                         CartItemTile(
@@ -112,11 +121,19 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                           selecting: _editing,
                           selected: _selected.contains(items[i].product.id),
                           onSelectedChanged: (v) => setState(() {
-                            v ? _selected.add(items[i].product.id) : _selected.remove(items[i].product.id);
+                            v
+                                ? _selected.add(items[i].product.id)
+                                : _selected.remove(items[i].product.id);
                           }),
-                          onIncrement: () => ref.read(cartProvider.notifier).increment(items[i].product.id),
-                          onDecrement: () => ref.read(cartProvider.notifier).decrement(items[i].product.id),
-                          onRemove: () => ref.read(cartProvider.notifier).removeItem(items[i].product.id),
+                          onIncrement: () => ref
+                              .read(cartProvider.notifier)
+                              .increment(items[i].product.id),
+                          onDecrement: () => ref
+                              .read(cartProvider.notifier)
+                              .decrement(items[i].product.id),
+                          onRemove: () => ref
+                              .read(cartProvider.notifier)
+                              .removeItem(items[i].product.id),
                         ),
                       ],
                     ],
@@ -133,10 +150,15 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                 color: AppColors.surface,
                 border: Border(top: BorderSide(color: AppColors.divider)),
               ),
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.l, vertical: AppSpacing.m),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.l,
+                vertical: AppSpacing.m,
+              ),
               child: _editing
                   ? AppButton.danger(
-                      label: _selected.isEmpty ? 'Select items to delete' : 'Delete (${_selected.length})',
+                      label: _selected.isEmpty
+                          ? 'Select items to delete'
+                          : 'Delete (${_selected.length})',
                       icon: Icons.delete_outline,
                       height: 50,
                       onPressed: _selected.isEmpty ? null : _deleteSelected,
@@ -148,10 +170,17 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text('Total incl. delivery', style: AppText.caption.withColor(AppColors.muted)),
+                              Text(
+                                'Total incl. delivery',
+                                style: AppText.caption.withColor(
+                                  AppColors.muted,
+                                ),
+                              ),
                               Text(
                                 formatTaka(total),
-                                style: AppText.custom(20, FontWeight.w800, color: AppColors.primary),
+                                style: AppText.totalPrice.withColor(
+                                  AppColors.primary,
+                                ),
                               ),
                             ],
                           ),
@@ -160,7 +189,9 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                           label: 'Checkout ($count)',
                           fullWidth: false,
                           height: 50,
-                          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.xl,
+                          ),
                           onPressed: () => _checkout(subtotal),
                         ),
                       ],
@@ -192,15 +223,22 @@ class _VoucherRow extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 14),
               child: Row(
                 children: [
-                  const Icon(Icons.confirmation_number_outlined, size: AppSpacing.iconInline, color: AppColors.primary),
+                  const Icon(
+                    Icons.confirmation_number_outlined,
+                    size: AppSpacing.iconInline,
+                    color: AppColors.primary,
+                  ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       'Apply a voucher',
-                      style: AppText.custom(14, FontWeight.w700, color: AppColors.primary),
+                      style: AppText.bodyStrong.withColor(AppColors.primary),
                     ),
                   ),
-                  Text('Coming soon', style: AppText.custom(13, FontWeight.w500, color: AppColors.muted)),
+                  Text(
+                    'Coming soon',
+                    style: AppText.meta.withColor(AppColors.muted),
+                  ),
                 ],
               ),
             ),

@@ -5,8 +5,7 @@ class AuthRepository {
 
   final SupabaseClient _client;
 
-  Stream<AuthState> get authStateChanges =>
-      _client.auth.onAuthStateChange;
+  Stream<AuthState> get authStateChanges => _client.auth.onAuthStateChange;
 
   User? get currentUser => _client.auth.currentUser;
 
@@ -51,7 +50,10 @@ class AuthRepository {
       throw StateError('Please log in again to change your password.');
     }
 
-    await _client.auth.signInWithPassword(email: email, password: currentPassword);
+    await _client.auth.signInWithPassword(
+      email: email,
+      password: currentPassword,
+    );
     await _client.auth.updateUser(UserAttributes(password: newPassword));
 
     if (signOutOtherDevices) {
@@ -65,19 +67,13 @@ class AuthRepository {
     String? gender,
     String? birthday,
   }) {
-    final Map<String, dynamic> updateData = {
-      'full_name': fullName.trim(),
-    };
+    final Map<String, dynamic> updateData = {'full_name': fullName.trim()};
 
     if (gender != null) updateData['gender'] = gender;
     if (birthday != null) updateData['birthday'] = birthday;
     if (phone != null) updateData['phone'] = phone;
 
-    return _client.auth.updateUser(
-      UserAttributes(
-        data: updateData,
-      ),
-    );
+    return _client.auth.updateUser(UserAttributes(data: updateData));
   }
 
   Future<void> signOut() async {

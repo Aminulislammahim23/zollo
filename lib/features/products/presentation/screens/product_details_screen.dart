@@ -29,7 +29,8 @@ class ProductDetailsScreen extends ConsumerStatefulWidget {
   static const colours = ['Black', 'White', 'Navy'];
 
   @override
-  ConsumerState<ProductDetailsScreen> createState() => _ProductDetailsScreenState();
+  ConsumerState<ProductDetailsScreen> createState() =>
+      _ProductDetailsScreenState();
 }
 
 class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
@@ -45,23 +46,29 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('${product.title} added to cart'),
-        action: SnackBarAction(label: 'View cart', onPressed: () => context.go('/cart')),
+        action: SnackBarAction(
+          label: 'View cart',
+          onPressed: () => context.go('/cart'),
+        ),
       ),
     );
   }
 
   void _buyNow() {
     final inCart = ref.read(cartProvider).containsKey(product.id);
-    if (!inCart) ref.read(cartProvider.notifier).addToCart(product, variant: _variant);
+    if (!inCart) {
+      ref.read(cartProvider.notifier).addToCart(product, variant: _variant);
+    }
     context.go('/cart');
   }
 
   Future<void> _share() async {
-    await Clipboard.setData(ClipboardData(text: '${AppConstants.productShareBaseUrl}/${product.id}'));
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Product link copied.')),
+    await Clipboard.setData(
+      ClipboardData(text: '${AppConstants.productShareBaseUrl}/${product.id}'),
     );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text('Product link copied.')));
   }
 
   Future<void> _chatWithSeller() async {
@@ -69,7 +76,9 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
       context.push('/login');
       return;
     }
-    final conversation = await ref.read(chatRepositoryProvider).conversationForProduct(product);
+    final conversation = await ref
+        .read(chatRepositoryProvider)
+        .conversationForProduct(product);
     if (!mounted) return;
     context.push('/messages/${conversation.id}');
   }
@@ -96,28 +105,37 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                   oldPrice: product.originalPrice,
                   style: AppText.headline.withColor(AppColors.primary),
                   oldStyle: AppText.priceOld.withSize(14),
-                  trailing: product.hasDiscount ? DiscountBadge.percent(product.discountPercent) : null,
+                  trailing: product.hasDiscount
+                      ? DiscountBadge.percent(product.discountPercent)
+                      : null,
                 ),
                 const SizedBox(height: AppSpacing.s),
-                Text(product.title, style: AppText.custom(16, FontWeight.w700, height: 1.35)),
+                Text(
+                  product.title,
+                  style: AppText.productTitle.copyWith(height: 1.35),
+                ),
                 const SizedBox(height: AppSpacing.s),
                 Wrap(
                   crossAxisAlignment: WrapCrossAlignment.center,
                   spacing: 4,
                   children: [
-                    const Icon(Icons.star_rounded, size: 14, color: AppColors.star),
+                    const Icon(
+                      Icons.star_rounded,
+                      size: 14,
+                      color: AppColors.star,
+                    ),
                     Text(
                       rating > 0 ? rating.toStringAsFixed(1) : 'New',
-                      style: AppText.custom(13, FontWeight.w700),
+                      style: AppText.label,
                     ),
                     Text(
                       '($ratingCount ${ratingCount == 1 ? 'rating' : 'ratings'})',
-                      style: AppText.custom(13, FontWeight.w500, color: AppColors.muted),
+                      style: AppText.meta.withColor(AppColors.muted),
                     ),
                     if (product.soldCount > 0)
                       Text(
                         '· ${formatSold(product.soldCount)}',
-                        style: AppText.custom(13, FontWeight.w500, color: AppColors.muted),
+                        style: AppText.meta.withColor(AppColors.muted),
                       ),
                   ],
                 ),
@@ -128,7 +146,7 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                   const SizedBox(height: AppSpacing.s),
                   Text(
                     'Only ${product.stock} left in stock',
-                    style: AppText.custom(13, FontWeight.w700, color: AppColors.warning),
+                    style: AppText.label.withColor(AppColors.warning),
                   ),
                 ],
               ],
@@ -140,9 +158,12 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
               children: [
                 Row(
                   children: [
-                    Text('Colour', style: AppText.custom(14, FontWeight.w700)),
+                    Text('Colour', style: AppText.bodyStrong),
                     const Spacer(),
-                    Text(_colour, style: AppText.custom(14, FontWeight.w500, color: AppColors.muted)),
+                    Text(
+                      _colour,
+                      style: AppText.bodyMedium.withColor(AppColors.muted),
+                    ),
                   ],
                 ),
                 const SizedBox(height: AppSpacing.m),
@@ -150,11 +171,12 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                   spacing: AppSpacing.s,
                   runSpacing: AppSpacing.s,
                   children: [
-                    for (final c in ProductDetailsScreen.colours) _OptionChip(
-                      label: c,
-                      selected: c == _colour,
-                      onTap: () => setState(() => _colour = c),
-                    ),
+                    for (final c in ProductDetailsScreen.colours)
+                      _OptionChip(
+                        label: c,
+                        selected: c == _colour,
+                        onTap: () => setState(() => _colour = c),
+                      ),
                   ],
                 ),
               ],
@@ -179,14 +201,20 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                   Text(
                     product.description,
                     maxLines: _descriptionExpanded ? null : 4,
-                    overflow: _descriptionExpanded ? null : TextOverflow.ellipsis,
+                    overflow: _descriptionExpanded
+                        ? null
+                        : TextOverflow.ellipsis,
                     style: AppText.body.withColor(AppColors.inkSoft),
                   ),
                   if (product.description.length > 160)
                     TextButton(
-                      onPressed: () => setState(() => _descriptionExpanded = !_descriptionExpanded),
+                      onPressed: () => setState(
+                        () => _descriptionExpanded = !_descriptionExpanded,
+                      ),
                       style: TextButton.styleFrom(padding: EdgeInsets.zero),
-                      child: Text(_descriptionExpanded ? 'Show less' : 'Read more'),
+                      child: Text(
+                        _descriptionExpanded ? 'Show less' : 'Read more',
+                      ),
                     ),
                 ],
               ),
@@ -224,11 +252,29 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                 ),
                 const SizedBox(width: 10),
                 if (product.inStock) ...[
-                  Expanded(child: AppButton.outline(label: 'Add to cart', height: 48, onPressed: _addToCart)),
+                  Expanded(
+                    child: AppButton.outline(
+                      label: 'Add to cart',
+                      height: 48,
+                      onPressed: _addToCart,
+                    ),
+                  ),
                   const SizedBox(width: 10),
-                  Expanded(child: AppButton.primary(label: 'Buy now', height: 48, onPressed: _buyNow)),
+                  Expanded(
+                    child: AppButton.primary(
+                      label: 'Buy now',
+                      height: 48,
+                      onPressed: _buyNow,
+                    ),
+                  ),
                 ] else
-                  const Expanded(child: AppButton.danger(label: 'Out of stock', height: 48, onPressed: null)),
+                  const Expanded(
+                    child: AppButton.danger(
+                      label: 'Out of stock',
+                      height: 48,
+                      onPressed: null,
+                    ),
+                  ),
               ],
             ),
           ),
@@ -248,7 +294,10 @@ class _Section extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.s),
       color: AppColors.surface,
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.l, vertical: 14),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.l,
+        vertical: 14,
+      ),
       child: child,
     );
   }
@@ -273,15 +322,24 @@ class _ImageHeaderState extends State<_ImageHeader> {
     final images = [widget.product.imageUrl];
     final top = MediaQuery.paddingOf(context).top;
 
-    Widget circle({required String tooltip, required IconData icon, required VoidCallback onPressed}) {
+    Widget circle({
+      required String tooltip,
+      required IconData icon,
+      required VoidCallback onPressed,
+    }) {
       return IconButton(
         tooltip: tooltip,
         onPressed: onPressed,
-        style: IconButton.styleFrom(minimumSize: const Size.square(AppSpacing.tapTarget)),
+        style: IconButton.styleFrom(
+          minimumSize: const Size.square(AppSpacing.tapTarget),
+        ),
         icon: Container(
           width: 44,
           height: 44,
-          decoration: const BoxDecoration(color: AppColors.surface, shape: BoxShape.circle),
+          decoration: const BoxDecoration(
+            color: AppColors.surface,
+            shape: BoxShape.circle,
+          ),
           child: Icon(icon, size: AppSpacing.iconSmall, color: AppColors.ink),
         ),
       );
@@ -297,7 +355,10 @@ class _ImageHeaderState extends State<_ImageHeader> {
             child: PageView.builder(
               itemCount: images.length,
               onPageChanged: (i) => setState(() => _page = i),
-              itemBuilder: (_, i) => AppNetworkImage(url: images[i], semanticLabel: widget.product.title),
+              itemBuilder: (_, i) => AppNetworkImage(
+                url: images[i],
+                semanticLabel: widget.product.title,
+              ),
             ),
           ),
           Positioned(
@@ -309,10 +370,15 @@ class _ImageHeaderState extends State<_ImageHeader> {
                 circle(
                   tooltip: 'Back',
                   icon: Icons.arrow_back_ios_new,
-                  onPressed: () => context.canPop() ? context.pop() : context.go('/home'),
+                  onPressed: () =>
+                      context.canPop() ? context.pop() : context.go('/home'),
                 ),
                 const Spacer(),
-                circle(tooltip: 'Copy product link', icon: Icons.share_outlined, onPressed: widget.onShare),
+                circle(
+                  tooltip: 'Copy product link',
+                  icon: Icons.share_outlined,
+                  onPressed: widget.onShare,
+                ),
                 const CartIconButton(circle: true),
                 WishlistButton(productId: widget.product.id, circle: true),
               ],
@@ -323,10 +389,13 @@ class _ImageHeaderState extends State<_ImageHeader> {
             bottom: AppSpacing.l,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: const BoxDecoration(color: AppColors.deep, borderRadius: AppRadius.chipAll),
+              decoration: const BoxDecoration(
+                color: AppColors.deep,
+                borderRadius: AppRadius.chipAll,
+              ),
               child: Text(
                 '${_page + 1} / ${images.length}',
-                style: AppText.custom(12, FontWeight.w700, color: AppColors.white),
+                style: AppText.captionStrong.withColor(AppColors.white),
               ),
             ),
           ),
@@ -337,7 +406,11 @@ class _ImageHeaderState extends State<_ImageHeader> {
 }
 
 class _OptionChip extends StatelessWidget {
-  const _OptionChip({required this.label, required this.selected, required this.onTap});
+  const _OptionChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
 
   final String label;
   final bool selected;
@@ -368,11 +441,9 @@ class _OptionChip extends StatelessWidget {
                 widthFactor: 1,
                 child: Text(
                   label,
-                  style: AppText.custom(
-                    14,
-                    selected ? FontWeight.w700 : FontWeight.w600,
-                    color: selected ? AppColors.primary : AppColors.ink,
-                  ),
+                  style: AppText.menuLabel
+                      .withWeight(selected ? FontWeight.w700 : FontWeight.w600)
+                      .withColor(selected ? AppColors.primary : AppColors.ink),
                 ),
               ),
             ),
@@ -395,25 +466,30 @@ class _DeliveryInfo extends ConsumerWidget {
         : (address.area.isNotEmpty ? address.area : address.district);
 
     Widget row(IconData icon, String title, [String? note]) => Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(icon, size: AppSpacing.iconInline, color: AppColors.primary),
-              const SizedBox(width: AppSpacing.m),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title, style: AppText.custom(13, note == null ? FontWeight.w600 : FontWeight.w700)),
-                    if (note != null)
-                      Text(note, style: AppText.custom(13, FontWeight.w500, color: AppColors.muted)),
-                  ],
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: AppSpacing.iconInline, color: AppColors.primary),
+          const SizedBox(width: AppSpacing.m),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: AppText.meta.withWeight(
+                    note == null ? FontWeight.w600 : FontWeight.w700,
+                  ),
                 ),
-              ),
-            ],
+                if (note != null)
+                  Text(note, style: AppText.meta.withColor(AppColors.muted)),
+              ],
+            ),
           ),
-        );
+        ],
+      ),
+    );
 
     return Column(
       children: [
@@ -422,8 +498,14 @@ class _DeliveryInfo extends ConsumerWidget {
           'Standard delivery to $area · ${formatTaka(AppConstants.deliveryFee)}',
           'Arrives in 2–4 days',
         ),
-        row(Icons.account_balance_wallet_outlined, 'Cash on delivery available'),
-        row(Icons.assignment_return_outlined, '${AppConstants.returnWindowDays}-day easy return'),
+        row(
+          Icons.account_balance_wallet_outlined,
+          'Cash on delivery available',
+        ),
+        row(
+          Icons.assignment_return_outlined,
+          '${AppConstants.returnWindowDays}-day easy return',
+        ),
       ],
     );
   }
@@ -444,7 +526,8 @@ class _ReviewsSummary extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final canReview = ref.watch(canUserReviewProvider(product.id)).value ?? false;
+    final canReview =
+        ref.watch(canUserReviewProvider(product.id)).value ?? false;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -465,14 +548,16 @@ class _ReviewsSummary extends ConsumerWidget {
             children: [
               Text(
                 rating > 0 ? rating.toStringAsFixed(1) : '–',
-                style: AppText.custom(22, FontWeight.w800),
+                style: AppText.bannerTitle,
               ),
               const SizedBox(width: AppSpacing.s),
               RatingStars(rating: rating, size: 16),
               const SizedBox(width: AppSpacing.s),
               Flexible(
                 child: Text(
-                  count == 0 ? 'No reviews yet' : '$count ${count == 1 ? 'review' : 'reviews'}',
+                  count == 0
+                      ? 'No reviews yet'
+                      : '$count ${count == 1 ? 'review' : 'reviews'}',
                   style: AppText.caption.withColor(AppColors.muted),
                 ),
               ),

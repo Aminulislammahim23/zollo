@@ -29,7 +29,10 @@ class WishlistButton extends ConsumerWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('Log in to save products to your wishlist.'),
-          action: SnackBarAction(label: 'Log in', onPressed: () => context.push('/login')),
+          action: SnackBarAction(
+            label: 'Log in',
+            onPressed: () => context.push('/login'),
+          ),
         ),
       );
       return;
@@ -39,7 +42,11 @@ class WishlistButton extends ConsumerWidget {
     } catch (error) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Couldn't update your wishlist. ${ErrorView.describe(error)}")),
+        SnackBar(
+          content: Text(
+            "Couldn't update your wishlist. ${ErrorView.describe(error)}",
+          ),
+        ),
       );
     }
   }
@@ -60,13 +67,18 @@ class WishlistButton extends ConsumerWidget {
     return IconButton(
       tooltip: isFavorite ? 'Remove from wishlist' : 'Add to wishlist',
       onPressed: wishlist.isLoading ? null : () => _toggle(context, ref),
-      style: IconButton.styleFrom(minimumSize: const Size.square(AppSpacing.tapTarget)),
+      style: IconButton.styleFrom(
+        minimumSize: const Size.square(AppSpacing.tapTarget),
+      ),
       icon: visualSize == 0
           ? icon
           : Container(
               width: visualSize,
               height: visualSize,
-              decoration: const BoxDecoration(color: AppColors.surface, shape: BoxShape.circle),
+              decoration: const BoxDecoration(
+                color: AppColors.surface,
+                shape: BoxShape.circle,
+              ),
               alignment: Alignment.center,
               child: icon,
             ),

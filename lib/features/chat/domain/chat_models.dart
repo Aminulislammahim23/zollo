@@ -35,7 +35,12 @@ class Conversation {
   /// The product the chat is about, shown as a context card.
   final Product? product;
 
-  Conversation copyWith({String? lastMessage, DateTime? lastMessageAt, int? unreadCount, Product? product}) {
+  Conversation copyWith({
+    String? lastMessage,
+    DateTime? lastMessageAt,
+    int? unreadCount,
+    Product? product,
+  }) {
     return Conversation(
       id: id,
       sellerName: sellerName,

@@ -9,19 +9,28 @@ import '../support/test_helpers.dart';
 void main() {
   final routes = <RouteBase>[
     GoRoute(path: '/vouchers', builder: (_, _) => const VouchersScreen()),
-    GoRoute(path: '/notifications', builder: (_, _) => const NotificationsScreen()),
+    GoRoute(
+      path: '/notifications',
+      builder: (_, _) => const NotificationsScreen(),
+    ),
     stubRoute('/account'),
     stubRoute('/home'),
     stubRoute('/products', 'Products destination'),
     stubRoute('/order-history', 'Orders destination'),
   ];
 
-  testWidgets('vouchers list sample tickets and redeem a valid code', (tester) async {
+  testWidgets('vouchers list sample tickets and redeem a valid code', (
+    tester,
+  ) async {
     await pumpRoutes(tester, routes: routes, initialLocation: '/vouchers');
     await tester.pump();
 
     expect(find.text('৳100'), findsOneWidget);
-    expect(find.text('Expires in 2 days').evaluate().isNotEmpty || find.text('Expires in 3 days').evaluate().isNotEmpty, isTrue);
+    expect(
+      find.text('Expires in 2 days').evaluate().isNotEmpty ||
+          find.text('Expires in 3 days').evaluate().isNotEmpty,
+      isTrue,
+    );
 
     await tester.enterText(find.byType(TextFormField), 'nope');
     await tester.tap(find.text('Add'));

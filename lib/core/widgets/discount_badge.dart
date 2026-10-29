@@ -15,16 +15,18 @@ class DiscountBadge extends StatelessWidget {
 
   /// `-23%`.
   const DiscountBadge.percent(int this.percent, {super.key})
-      : label = null,
-        variant = DiscountBadgeVariant.discount;
+    : label = null,
+      variant = DiscountBadgeVariant.discount;
 
   const DiscountBadge.priceDrop({super.key, String this.label = 'Price drop'})
-      : percent = null,
-        variant = DiscountBadgeVariant.priceDrop;
+    : percent = null,
+      variant = DiscountBadgeVariant.priceDrop;
 
-  const DiscountBadge.outOfStock({super.key, String this.label = 'Out of stock'})
-      : percent = null,
-        variant = DiscountBadgeVariant.outOfStock;
+  const DiscountBadge.outOfStock({
+    super.key,
+    String this.label = 'Out of stock',
+  }) : percent = null,
+       variant = DiscountBadgeVariant.outOfStock;
 
   final String? label;
   final int? percent;

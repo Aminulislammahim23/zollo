@@ -38,7 +38,8 @@ class MessagesScreen extends ConsumerWidget {
               )
             : ListView.builder(
                 itemCount: conversations.length,
-                itemBuilder: (context, i) => _ConversationRow(conversation: conversations[i]),
+                itemBuilder: (context, i) =>
+                    _ConversationRow(conversation: conversations[i]),
               ),
       ),
     );
@@ -58,15 +59,26 @@ class _ConversationRow extends StatelessWidget {
       onTap: () => context.push('/messages/${c.id}'),
       child: Container(
         constraints: const BoxConstraints(minHeight: 76),
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.l, vertical: AppSpacing.m),
-        decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.surfaceAlt))),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.l,
+          vertical: AppSpacing.m,
+        ),
+        decoration: const BoxDecoration(
+          border: Border(bottom: BorderSide(color: AppColors.surfaceAlt)),
+        ),
         child: Row(
           children: [
             Container(
               width: 48,
               height: 48,
-              decoration: const BoxDecoration(color: AppColors.primaryTint, borderRadius: AppRadius.cardAll),
-              child: const Icon(Icons.storefront_outlined, color: AppColors.primary),
+              decoration: const BoxDecoration(
+                color: AppColors.primaryTint,
+                borderRadius: AppRadius.cardAll,
+              ),
+              child: const Icon(
+                Icons.storefront_outlined,
+                color: AppColors.primary,
+              ),
             ),
             const SizedBox(width: AppSpacing.m),
             Expanded(
@@ -80,12 +92,12 @@ class _ConversationRow extends StatelessWidget {
                           c.sellerName,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: AppText.custom(14, FontWeight.w800),
+                          style: AppText.rowTitle,
                         ),
                       ),
                       Text(
                         formatRelative(c.lastMessageAt),
-                        style: AppText.custom(11, FontWeight.w500, color: AppColors.hint),
+                        style: AppText.timestamp.withColor(AppColors.hint),
                       ),
                     ],
                   ),
@@ -97,8 +109,13 @@ class _ConversationRow extends StatelessWidget {
                           c.lastMessage,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: AppText.custom(13, unread ? FontWeight.w700 : FontWeight.w500,
-                              color: unread ? AppColors.ink : AppColors.muted),
+                          style: AppText.meta
+                              .withWeight(
+                                unread ? FontWeight.w700 : FontWeight.w500,
+                              )
+                              .withColor(
+                                unread ? AppColors.ink : AppColors.muted,
+                              ),
                         ),
                       ),
                       if (unread)
@@ -108,11 +125,14 @@ class _ConversationRow extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(horizontal: 6),
                           margin: const EdgeInsets.only(left: AppSpacing.s),
                           alignment: Alignment.center,
-                          decoration: const BoxDecoration(color: AppColors.primary, borderRadius: AppRadius.chipAll),
+                          decoration: const BoxDecoration(
+                            color: AppColors.primary,
+                            borderRadius: AppRadius.chipAll,
+                          ),
                           child: Text(
                             '${c.unreadCount}',
                             semanticsLabel: '${c.unreadCount} unread',
-                            style: AppText.custom(11, FontWeight.w800, color: AppColors.white),
+                            style: AppText.tag.withColor(AppColors.white),
                           ),
                         ),
                     ],

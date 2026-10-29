@@ -55,7 +55,11 @@ class ZolloLogo extends StatelessWidget {
       ),
     );
 
-    final children = [ExcludeSemantics(child: mark), SizedBox(width: gap, height: gap), wordmark];
+    final children = [
+      ExcludeSemantics(child: mark),
+      SizedBox(width: gap, height: gap),
+      wordmark,
+    ];
     return Semantics(
       label: 'zollo',
       child: vertical

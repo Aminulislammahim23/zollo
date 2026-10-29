@@ -27,7 +27,9 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
   void initState() {
     super.initState();
     _input.addListener(() => setState(() {}));
-    Future.microtask(() => ref.read(chatRepositoryProvider).markRead(widget.conversationId));
+    Future.microtask(
+      () => ref.read(chatRepositoryProvider).markRead(widget.conversationId),
+    );
   }
 
   @override
@@ -41,12 +43,16 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
     if (text.isEmpty) return;
     _input.clear();
     try {
-      await ref.read(chatRepositoryProvider).sendMessage(widget.conversationId, text);
+      await ref
+          .read(chatRepositoryProvider)
+          .sendMessage(widget.conversationId, text);
     } catch (error) {
       if (!mounted) return;
       _input.text = text;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Message not sent. ${ErrorView.describe(error)}")),
+        SnackBar(
+          content: Text("Message not sent. ${ErrorView.describe(error)}"),
+        ),
       );
     }
   }
@@ -62,21 +68,29 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
       appBar: AppTopBar(
         title: conversation?.sellerName ?? 'Chat',
         subtitle: 'Usually replies within 1 hour',
-        subtitleStyle: AppText.custom(12, FontWeight.w700, color: AppColors.primary),
+        subtitleStyle: AppText.captionStrong.withColor(AppColors.primary),
         fallbackRoute: '/messages',
       ),
       body: Column(
         children: [
           if (product != null)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.m, vertical: 10),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.m,
+                vertical: 10,
+              ),
               child: InfoCard(
                 radius: AppRadius.button,
                 padding: const EdgeInsets.all(10),
                 onTap: () => context.push('/product-details', extra: product),
                 child: Row(
                   children: [
-                    AppNetworkImage(url: product.imageUrl, width: 44, height: 44, borderRadius: AppRadius.tileAll),
+                    AppNetworkImage(
+                      url: product.imageUrl,
+                      width: 44,
+                      height: 44,
+                      borderRadius: AppRadius.tileAll,
+                    ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Column(
@@ -86,16 +100,22 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
                             product.title,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: AppText.custom(12, FontWeight.w700),
+                            style: AppText.captionStrong,
                           ),
                           Text(
                             formatTaka(product.price),
-                            style: AppText.custom(12, FontWeight.w800, color: AppColors.primary),
+                            style: AppText.captionHeavy.withColor(
+                              AppColors.primary,
+                            ),
                           ),
                         ],
                       ),
                     ),
-                    const Icon(Icons.chevron_right, size: 16, color: AppColors.hint),
+                    const Icon(
+                      Icons.chevron_right,
+                      size: 16,
+                      color: AppColors.hint,
+                    ),
                   ],
                 ),
               ),
@@ -106,7 +126,8 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
               error: (error, _) => ErrorView(
                 title: "Couldn't load this chat",
                 error: error,
-                onRetry: () => ref.invalidate(messagesProvider(widget.conversationId)),
+                onRetry: () =>
+                    ref.invalidate(messagesProvider(widget.conversationId)),
               ),
               data: (messages) => messages.isEmpty
                   ? const EmptyState(
@@ -133,13 +154,19 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
                 IconButton(
                   tooltip: 'Send a photo (coming soon)',
                   onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Sending photos is coming soon.')),
+                    const SnackBar(
+                      content: Text('Sending photos is coming soon.'),
+                    ),
                   ),
                   style: IconButton.styleFrom(
                     backgroundColor: AppColors.surfaceAlt,
                     minimumSize: const Size.square(44),
                   ),
-                  icon: const Icon(Icons.photo_outlined, size: AppSpacing.iconInline, color: AppColors.inkSoft),
+                  icon: const Icon(
+                    Icons.photo_outlined,
+                    size: AppSpacing.iconInline,
+                    color: AppColors.inkSoft,
+                  ),
                 ),
                 const SizedBox(width: AppSpacing.s),
                 Expanded(
@@ -150,11 +177,14 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
                     textCapitalization: TextCapitalization.sentences,
                     textInputAction: TextInputAction.send,
                     onSubmitted: (_) => _send(),
-                    style: AppText.custom(14, FontWeight.w500),
+                    style: AppText.bodyMedium,
                     decoration: InputDecoration(
                       hintText: 'Type a message',
                       constraints: const BoxConstraints(minHeight: 44),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.l, vertical: 12),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.l,
+                        vertical: 12,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(22),
                         borderSide: const BorderSide(color: AppColors.border),
@@ -165,7 +195,10 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(22),
-                        borderSide: const BorderSide(color: AppColors.primary, width: AppBorders.selected),
+                        borderSide: const BorderSide(
+                          color: AppColors.primary,
+                          width: AppBorders.selected,
+                        ),
                       ),
                     ),
                   ),
@@ -179,8 +212,11 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
                     disabledBackgroundColor: AppColors.divider,
                     minimumSize: const Size.square(44),
                   ),
-                  icon: Icon(Icons.send_rounded, size: AppSpacing.iconInline,
-                      color: canSend ? AppColors.white : AppColors.muted),
+                  icon: Icon(
+                    Icons.send_rounded,
+                    size: AppSpacing.iconInline,
+                    color: canSend ? AppColors.white : AppColors.muted,
+                  ),
                 ),
               ],
             ),
@@ -218,13 +254,17 @@ class _MessageList extends StatelessWidget {
         itemBuilder: (context, i) {
           final m = reversed[i];
           final older = i + 1 < reversed.length ? reversed[i + 1] : null;
-          final showDay = older == null || _dayLabel(older.sentAt) != _dayLabel(m.sentAt);
+          final showDay =
+              older == null || _dayLabel(older.sentAt) != _dayLabel(m.sentAt);
           return Column(
             children: [
               if (showDay)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: AppSpacing.s),
-                  child: Text(_dayLabel(m.sentAt), style: AppText.custom(11, FontWeight.w500, color: AppColors.hint)),
+                  child: Text(
+                    _dayLabel(m.sentAt),
+                    style: AppText.timestamp.withColor(AppColors.hint),
+                  ),
                 ),
               _Bubble(message: m),
             ],
@@ -250,26 +290,46 @@ class _Bubble extends StatelessWidget {
       child: Align(
         alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
         child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * 0.78),
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.sizeOf(context).width * 0.78,
+          ),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.m, vertical: 10),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.m,
+              vertical: 10,
+            ),
             decoration: BoxDecoration(
               color: mine ? AppColors.primary : AppColors.surface,
               borderRadius: mine
-                  ? const BorderRadius.only(topLeft: r, topRight: r, bottomLeft: r, bottomRight: tail)
-                  : const BorderRadius.only(topLeft: r, topRight: r, bottomLeft: tail, bottomRight: r),
+                  ? const BorderRadius.only(
+                      topLeft: r,
+                      topRight: r,
+                      bottomLeft: r,
+                      bottomRight: tail,
+                    )
+                  : const BorderRadius.only(
+                      topLeft: r,
+                      topRight: r,
+                      bottomLeft: tail,
+                      bottomRight: r,
+                    ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
                   message.text,
-                  style: AppText.custom(14, FontWeight.w500, color: mine ? AppColors.white : AppColors.ink, height: 1.4),
+                  style: AppText.bodyMedium.copyWith(
+                    color: mine ? AppColors.white : AppColors.ink,
+                    height: 1.4,
+                  ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   formatTime(message.sentAt),
-                  style: AppText.custom(10, FontWeight.w500, color: mine ? AppColors.onPrimaryMuted : AppColors.hint),
+                  style: AppText.bubbleTime.withColor(
+                    mine ? AppColors.onPrimaryMuted : AppColors.hint,
+                  ),
                 ),
               ],
             ),

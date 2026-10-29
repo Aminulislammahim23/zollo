@@ -36,8 +36,9 @@ class Product {
   bool get hasDiscount => originalPrice != null && originalPrice! > price;
 
   /// Whole-number discount percentage, e.g. `23` for -23 %.
-  int get discountPercent =>
-      hasDiscount ? (((originalPrice! - price) / originalPrice!) * 100).round() : 0;
+  int get discountPercent => hasDiscount
+      ? (((originalPrice! - price) / originalPrice!) * 100).round()
+      : 0;
 
   factory Product.fromJson(Map<String, dynamic> json) {
     String categoryName = 'General';
@@ -63,11 +64,16 @@ class Product {
     final rawRatingCount = json['rating_count'] ?? json['review_count'];
     if (rawRatingCount is num) ratingCount = rawRatingCount.toInt();
 
-    final int stockVal = (json['stock_quantity'] ?? json['stock'] ?? json['quantity'] ?? 0) is num
-        ? ((json['stock_quantity'] ?? json['stock'] ?? json['quantity'] ?? 0) as num).toInt()
+    final int stockVal =
+        (json['stock_quantity'] ?? json['stock'] ?? json['quantity'] ?? 0)
+            is num
+        ? ((json['stock_quantity'] ?? json['stock'] ?? json['quantity'] ?? 0)
+                  as num)
+              .toInt()
         : 0;
 
-    final rawOriginal = json['original_price'] ??
+    final rawOriginal =
+        json['original_price'] ??
         json['compare_at_price'] ??
         json['old_price'] ??
         json['mrp'];
@@ -75,10 +81,21 @@ class Product {
 
     return Product(
       id: json['id'].toString(),
-      title: (json['name'] ?? json['title'] ?? json['product_name'] ?? 'Untitled Product').toString(),
+      title:
+          (json['name'] ??
+                  json['title'] ??
+                  json['product_name'] ??
+                  'Untitled Product')
+              .toString(),
       description: (json['description'] ?? json['desc'] ?? '').toString(),
       price: (json['price'] as num?)?.toDouble() ?? 0.0,
-      imageUrl: (json['image_url'] ?? json['image'] ?? json['imageUrl'] ?? json['img_url'] ?? '').toString(),
+      imageUrl:
+          (json['image_url'] ??
+                  json['image'] ??
+                  json['imageUrl'] ??
+                  json['img_url'] ??
+                  '')
+              .toString(),
       category: categoryName,
       rating: rating,
       stock: stockVal,

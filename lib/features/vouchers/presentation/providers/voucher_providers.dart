@@ -7,13 +7,15 @@ final voucherRepositoryProvider = Provider<VoucherRepository>((ref) {
   return FakeVoucherRepository();
 });
 
-final vouchersProvider = AsyncNotifierProvider<VouchersController, List<Voucher>>(
-  VouchersController.new,
-);
+final vouchersProvider =
+    AsyncNotifierProvider<VouchersController, List<Voucher>>(
+      VouchersController.new,
+    );
 
 class VouchersController extends AsyncNotifier<List<Voucher>> {
   @override
-  Future<List<Voucher>> build() => ref.read(voucherRepositoryProvider).getVouchers();
+  Future<List<Voucher>> build() =>
+      ref.read(voucherRepositoryProvider).getVouchers();
 
   /// Throws [VoucherException] for an invalid code.
   Future<Voucher> redeem(String code) async {

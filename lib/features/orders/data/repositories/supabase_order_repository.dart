@@ -24,14 +24,11 @@ class SupabaseOrderRepository implements OrderRepository {
       throw ArgumentError('Cannot place an empty order.');
     }
 
-    if (order.items.any(
-      (item) => item.quantity <= 0 || item.price < 0,
-    )) {
+    if (order.items.any((item) => item.quantity <= 0 || item.price < 0)) {
       throw ArgumentError('Invalid order item.');
     }
 
-    if (order.shippingFee < 0 ||
-        order.shippingAddress.trim().isEmpty) {
+    if (order.shippingFee < 0 || order.shippingAddress.trim().isEmpty) {
       throw ArgumentError('Invalid shipping details.');
     }
 
@@ -62,13 +59,15 @@ class SupabaseOrderRepository implements OrderRepository {
         // Try inserting into order_items table
         try {
           final orderItemsData = order.items
-              .map((item) => {
-                    'order_id': order.id,
-                    'product_id': item.productId,
-                    'product_name': item.productName,
-                    'price': item.price,
-                    'quantity': item.quantity,
-                  })
+              .map(
+                (item) => {
+                  'order_id': order.id,
+                  'product_id': item.productId,
+                  'product_name': item.productName,
+                  'price': item.price,
+                  'quantity': item.quantity,
+                },
+              )
               .toList();
 
           await _client.from('order_items').insert(orderItemsData);

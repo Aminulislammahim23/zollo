@@ -16,6 +16,9 @@ final conversationProvider = Provider.family<Conversation?, String>((ref, id) {
   return list.where((c) => c.id == id).firstOrNull;
 });
 
-final messagesProvider = StreamProvider.family<List<ChatMessage>, String>((ref, conversationId) {
+final messagesProvider = StreamProvider.family<List<ChatMessage>, String>((
+  ref,
+  conversationId,
+) {
   return ref.watch(chatRepositoryProvider).watchMessages(conversationId);
 });

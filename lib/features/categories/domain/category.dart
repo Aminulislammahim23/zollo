@@ -25,24 +25,42 @@ class Category {
   /// Outlined Material icon that best matches the category name.
   IconData get icon {
     final n = name.toLowerCase();
-    if (n.contains('electronic') || n.contains('gadget')) return Icons.devices_outlined;
-    if (n.contains('phone') || n.contains('mobile')) return Icons.smartphone_outlined;
-    if (n.contains('computer') || n.contains('laptop')) return Icons.laptop_outlined;
+    if (n.contains('electronic') || n.contains('gadget')) {
+      return Icons.devices_outlined;
+    }
+    if (n.contains('phone') || n.contains('mobile')) {
+      return Icons.smartphone_outlined;
+    }
+    if (n.contains('computer') || n.contains('laptop')) {
+      return Icons.laptop_outlined;
+    }
     if (n.contains('fashion') || n.contains('cloth') || n.contains('apparel')) {
       return Icons.checkroom_outlined;
     }
-    if (n.contains('shoe') || n.contains('footwear')) return Icons.ice_skating_outlined;
-    if (n.contains('beauty') || n.contains('cosmetic') || n.contains('health')) {
+    if (n.contains('shoe') || n.contains('footwear')) {
+      return Icons.ice_skating_outlined;
+    }
+    if (n.contains('beauty') ||
+        n.contains('cosmetic') ||
+        n.contains('health')) {
       return Icons.spa_outlined;
     }
     if (n.contains('home') || n.contains('living') || n.contains('furniture')) {
       return Icons.chair_outlined;
     }
     if (n.contains('kitchen')) return Icons.kitchen_outlined;
-    if (n.contains('grocer') || n.contains('food')) return Icons.local_grocery_store_outlined;
-    if (n.contains('sport') || n.contains('fitness')) return Icons.sports_soccer_outlined;
-    if (n.contains('book') || n.contains('station')) return Icons.menu_book_outlined;
-    if (n.contains('toy') || n.contains('kid') || n.contains('baby')) return Icons.toys_outlined;
+    if (n.contains('grocer') || n.contains('food')) {
+      return Icons.local_grocery_store_outlined;
+    }
+    if (n.contains('sport') || n.contains('fitness')) {
+      return Icons.sports_soccer_outlined;
+    }
+    if (n.contains('book') || n.contains('station')) {
+      return Icons.menu_book_outlined;
+    }
+    if (n.contains('toy') || n.contains('kid') || n.contains('baby')) {
+      return Icons.toys_outlined;
+    }
     if (n.contains('watch') || n.contains('jewel') || n.contains('accessor')) {
       return Icons.watch_outlined;
     }

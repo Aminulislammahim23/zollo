@@ -9,15 +9,15 @@ final reviewRepositoryProvider = Provider<ReviewRepository>((ref) {
   return ReviewRepository(Supabase.instance.client);
 });
 
-final productReviewsProvider = FutureProvider
-    .family<List<ProductReview>, String>((ref, productId) {
-  return ref
-      .watch(reviewRepositoryProvider)
-      .getReviews(productId);
-});
+final productReviewsProvider =
+    FutureProvider.family<List<ProductReview>, String>((ref, productId) {
+      return ref.watch(reviewRepositoryProvider).getReviews(productId);
+    });
 
-final canUserReviewProvider = FutureProvider
-    .family<bool, String>((ref, productId) {
+final canUserReviewProvider = FutureProvider.family<bool, String>((
+  ref,
+  productId,
+) {
   if (ref.watch(currentUserProvider.select((u) => u?.id)) == null) {
     return Future.value(false);
   }

@@ -17,36 +17,43 @@ void main() {
     stubRoute('/product-details'),
   ];
 
-  testWidgets('Move to cart adds the product and removes it from the wishlist', (tester) async {
-    final repo = FakeWishlistRepository({'p1', 'p2'});
-    await pumpRoutes(
-      tester,
-      routes: routes,
-      initialLocation: '/wishlist',
-      user: FakeUser(),
-      wishlist: repo,
-      overrides: [
-        productsProvider.overrideWith((ref) async => [
+  testWidgets(
+    'Move to cart adds the product and removes it from the wishlist',
+    (tester) async {
+      final repo = FakeWishlistRepository({'p1', 'p2'});
+      await pumpRoutes(
+        tester,
+        routes: routes,
+        initialLocation: '/wishlist',
+        user: FakeUser(),
+        wishlist: repo,
+        overrides: [
+          productsProvider.overrideWith(
+            (ref) async => [
               sampleProduct(id: 'p1', title: 'Earbuds'),
               sampleProduct(id: 'p2', title: 'Sold out lamp', stock: 0),
-            ]),
-      ],
-    );
-    await tester.pump();
-    await tester.pump();
+            ],
+          ),
+        ],
+      );
+      await tester.pump();
+      await tester.pump();
 
-    expect(find.text('Wishlist (2)'), findsOneWidget);
-    expect(find.text('Out of stock'), findsOneWidget);
+      expect(find.text('Wishlist (2)'), findsOneWidget);
+      expect(find.text('Out of stock'), findsOneWidget);
 
-    await tester.tap(find.text('Move to cart').first);
-    await tester.pump();
-    await tester.pump();
+      await tester.tap(find.text('Move to cart').first);
+      await tester.pump();
+      await tester.pump();
 
-    final container = ProviderScope.containerOf(tester.element(find.byType(WishlistScreen)));
-    expect(container.read(cartItemCountProvider), 1);
-    expect(repo.ids, {'p2'});
-    expect(find.text('Wishlist (1)'), findsOneWidget);
-  });
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(WishlistScreen)),
+      );
+      expect(container.read(cartItemCountProvider), 1);
+      expect(repo.ids, {'p2'});
+      expect(find.text('Wishlist (1)'), findsOneWidget);
+    },
+  );
 
   testWidgets('empty wishlist offers Browse products', (tester) async {
     await pumpRoutes(

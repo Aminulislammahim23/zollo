@@ -47,7 +47,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
               children: [
                 Semantics(
                   header: true,
-                  child: Text('Categories', style: AppText.custom(20, FontWeight.w800)),
+                  child: Text('Categories', style: AppText.totalPrice),
                 ),
                 const SizedBox(height: AppSpacing.m),
                 SearchField(
@@ -159,11 +159,16 @@ class _CategoryRail extends StatelessWidget {
                 onTap: () => onSelect(c),
                 child: Container(
                   constraints: const BoxConstraints(minHeight: 60),
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: AppSpacing.s),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: AppSpacing.s,
+                  ),
                   decoration: BoxDecoration(
                     border: Border(
                       left: BorderSide(
-                        color: isSelected ? AppColors.primary : AppColors.transparent,
+                        color: isSelected
+                            ? AppColors.primary
+                            : AppColors.transparent,
                         width: 4,
                       ),
                     ),
@@ -171,11 +176,13 @@ class _CategoryRail extends StatelessWidget {
                   alignment: Alignment.centerLeft,
                   child: Text(
                     c.name,
-                    style: AppText.custom(
-                      12,
-                      isSelected ? FontWeight.w800 : FontWeight.w600,
-                      color: isSelected ? AppColors.primary : AppColors.inkSoft,
-                    ),
+                    style: AppText.caption
+                        .withWeight(
+                          isSelected ? FontWeight.w800 : FontWeight.w600,
+                        )
+                        .withColor(
+                          isSelected ? AppColors.primary : AppColors.inkSoft,
+                        ),
                   ),
                 ),
               ),
@@ -202,19 +209,28 @@ class _CategoryPanel extends ConsumerWidget {
         Container(
           constraints: const BoxConstraints(minHeight: 92),
           padding: const EdgeInsets.all(AppSpacing.l),
-          decoration: const BoxDecoration(color: AppColors.deep, borderRadius: AppRadius.cardAll),
+          decoration: const BoxDecoration(
+            color: AppColors.deep,
+            borderRadius: AppRadius.cardAll,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(category.name, style: AppText.section.withColor(AppColors.white)),
+              Text(
+                category.name,
+                style: AppText.section.withColor(AppColors.white),
+              ),
               const SizedBox(height: AppSpacing.xs),
-              Text('Top deals this week', style: AppText.custom(12, FontWeight.w700, color: AppColors.accent)),
+              Text(
+                'Top deals this week',
+                style: AppText.captionStrong.withColor(AppColors.accent),
+              ),
             ],
           ),
         ),
         const SizedBox(height: 14),
-        Text('Shop by type', style: AppText.custom(14, FontWeight.w800)),
+        Text('Shop by type', style: AppText.rowTitle),
         const SizedBox(height: 14),
         productsAsync.when(
           loading: () => const ShimmerBox(height: 180, radius: AppRadius.card),
@@ -223,7 +239,8 @@ class _CategoryPanel extends ConsumerWidget {
             child: ErrorView(
               title: "Couldn't load products",
               error: error,
-              onRetry: () => ref.invalidate(productsByCategoryProvider(category)),
+              onRetry: () =>
+                  ref.invalidate(productsByCategoryProvider(category)),
             ),
           ),
           data: (products) => products.isEmpty
@@ -244,7 +261,9 @@ class _CategoryPanel extends ConsumerWidget {
             label: 'See all ${category.name}',
             size: AppButtonSize.small,
             fullWidth: false,
-            onPressed: () => context.push('/products?category=${Uri.encodeComponent(category.id)}'),
+            onPressed: () => context.push(
+              '/products?category=${Uri.encodeComponent(category.id)}',
+            ),
           ),
         ),
       ],

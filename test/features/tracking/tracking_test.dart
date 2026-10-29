@@ -77,9 +77,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: TrackingTimeline(events: events),
-          ),
+          home: Scaffold(body: TrackingTimeline(events: events)),
         ),
       );
 

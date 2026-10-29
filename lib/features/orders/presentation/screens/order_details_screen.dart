@@ -20,20 +20,23 @@ class OrderDetailsScreen extends ConsumerWidget {
   const OrderDetailsScreen({super.key, required this.orderId});
 
   static String headlineFor(OrderStatus status) => switch (status) {
-        OrderStatus.pending => 'Order received',
-        OrderStatus.confirmed => 'Order confirmed',
-        OrderStatus.processing => 'Packing your order',
-        OrderStatus.shipped => 'On the way',
-        OrderStatus.delivered => 'Delivered',
-        OrderStatus.cancelled => 'Order cancelled',
-      };
+    OrderStatus.pending => 'Order received',
+    OrderStatus.confirmed => 'Order confirmed',
+    OrderStatus.processing => 'Packing your order',
+    OrderStatus.shipped => 'On the way',
+    OrderStatus.delivered => 'Delivered',
+    OrderStatus.cancelled => 'Order cancelled',
+  };
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final orderAsync = ref.watch(orderDetailsProvider(orderId));
 
     return Scaffold(
-      appBar: const AppTopBar(title: 'Order details', fallbackRoute: '/order-history'),
+      appBar: const AppTopBar(
+        title: 'Order details',
+        fallbackRoute: '/order-history',
+      ),
       body: orderAsync.when(
         loading: () => const ShimmerList(count: 3, itemHeight: 120),
         error: (error, _) => ErrorView(
@@ -46,7 +49,8 @@ class OrderDetailsScreen extends ConsumerWidget {
             return EmptyState(
               icon: Icons.receipt_long_outlined,
               title: 'Order not found',
-              message: 'It may have been removed or belongs to another account.',
+              message:
+                  'It may have been removed or belongs to another account.',
               actionLabel: 'My orders',
               onAction: () => context.go('/order-history'),
             );
@@ -65,34 +69,39 @@ class _OrderDetailsBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final hasShipment = ref.watch(shipmentsByOrderProvider(order.id)).value?.isNotEmpty ?? false;
-    final canTrack = order.status != OrderStatus.cancelled &&
+    final hasShipment =
+        ref.watch(shipmentsByOrderProvider(order.id)).value?.isNotEmpty ??
+        false;
+    final canTrack =
+        order.status != OrderStatus.cancelled &&
         (hasShipment || order.status == OrderStatus.shipped);
 
     Widget cardTitle(String text) => Padding(
-          padding: const EdgeInsets.only(bottom: AppSpacing.m),
-          child: Text(text, style: AppText.custom(15, FontWeight.w800)),
-        );
+      padding: const EdgeInsets.only(bottom: AppSpacing.m),
+      child: Text(text, style: AppText.cardTitle),
+    );
 
     Widget row(String label, String value, {bool bold = false}) => Padding(
-          padding: const EdgeInsets.only(bottom: AppSpacing.s),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  label,
-                  style: AppText.custom(13, bold ? FontWeight.w800 : FontWeight.w500,
-                      color: bold ? AppColors.ink : AppColors.muted),
-                ),
-              ),
-              Text(
-                value,
-                style: AppText.custom(bold ? 15 : 13, bold ? FontWeight.w800 : FontWeight.w700,
-                    color: bold ? AppColors.primary : AppColors.ink),
-              ),
-            ],
+      padding: const EdgeInsets.only(bottom: AppSpacing.s),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: AppText.meta
+                  .withWeight(bold ? FontWeight.w800 : FontWeight.w500)
+                  .withColor(bold ? AppColors.ink : AppColors.muted),
+            ),
           ),
-        );
+          Text(
+            value,
+            style: (bold ? AppText.cardTitle : AppText.label)
+                .withWeight(bold ? FontWeight.w800 : FontWeight.w700)
+                .withColor(bold ? AppColors.primary : AppColors.ink),
+          ),
+        ],
+      ),
+    );
 
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.m),
@@ -100,7 +109,9 @@ class _OrderDetailsBody extends ConsumerWidget {
         Container(
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
-            color: order.status == OrderStatus.cancelled ? AppColors.error : AppColors.primary,
+            color: order.status == OrderStatus.cancelled
+                ? AppColors.error
+                : AppColors.primary,
             borderRadius: AppRadius.bannerAll,
           ),
           child: Column(
@@ -108,17 +119,20 @@ class _OrderDetailsBody extends ConsumerWidget {
             children: [
               Text(
                 StatusText.labelOf(order.status).toUpperCase(),
-                style: AppText.custom(12, FontWeight.w700, color: AppColors.onPrimaryMuted, letterSpacing: 0.6),
+                style: AppText.captionStrong.copyWith(
+                  color: AppColors.onPrimaryMuted,
+                  letterSpacing: 0.6,
+                ),
               ),
               const SizedBox(height: AppSpacing.xs),
               Text(
                 OrderDetailsScreen.headlineFor(order.status),
-                style: AppText.custom(22, FontWeight.w800, color: AppColors.white),
+                style: AppText.bannerTitle.withColor(AppColors.white),
               ),
               const SizedBox(height: AppSpacing.xs),
               Text(
                 'Placed ${formatDate(order.createdAt)} · ${formatOrderNumber(order.id)}',
-                style: AppText.custom(13, FontWeight.w500, color: AppColors.onPrimaryMuted),
+                style: AppText.meta.withColor(AppColors.onPrimaryMuted),
               ),
             ],
           ),
@@ -137,7 +151,10 @@ class _OrderDetailsBody extends ConsumerWidget {
                   ),
                 Row(
                   children: [
-                    OrderThumbnail(productId: order.items[i].productId, size: 56),
+                    OrderThumbnail(
+                      productId: order.items[i].productId,
+                      size: 56,
+                    ),
                     const SizedBox(width: AppSpacing.m),
                     Expanded(
                       child: Column(
@@ -150,17 +167,26 @@ class _OrderDetailsBody extends ConsumerWidget {
                             style: AppText.bodySmall,
                           ),
                           const SizedBox(height: 2),
-                          Text('Qty ${order.items[i].quantity}', style: AppText.caption.withColor(AppColors.muted)),
+                          Text(
+                            'Qty ${order.items[i].quantity}',
+                            style: AppText.caption.withColor(AppColors.muted),
+                          ),
                         ],
                       ),
                     ),
                     const SizedBox(width: AppSpacing.s),
-                    Text(formatTaka(order.items[i].subtotal), style: AppText.custom(14, FontWeight.w800)),
+                    Text(
+                      formatTaka(order.items[i].subtotal),
+                      style: AppText.rowTitle,
+                    ),
                   ],
                 ),
               ],
               if (order.items.isEmpty)
-                Text('Item details are unavailable.', style: AppText.caption.withColor(AppColors.muted)),
+                Text(
+                  'Item details are unavailable.',
+                  style: AppText.caption.withColor(AppColors.muted),
+                ),
             ],
           ),
         ),
@@ -170,11 +196,15 @@ class _OrderDetailsBody extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               cardTitle('Delivery'),
-              if (order.recipient.isNotEmpty) Text(order.recipient, style: AppText.bodyStrong),
+              if (order.recipient.isNotEmpty)
+                Text(order.recipient, style: AppText.bodyStrong),
               const SizedBox(height: AppSpacing.xs),
               Text(
                 order.deliveryAddress,
-                style: AppText.custom(13, FontWeight.w500, color: AppColors.muted, height: 1.45),
+                style: AppText.meta.copyWith(
+                  color: AppColors.muted,
+                  height: 1.45,
+                ),
               ),
             ],
           ),
@@ -183,11 +213,17 @@ class _OrderDetailsBody extends ConsumerWidget {
         InfoCard(
           child: Column(
             children: [
-              Align(alignment: Alignment.centerLeft, child: cardTitle('Payment')),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: cardTitle('Payment'),
+              ),
               row('Items total', formatTaka(order.subtotal)),
               row('Delivery', formatTaka(order.shippingFee)),
               row('Payment method', 'Cash on delivery'),
-              const Padding(padding: EdgeInsets.only(bottom: AppSpacing.s), child: Divider()),
+              const Padding(
+                padding: EdgeInsets.only(bottom: AppSpacing.s),
+                child: Divider(),
+              ),
               row('Total', formatTaka(order.total), bold: true),
             ],
           ),
@@ -211,7 +247,10 @@ class _OrderDetailsBody extends ConsumerWidget {
         ],
         Center(
           child: TextButton(
-            onPressed: () => contactSupport(context, subject: 'Help with order ${formatOrderNumber(order.id)}'),
+            onPressed: () => contactSupport(
+              context,
+              subject: 'Help with order ${formatOrderNumber(order.id)}',
+            ),
             child: const Text('Need help?'),
           ),
         ),

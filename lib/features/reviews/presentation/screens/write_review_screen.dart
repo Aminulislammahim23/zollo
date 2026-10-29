@@ -41,7 +41,9 @@ class _WriteReviewScreenState extends ConsumerState<WriteReviewScreen> {
 
     setState(() => _submitting = true);
     try {
-      await ref.read(reviewRepositoryProvider).submitReview(
+      await ref
+          .read(reviewRepositoryProvider)
+          .submitReview(
             productId: widget.product.id,
             rating: _rating,
             comment: _comment.text,
@@ -54,9 +56,8 @@ class _WriteReviewScreenState extends ConsumerState<WriteReviewScreen> {
       context.pop();
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(ErrorView.describe(error))),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(ErrorView.describe(error))));
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -73,14 +74,19 @@ class _WriteReviewScreenState extends ConsumerState<WriteReviewScreen> {
           InfoCard(
             child: Row(
               children: [
-                AppNetworkImage(url: product.imageUrl, width: 56, height: 56, borderRadius: AppRadius.tileAll),
+                AppNetworkImage(
+                  url: product.imageUrl,
+                  width: 56,
+                  height: 56,
+                  borderRadius: AppRadius.tileAll,
+                ),
                 const SizedBox(width: AppSpacing.m),
                 Expanded(
                   child: Text(
                     product.title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: AppText.custom(13, FontWeight.w700),
+                    style: AppText.label,
                   ),
                 ),
               ],
@@ -91,7 +97,7 @@ class _WriteReviewScreenState extends ConsumerState<WriteReviewScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 18),
             child: Column(
               children: [
-                Text('How would you rate it?', style: AppText.custom(15, FontWeight.w800)),
+                Text('How would you rate it?', style: AppText.cardTitle),
                 const SizedBox(height: 10),
                 RatingStars(
                   rating: _rating,
@@ -101,7 +107,9 @@ class _WriteReviewScreenState extends ConsumerState<WriteReviewScreen> {
                 const SizedBox(height: 10),
                 Text(
                   _rating == 0 ? 'Tap a star' : RatingStars.labels[_rating - 1],
-                  style: AppText.custom(14, FontWeight.w700, color: _rating == 0 ? AppColors.hint : AppColors.primary),
+                  style: AppText.bodyStrong.withColor(
+                    _rating == 0 ? AppColors.hint : AppColors.primary,
+                  ),
                 ),
               ],
             ),
@@ -125,10 +133,19 @@ class _WriteReviewScreenState extends ConsumerState<WriteReviewScreen> {
           color: AppColors.surface,
           border: Border(top: BorderSide(color: AppColors.divider)),
         ),
-        padding: const EdgeInsets.fromLTRB(AppSpacing.l, AppSpacing.m, AppSpacing.l, AppSpacing.m),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.l,
+          AppSpacing.m,
+          AppSpacing.l,
+          AppSpacing.m,
+        ),
         child: SafeArea(
           top: false,
-          child: AppButton.primary(label: 'Submit review', loading: _submitting, onPressed: _submit),
+          child: AppButton.primary(
+            label: 'Submit review',
+            loading: _submitting,
+            onPressed: _submit,
+          ),
         ),
       ),
     );

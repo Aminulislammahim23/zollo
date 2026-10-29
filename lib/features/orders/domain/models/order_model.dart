@@ -23,11 +23,11 @@ class OrderItem {
   double get subtotal => price * quantity;
 
   Map<String, dynamic> toJson() => {
-        'product_id': productId,
-        'product_name': productName,
-        'price': price,
-        'quantity': quantity,
-      };
+    'product_id': productId,
+    'product_name': productName,
+    'price': price,
+    'quantity': quantity,
+  };
 }
 
 class OrderModel {
@@ -49,8 +49,7 @@ class OrderModel {
     required this.createdAt,
   });
 
-  double get subtotal =>
-      items.fold(0.0, (sum, item) => sum + item.subtotal);
+  double get subtotal => items.fold(0.0, (sum, item) => sum + item.subtotal);
 
   double get total => subtotal + shippingFee;
 
@@ -58,15 +57,19 @@ class OrderModel {
 
   int get itemCount => items.fold(0, (sum, item) => sum + item.quantity);
 
-  List<String> get _addressLines =>
-      shippingAddress.split('\n').map((l) => l.trim()).where((l) => l.isNotEmpty).toList();
+  List<String> get _addressLines => shippingAddress
+      .split('\n')
+      .map((l) => l.trim())
+      .where((l) => l.isNotEmpty)
+      .toList();
 
   /// "Name · phone" from the address snapshot written at checkout.
   String get recipient => _addressLines.length > 1 ? _addressLines.first : '';
 
   /// The address part of the snapshot.
-  String get deliveryAddress =>
-      _addressLines.length > 1 ? _addressLines.sublist(1).join(', ') : shippingAddress;
+  String get deliveryAddress => _addressLines.length > 1
+      ? _addressLines.sublist(1).join(', ')
+      : shippingAddress;
 
   bool get isActive =>
       status == OrderStatus.pending ||
@@ -74,15 +77,15 @@ class OrderModel {
       status == OrderStatus.processing;
 
   Map<String, dynamic> toInsertJson() => {
-        'id': id,
-        'user_id': userId,
-        'items': items.map((item) => item.toJson()).toList(),
-        'shipping_address': shippingAddress,
-        'shipping_fee': shippingFee,
-        'total_amount': total,
-        'status': status.name,
-        'created_at': createdAt.toUtc().toIso8601String(),
-      };
+    'id': id,
+    'user_id': userId,
+    'items': items.map((item) => item.toJson()).toList(),
+    'shipping_address': shippingAddress,
+    'shipping_fee': shippingFee,
+    'total_amount': total,
+    'status': status.name,
+    'created_at': createdAt.toUtc().toIso8601String(),
+  };
 
   factory OrderModel.fromJson(
     Map<String, dynamic> json, {
@@ -113,7 +116,8 @@ class OrderModel {
         (value) => value.name == json['status'],
         orElse: () => OrderStatus.pending,
       ),
-      createdAt: DateTime.tryParse(json['created_at'] as String? ?? '') ??
+      createdAt:
+          DateTime.tryParse(json['created_at'] as String? ?? '') ??
           DateTime.now(),
     );
   }

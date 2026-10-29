@@ -20,16 +20,22 @@ class TimelineStep {
 
   /// Tracking events in time order; the newest one is current.
   static List<TimelineStep> fromEvents(List<TrackingEvent> events) {
-    final sorted = [...events]..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    final sorted = [...events]
+      ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
     return [
       for (var i = 0; i < sorted.length; i++)
         TimelineStep(
-          title: sorted[i].description.isNotEmpty ? sorted[i].description : _humanize(sorted[i].status),
+          title: sorted[i].description.isNotEmpty
+              ? sorted[i].description
+              : _humanize(sorted[i].status),
           note: [
-            if (sorted[i].location != null && sorted[i].location!.isNotEmpty) sorted[i].location!,
+            if (sorted[i].location != null && sorted[i].location!.isNotEmpty)
+              sorted[i].location!,
             formatDateTime(sorted[i].timestamp),
           ].join(' · '),
-          state: i == sorted.length - 1 ? TimelineStepState.current : TimelineStepState.done,
+          state: i == sorted.length - 1
+              ? TimelineStepState.current
+              : TimelineStepState.done,
         ),
     ];
   }
@@ -46,7 +52,14 @@ class TimelineStep {
       ];
     }
 
-    const titles = ['Order placed', 'Confirmed', 'Packed', 'Shipped', 'Out for delivery', 'Delivered'];
+    const titles = [
+      'Order placed',
+      'Confirmed',
+      'Packed',
+      'Shipped',
+      'Out for delivery',
+      'Delivered',
+    ];
     final reached = switch (order.status) {
       OrderStatus.pending => 0,
       OrderStatus.confirmed => 1,
@@ -61,19 +74,23 @@ class TimelineStep {
       for (var i = 0; i < titles.length; i++)
         TimelineStep(
           title: titles[i],
-          note: i == 0 ? formatDateTime(order.createdAt) : (i == reached && !allDone ? 'In progress' : null),
+          note: i == 0
+              ? formatDateTime(order.createdAt)
+              : (i == reached && !allDone ? 'In progress' : null),
           state: i < reached || allDone
               ? TimelineStepState.done
               : i == reached
-                  ? TimelineStepState.current
-                  : TimelineStepState.todo,
+              ? TimelineStepState.current
+              : TimelineStepState.todo,
         ),
     ];
   }
 
   static String _humanize(String status) {
     final words = status.replaceAll('_', ' ').trim();
-    return words.isEmpty ? 'Update' : words[0].toUpperCase() + words.substring(1);
+    return words.isEmpty
+        ? 'Update'
+        : words[0].toUpperCase() + words.substring(1);
   }
 }
 
@@ -88,7 +105,10 @@ class TrackingTimeline extends StatelessWidget {
   Widget build(BuildContext context) {
     final items = steps ?? TimelineStep.fromEvents(events);
     if (items.isEmpty) {
-      return Text('No tracking updates yet.', style: AppText.caption.withColor(AppColors.muted));
+      return Text(
+        'No tracking updates yet.',
+        style: AppText.caption.withColor(AppColors.muted),
+      );
     }
 
     return Column(
@@ -117,7 +137,10 @@ class TrackingTimeline extends StatelessWidget {
                 const SizedBox(width: AppSpacing.m),
                 Expanded(
                   child: Padding(
-                    padding: EdgeInsets.only(bottom: i < items.length - 1 ? AppSpacing.l : 0, top: 1),
+                    padding: EdgeInsets.only(
+                      bottom: i < items.length - 1 ? AppSpacing.l : 0,
+                      top: 1,
+                    ),
                     child: Semantics(
                       label: '${items[i].title}, ${items[i].state.name}',
                       child: Column(
@@ -125,20 +148,29 @@ class TrackingTimeline extends StatelessWidget {
                         children: [
                           Text(
                             items[i].title,
-                            style: AppText.custom(
-                              14,
-                              items[i].reached ? FontWeight.w800 : FontWeight.w600,
-                              color: items[i].state == TimelineStepState.cancelled
-                                  ? AppColors.error
-                                  : items[i].reached
+                            style: AppText.menuLabel
+                                .withWeight(
+                                  items[i].reached
+                                      ? FontWeight.w800
+                                      : FontWeight.w600,
+                                )
+                                .withColor(
+                                  items[i].state == TimelineStepState.cancelled
+                                      ? AppColors.error
+                                      : items[i].reached
                                       ? AppColors.ink
                                       : AppColors.muted,
-                            ),
+                                ),
                           ),
                           if (items[i].note != null)
                             Padding(
                               padding: const EdgeInsets.only(top: 2),
-                              child: Text(items[i].note!, style: AppText.caption.withColor(AppColors.muted)),
+                              child: Text(
+                                items[i].note!,
+                                style: AppText.caption.withColor(
+                                  AppColors.muted,
+                                ),
+                              ),
                             ),
                         ],
                       ),
@@ -162,35 +194,41 @@ class _Marker extends StatelessWidget {
   Widget build(BuildContext context) {
     return switch (state) {
       TimelineStepState.done => Container(
-          width: 22,
-          height: 22,
-          decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
-          child: const Icon(Icons.check, size: 12, color: AppColors.white),
+        width: 22,
+        height: 22,
+        decoration: const BoxDecoration(
+          color: AppColors.primary,
+          shape: BoxShape.circle,
         ),
+        child: const Icon(Icons.check, size: 12, color: AppColors.white),
+      ),
       TimelineStepState.current => Container(
-          width: 22,
-          height: 22,
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            shape: BoxShape.circle,
-            border: Border.all(color: AppColors.primary, width: 6),
-          ),
+        width: 22,
+        height: 22,
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          shape: BoxShape.circle,
+          border: Border.all(color: AppColors.primary, width: 6),
         ),
+      ),
       TimelineStepState.todo => Container(
-          width: 22,
-          height: 22,
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            shape: BoxShape.circle,
-            border: Border.all(color: AppColors.border, width: 2),
-          ),
+        width: 22,
+        height: 22,
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          shape: BoxShape.circle,
+          border: Border.all(color: AppColors.border, width: 2),
         ),
+      ),
       TimelineStepState.cancelled => Container(
-          width: 22,
-          height: 22,
-          decoration: const BoxDecoration(color: AppColors.error, shape: BoxShape.circle),
-          child: const Icon(Icons.close, size: 12, color: AppColors.white),
+        width: 22,
+        height: 22,
+        decoration: const BoxDecoration(
+          color: AppColors.error,
+          shape: BoxShape.circle,
         ),
+        child: const Icon(Icons.close, size: 12, color: AppColors.white),
+      ),
     };
   }
 }

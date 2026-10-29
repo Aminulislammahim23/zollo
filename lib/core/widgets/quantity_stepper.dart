@@ -51,7 +51,11 @@ class QuantityStepper extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          button(Icons.remove, 'Decrease quantity', value > min ? onDecrement : null),
+          button(
+            Icons.remove,
+            'Decrease quantity',
+            value > min ? onDecrement : null,
+          ),
           SizedBox(
             width: 32,
             child: Text(
@@ -61,7 +65,11 @@ class QuantityStepper extends StatelessWidget {
               semanticsLabel: 'Quantity $value',
             ),
           ),
-          button(Icons.add, 'Increase quantity', value < max ? onIncrement : null),
+          button(
+            Icons.add,
+            'Increase quantity',
+            value < max ? onIncrement : null,
+          ),
         ],
       ),
     );

@@ -13,16 +13,19 @@ void main() {
     GoRoute(path: '/search', builder: (_, _) => const SearchScreen()),
     GoRoute(
       path: '/products',
-      builder: (_, s) => Scaffold(body: Text('Results for ${s.uri.queryParameters['q']}')),
+      builder: (_, s) =>
+          Scaffold(body: Text('Results for ${s.uri.queryParameters['q']}')),
     ),
     stubRoute('/home'),
   ];
 
   final overrides = [
-    productsProvider.overrideWith((ref) async => [
-          sampleProduct(id: 'p1', title: 'Wireless Earbuds'),
-          sampleProduct(id: 'p2', title: 'Smart Watch'),
-        ]),
+    productsProvider.overrideWith(
+      (ref) async => [
+        sampleProduct(id: 'p1', title: 'Wireless Earbuds'),
+        sampleProduct(id: 'p2', title: 'Smart Watch'),
+      ],
+    ),
   ];
 
   test('recent searches keep 8, newest first, without duplicates', () async {
@@ -38,30 +41,35 @@ void main() {
     expect(recent.where((r) => r.toLowerCase() == 'q5').length, 1);
   });
 
-  testWidgets('shows recent and trending, and suggests products after a debounce', (tester) async {
-    await pumpRoutes(
-      tester,
-      routes: routes,
-      initialLocation: '/search',
-      overrides: overrides,
-      prefs: {LocalSearchRepository.recentKey: ['headphones']},
-    );
-    await tester.pump();
+  testWidgets(
+    'shows recent and trending, and suggests products after a debounce',
+    (tester) async {
+      await pumpRoutes(
+        tester,
+        routes: routes,
+        initialLocation: '/search',
+        overrides: overrides,
+        prefs: {
+          LocalSearchRepository.recentKey: ['headphones'],
+        },
+      );
+      await tester.pump();
 
-    expect(find.text('Recent searches'), findsOneWidget);
-    expect(find.text('headphones'), findsOneWidget);
-    expect(find.text('Trending now'), findsOneWidget);
+      expect(find.text('Recent searches'), findsOneWidget);
+      expect(find.text('headphones'), findsOneWidget);
+      expect(find.text('Trending now'), findsOneWidget);
 
-    await tester.enterText(find.byType(TextField), 'wire');
-    await tester.pump(const Duration(milliseconds: 100));
-    expect(find.text('Electronics'), findsNothing);
-    await tester.pump(const Duration(milliseconds: 300));
-    expect(find.text('Electronics'), findsOneWidget);
+      await tester.enterText(find.byType(TextField), 'wire');
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.text('Electronics'), findsNothing);
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.text('Electronics'), findsOneWidget);
 
-    await tester.tap(find.text('Electronics'));
-    await tester.pumpAndSettle();
-    expect(find.text('Results for Wireless Earbuds'), findsOneWidget);
-  });
+      await tester.tap(find.text('Electronics'));
+      await tester.pumpAndSettle();
+      expect(find.text('Results for Wireless Earbuds'), findsOneWidget);
+    },
+  );
 
   testWidgets('Clear removes recent searches', (tester) async {
     await pumpRoutes(
@@ -69,7 +77,9 @@ void main() {
       routes: routes,
       initialLocation: '/search',
       overrides: overrides,
-      prefs: {LocalSearchRepository.recentKey: ['headphones']},
+      prefs: {
+        LocalSearchRepository.recentKey: ['headphones'],
+      },
     );
     await tester.pump();
     await tester.tap(find.text('Clear'));

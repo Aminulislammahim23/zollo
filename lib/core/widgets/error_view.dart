@@ -26,7 +26,8 @@ class ErrorView extends StatelessWidget {
     if (error is PostgrestException) return error.message;
     if (error is StateError) return error.message;
     final text = error.toString();
-    if (text.contains('SocketException') || text.contains('Failed host lookup')) {
+    if (text.contains('SocketException') ||
+        text.contains('Failed host lookup')) {
       return 'No internet connection. Check your network and try again.';
     }
     return text.replaceFirst('Exception: ', '').replaceFirst('Bad state: ', '');

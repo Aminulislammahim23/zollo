@@ -30,7 +30,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     final user = ref.read(currentUserProvider);
     _name = TextEditingController(text: user?.displayName ?? '');
     final phone = user?.phoneNumber;
-    _phone = TextEditingController(text: phone == null ? '' : PhoneField.normalize(phone));
+    _phone = TextEditingController(
+      text: phone == null ? '' : PhoneField.normalize(phone),
+    );
     _email = TextEditingController(text: user?.email ?? '');
   }
 
@@ -48,7 +50,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
     setState(() => _saving = true);
     final phone = _phone.text.trim();
-    await ref.read(authControllerProvider.notifier).updateProfile(
+    await ref
+        .read(authControllerProvider.notifier)
+        .updateProfile(
           fullName: _name.text,
           phone: phone.isEmpty ? '' : PhoneField.toE164(phone),
         );
@@ -58,13 +62,16 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     final state = ref.read(authControllerProvider);
     if (state.hasError) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Couldn't save your profile. ${AuthValidators.message(state.error!)}")),
+        SnackBar(
+          content: Text(
+            "Couldn't save your profile. ${AuthValidators.message(state.error!)}",
+          ),
+        ),
       );
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Profile updated.')),
-    );
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text('Profile updated.')));
     context.canPop() ? context.pop() : context.go('/account');
   }
 
@@ -74,7 +81,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
     if (user == null) {
       return Scaffold(
-        appBar: const AppTopBar(title: 'Edit profile', fallbackRoute: '/account'),
+        appBar: const AppTopBar(
+          title: 'Edit profile',
+          fallbackRoute: '/account',
+        ),
         body: EmptyState(
           icon: Icons.person_outline,
           title: 'Log in to edit your profile',
@@ -90,15 +100,24 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: 20),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.xl,
+            vertical: 20,
+          ),
           children: [
             Center(
               child: Container(
                 width: 88,
                 height: 88,
-                decoration: const BoxDecoration(color: AppColors.primaryTint, shape: BoxShape.circle),
+                decoration: const BoxDecoration(
+                  color: AppColors.primaryTint,
+                  shape: BoxShape.circle,
+                ),
                 alignment: Alignment.center,
-                child: Text(user.initial, style: AppText.custom(32, FontWeight.w800, color: AppColors.primary)),
+                child: Text(
+                  user.initial,
+                  style: AppText.ratingAverage.withColor(AppColors.primary),
+                ),
               ),
             ),
             const Center(
@@ -118,7 +137,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
               validator: AuthValidators.fullName,
             ),
             const SizedBox(height: AppSpacing.l),
-            PhoneField(controller: _phone, textInputAction: TextInputAction.done),
+            PhoneField(
+              controller: _phone,
+              textInputAction: TextInputAction.done,
+            ),
             const SizedBox(height: AppSpacing.l),
             AppTextField(
               label: 'Email',
@@ -126,7 +148,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
               readOnly: true,
               fillColor: AppColors.background,
               labelTrailing: user.isEmailVerified
-                  ? Text('Verified', style: AppText.custom(12, FontWeight.w800, color: AppColors.primary))
+                  ? Text(
+                      'Verified',
+                      style: AppText.captionHeavy.withColor(AppColors.primary),
+                    )
                   : null,
             ),
           ],
@@ -134,8 +159,17 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       ),
       bottomNavigationBar: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.m, AppSpacing.xl, AppSpacing.xl),
-          child: AppButton.primary(label: 'Save changes', loading: _saving, onPressed: _save),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.xl,
+            AppSpacing.m,
+            AppSpacing.xl,
+            AppSpacing.xl,
+          ),
+          child: AppButton.primary(
+            label: 'Save changes',
+            loading: _saving,
+            onPressed: _save,
+          ),
         ),
       ),
     );

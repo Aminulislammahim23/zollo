@@ -17,7 +17,12 @@ class JustForYouSection extends StatelessWidget {
     return SliverMainAxisGroup(
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.fromLTRB(AppSpacing.screen, 0, AppSpacing.xs, AppSpacing.xs),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.screen,
+            0,
+            AppSpacing.xs,
+            AppSpacing.xs,
+          ),
           sliver: SliverToBoxAdapter(
             child: SectionHeader(
               title: 'Just for you',

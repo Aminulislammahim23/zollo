@@ -17,14 +17,17 @@ final categoriesProvider = FutureProvider<List<Category>>((ref) {
 /// joined category name for rows that only carry the name.
 List<Product> productsInCategory(List<Product> products, Category category) {
   return products
-      .where((p) =>
-          (p.categoryId.isNotEmpty && p.categoryId == category.id) ||
-          (p.categoryId.isEmpty && p.category.toLowerCase() == category.name.toLowerCase()))
+      .where(
+        (p) =>
+            (p.categoryId.isNotEmpty && p.categoryId == category.id) ||
+            (p.categoryId.isEmpty &&
+                p.category.toLowerCase() == category.name.toLowerCase()),
+      )
       .toList();
 }
 
 final productsByCategoryProvider =
     FutureProvider.family<List<Product>, Category>((ref, category) async {
-  final products = await ref.watch(productsProvider.future);
-  return productsInCategory(products, category);
-});
+      final products = await ref.watch(productsProvider.future);
+      return productsInCategory(products, category);
+    });

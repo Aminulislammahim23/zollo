@@ -30,7 +30,11 @@ class WishlistScreen extends ConsumerWidget {
       } catch (error) {
         if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Couldn't update your wishlist. ${ErrorView.describe(error)}")),
+          SnackBar(
+            content: Text(
+              "Couldn't update your wishlist. ${ErrorView.describe(error)}",
+            ),
+          ),
         );
       }
     }
@@ -42,7 +46,10 @@ class WishlistScreen extends ConsumerWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('${product.title} moved to your cart'),
-          action: SnackBarAction(label: 'View cart', onPressed: () => context.go('/cart')),
+          action: SnackBarAction(
+            label: 'View cart',
+            onPressed: () => context.go('/cart'),
+          ),
         ),
       );
     }
@@ -83,7 +90,8 @@ class WishlistScreen extends ConsumerWidget {
         child: ListView.separated(
           padding: const EdgeInsets.all(AppSpacing.m),
           itemCount: ids.length,
-          separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.cardGap),
+          separatorBuilder: (_, _) =>
+              const SizedBox(height: AppSpacing.cardGap),
           itemBuilder: (context, i) {
             final product = lookup[ids[i]];
             if (product == null) {
@@ -100,14 +108,21 @@ class WishlistScreen extends ConsumerWidget {
     }
 
     return Scaffold(
-      appBar: AppTopBar(title: count > 0 ? 'Wishlist ($count)' : 'Wishlist', fallbackRoute: '/account'),
+      appBar: AppTopBar(
+        title: count > 0 ? 'Wishlist ($count)' : 'Wishlist',
+        fallbackRoute: '/account',
+      ),
       body: body,
     );
   }
 }
 
 class _WishlistCard extends StatelessWidget {
-  const _WishlistCard({required this.product, required this.onRemove, required this.onMoveToCart});
+  const _WishlistCard({
+    required this.product,
+    required this.onRemove,
+    required this.onMoveToCart,
+  });
 
   final Product product;
   final VoidCallback onRemove;
@@ -136,9 +151,17 @@ class _WishlistCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(product.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: AppText.bodySmall),
+                Text(
+                  product.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppText.bodySmall,
+                ),
                 const SizedBox(height: AppSpacing.xs),
-                PriceText(price: product.price, oldPrice: product.originalPrice),
+                PriceText(
+                  price: product.price,
+                  oldPrice: product.originalPrice,
+                ),
                 if (!product.inStock) ...[
                   const SizedBox(height: AppSpacing.xs),
                   const DiscountBadge.outOfStock(),
@@ -157,12 +180,15 @@ class _WishlistCard extends StatelessWidget {
                           tapTargetSize: MaterialTapTargetSize.padded,
                           foregroundColor: AppColors.muted,
                           side: const BorderSide(color: AppColors.border),
-                          shape: const RoundedRectangleBorder(borderRadius: AppRadius.tileAll),
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: AppRadius.tileAll,
+                          ),
                         ),
                         child: Icon(
                           Icons.delete_outline,
                           size: AppSpacing.iconInline,
-                          semanticLabel: 'Remove ${product.title} from wishlist',
+                          semanticLabel:
+                              'Remove ${product.title} from wishlist',
                         ),
                       ),
                     ),
@@ -199,7 +225,7 @@ class _UnavailableCard extends StatelessWidget {
           Expanded(
             child: Text(
               'This product is no longer available.',
-              style: AppText.custom(13, FontWeight.w500, color: AppColors.muted),
+              style: AppText.meta.withColor(AppColors.muted),
             ),
           ),
           TextButton(onPressed: onRemove, child: const Text('Remove')),

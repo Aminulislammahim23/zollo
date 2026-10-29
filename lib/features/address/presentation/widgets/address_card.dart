@@ -32,10 +32,17 @@ class AddressCard extends StatelessWidget {
     final label = address.label.toUpperCase();
     final isHome = label == 'HOME';
 
-    Widget tag(String text, {required Color fg, required Color bg}) => Container(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s, vertical: 2),
-          decoration: BoxDecoration(color: bg, borderRadius: AppRadius.badgeAll),
-          child: Text(text, style: AppText.custom(11, FontWeight.w800, color: fg)),
+    Widget tag(String text, {required Color fg, required Color bg}) =>
+        Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.s,
+            vertical: 2,
+          ),
+          decoration: BoxDecoration(
+            color: bg,
+            borderRadius: AppRadius.badgeAll,
+          ),
+          child: Text(text, style: AppText.tag.withColor(fg)),
         );
 
     final highlighted = selecting ? isSelected : address.isDefault;
@@ -70,7 +77,11 @@ class AddressCard extends StatelessWidget {
                         ),
                         if (address.isDefault) ...[
                           const SizedBox(width: 6),
-                          tag('Default', fg: AppColors.primary, bg: AppColors.primaryTint),
+                          tag(
+                            'Default',
+                            fg: AppColors.primary,
+                            bg: AppColors.primaryTint,
+                          ),
                         ],
                         const Spacer(),
                         if (onEdit != null && !selecting)
@@ -80,7 +91,10 @@ class AddressCard extends StatelessWidget {
                               minimumSize: const Size(48, 36),
                               tapTargetSize: MaterialTapTargetSize.padded,
                             ),
-                            child: Text('Edit', semanticsLabel: 'Edit ${address.label} address'),
+                            child: Text(
+                              'Edit',
+                              semanticsLabel: 'Edit ${address.label} address',
+                            ),
                           ),
                       ],
                     ),
@@ -92,9 +106,14 @@ class AddressCard extends StatelessWidget {
                     const SizedBox(height: 6),
                     Text(
                       address.displayAddress,
-                      style: AppText.custom(13, FontWeight.w500, color: AppColors.muted, height: 1.45),
+                      style: AppText.meta.copyWith(
+                        color: AppColors.muted,
+                        height: 1.45,
+                      ),
                     ),
-                    if (!address.isDefault && onSetDefault != null && !selecting)
+                    if (!address.isDefault &&
+                        onSetDefault != null &&
+                        !selecting)
                       TextButton(
                         onPressed: onSetDefault,
                         style: TextButton.styleFrom(padding: EdgeInsets.zero),
@@ -103,8 +122,7 @@ class AddressCard extends StatelessWidget {
                   ],
                 ),
               ),
-              if (selecting)
-                Radio<String>(value: address.id),
+              if (selecting) Radio<String>(value: address.id),
             ],
           ),
         ),

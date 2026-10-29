@@ -16,7 +16,8 @@ class SplashScreen extends ConsumerStatefulWidget {
     this.splashDelay = const Duration(milliseconds: 1500),
   });
 
-  static const String tagline = 'Everything you need, delivered across Bangladesh';
+  static const String tagline =
+      'Everything you need, delivered across Bangladesh';
 
   @override
   ConsumerState<SplashScreen> createState() => _SplashScreenState();
@@ -70,12 +71,19 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const ZolloLogo(onPrimary: true, showMark: true, fontSize: 40),
+                      const ZolloLogo(
+                        onPrimary: true,
+                        showMark: true,
+                        fontSize: 40,
+                      ),
                       const SizedBox(height: 14),
                       Text(
                         SplashScreen.tagline,
                         textAlign: TextAlign.center,
-                        style: AppText.custom(15, FontWeight.w500, color: onMuted, height: 1.4),
+                        style: AppText.bodyPlain.copyWith(
+                          color: onMuted,
+                          height: 1.4,
+                        ),
                       ),
                     ],
                   ),
@@ -83,10 +91,16 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
               ),
               const SizedBox.square(
                 dimension: 22,
-                child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.white),
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: AppColors.white,
+                ),
               ),
               const SizedBox(height: AppSpacing.l),
-              Text('English · বাংলা', style: AppText.caption.withColor(onMuted)),
+              Text(
+                'English · বাংলা',
+                style: AppText.caption.withColor(onMuted),
+              ),
               const SizedBox(height: AppSpacing.xl),
             ],
           ),

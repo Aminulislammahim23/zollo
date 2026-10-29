@@ -27,7 +27,11 @@ class InfoCard extends StatelessWidget {
     final borderRadius = BorderRadius.circular(radius);
     Widget content = Padding(padding: padding, child: child);
     if (onTap != null) {
-      content = InkWell(onTap: onTap, borderRadius: borderRadius, child: content);
+      content = InkWell(
+        onTap: onTap,
+        borderRadius: borderRadius,
+        child: content,
+      );
     }
 
     return Container(

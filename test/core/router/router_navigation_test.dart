@@ -12,13 +12,13 @@ import 'package:zollo/features/onboarding/presentation/screens/onboarding_screen
 
 class FakeUser extends User {
   FakeUser()
-      : super(
-          id: 'fake-user-id-123',
-          appMetadata: {},
-          userMetadata: {},
-          aud: 'authenticated',
-          createdAt: DateTime.now().toIso8601String(),
-        );
+    : super(
+        id: 'fake-user-id-123',
+        appMetadata: {},
+        userMetadata: {},
+        aud: 'authenticated',
+        createdAt: DateTime.now().toIso8601String(),
+      );
 }
 
 void main() {
@@ -32,65 +32,69 @@ void main() {
       prefs = await SharedPreferences.getInstance();
     });
 
-    Widget createTestApp({
-      required GoRouter router,
-      User? fakeUser,
-    }) {
+    Widget createTestApp({required GoRouter router, User? fakeUser}) {
       return ProviderScope(
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
           currentUserProvider.overrideWithValue(fakeUser),
         ],
-        child: MaterialApp.router(
-          routerConfig: router,
-        ),
+        child: MaterialApp.router(routerConfig: router),
       );
     }
 
-    testWidgets('Full First Launch Flow: Splash -> Onboarding -> Skip -> Login', (tester) async {
-      final router = GoRouter(
-        initialLocation: '/splash',
-        routes: [
-          GoRoute(
-            path: '/splash',
-            builder: (context, state) => const SplashScreen(),
-          ),
-          GoRoute(
-            path: '/onboarding',
-            builder: (context, state) => const OnboardingScreen(),
-          ),
-          GoRoute(
-            path: '/login',
-            builder: (context, state) => const Scaffold(body: Text('Login Screen Destination')),
-          ),
-        ],
-      );
+    testWidgets(
+      'Full First Launch Flow: Splash -> Onboarding -> Skip -> Login',
+      (tester) async {
+        final router = GoRouter(
+          initialLocation: '/splash',
+          routes: [
+            GoRoute(
+              path: '/splash',
+              builder: (context, state) => const SplashScreen(),
+            ),
+            GoRoute(
+              path: '/onboarding',
+              builder: (context, state) => const OnboardingScreen(),
+            ),
+            GoRoute(
+              path: '/login',
+              builder: (context, state) =>
+                  const Scaffold(body: Text('Login Screen Destination')),
+            ),
+          ],
+        );
 
-      await tester.pumpWidget(createTestApp(router: router));
+        await tester.pumpWidget(createTestApp(router: router));
 
-      // Splash initially shown
-      expect(find.text('zollo'), findsOneWidget);
+        // Splash initially shown
+        expect(find.text('zollo'), findsOneWidget);
 
-      // Wait for splash transition
-      await tester.pump(const Duration(milliseconds: 1600));
-      await tester.pumpAndSettle();
+        // Wait for splash transition
+        await tester.pump(const Duration(milliseconds: 1600));
+        await tester.pumpAndSettle();
 
-      // Navigated to Onboarding
-      expect(find.text('Millions of products from trusted sellers'), findsOneWidget);
+        // Navigated to Onboarding
+        expect(
+          find.text('Millions of products from trusted sellers'),
+          findsOneWidget,
+        );
 
-      // Tap Skip in Onboarding
-      await tester.tap(find.text('Skip'));
-      await tester.pumpAndSettle();
+        // Tap Skip in Onboarding
+        await tester.tap(find.text('Skip'));
+        await tester.pumpAndSettle();
 
-      // Navigated to Login
-      expect(find.text('Login Screen Destination'), findsOneWidget);
+        // Navigated to Login
+        expect(find.text('Login Screen Destination'), findsOneWidget);
 
-      // Verify onboarding status saved
-      final repo = OnboardingRepository(prefs);
-      expect(await repo.isOnboardingCompleted(), true);
-    });
+        // Verify onboarding status saved
+        final repo = OnboardingRepository(prefs);
+        expect(await repo.isOnboardingCompleted(), true);
+      },
+    );
 
-    testWidgets('Returning authenticated user goes directly to Home', (tester) async {
+    testWidgets('Returning authenticated user goes directly to Home', (
+      tester,
+    ) async {
       final repo = OnboardingRepository(prefs);
       await repo.setOnboardingCompleted();
 
@@ -105,19 +109,24 @@ void main() {
           ),
           GoRoute(
             path: '/home',
-            builder: (context, state) => const Scaffold(body: Text('Home Screen Destination')),
+            builder: (context, state) =>
+                const Scaffold(body: Text('Home Screen Destination')),
           ),
         ],
       );
 
-      await tester.pumpWidget(createTestApp(router: router, fakeUser: fakeUser));
+      await tester.pumpWidget(
+        createTestApp(router: router, fakeUser: fakeUser),
+      );
       await tester.pump(const Duration(milliseconds: 1600));
       await tester.pumpAndSettle();
 
       expect(find.text('Home Screen Destination'), findsOneWidget);
     });
 
-    testWidgets('Logout does not reset onboarding completed status', (tester) async {
+    testWidgets('Logout does not reset onboarding completed status', (
+      tester,
+    ) async {
       final repo = OnboardingRepository(prefs);
       await repo.setOnboardingCompleted();
 
@@ -133,7 +142,8 @@ void main() {
           ),
           GoRoute(
             path: '/login',
-            builder: (context, state) => const Scaffold(body: Text('Login After Logout')),
+            builder: (context, state) =>
+                const Scaffold(body: Text('Login After Logout')),
           ),
         ],
       );
@@ -156,7 +166,8 @@ void main() {
           ),
           GoRoute(
             path: '/login',
-            builder: (context, state) => const Scaffold(body: Text('Login Screen')),
+            builder: (context, state) =>
+                const Scaffold(body: Text('Login Screen')),
           ),
         ],
       );

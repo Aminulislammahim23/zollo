@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../../../auth/domain/providers/auth_provider.dart';
 import '../../data/address_repository.dart';
 import '../../domain/address_model.dart';
@@ -10,8 +11,8 @@ final addressRepositoryProvider = Provider<AddressRepository>((ref) {
 
 final addressListProvider =
     AsyncNotifierProvider<AddressListNotifier, List<Address>>(
-  AddressListNotifier.new,
-);
+      AddressListNotifier.new,
+    );
 
 class AddressListNotifier extends AsyncNotifier<List<Address>> {
   AddressRepository get _repository => ref.read(addressRepositoryProvider);

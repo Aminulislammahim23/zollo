@@ -33,8 +33,8 @@ class AppButton extends StatelessWidget {
     this.fullWidth = true,
     this.height,
     this.padding,
-  })  : variant = AppButtonVariant.primary,
-        backgroundColor = null;
+  }) : variant = AppButtonVariant.primary,
+       backgroundColor = null;
 
   const AppButton.outline({
     super.key,
@@ -59,8 +59,8 @@ class AppButton extends StatelessWidget {
     this.fullWidth = true,
     this.height,
     this.padding,
-  })  : variant = AppButtonVariant.deal,
-        backgroundColor = null;
+  }) : variant = AppButtonVariant.deal,
+       backgroundColor = null;
 
   const AppButton.danger({
     super.key,
@@ -95,11 +95,11 @@ class AppButton extends StatelessWidget {
   double get _height => height ?? (_small ? 40 : 52);
 
   Color get _foreground => switch (variant) {
-        AppButtonVariant.primary => AppColors.white,
-        AppButtonVariant.outline => AppColors.primary,
-        AppButtonVariant.deal => AppColors.onAccent,
-        AppButtonVariant.danger => AppColors.error,
-      };
+    AppButtonVariant.primary => AppColors.white,
+    AppButtonVariant.outline => AppColors.primary,
+    AppButtonVariant.deal => AppColors.onAccent,
+    AppButtonVariant.danger => AppColors.error,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -110,7 +110,10 @@ class AppButton extends StatelessWidget {
     final child = loading
         ? SizedBox.square(
             dimension: _small ? 16 : 20,
-            child: CircularProgressIndicator(strokeWidth: 2, color: _foreground),
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: _foreground,
+            ),
           )
         : Row(
             mainAxisSize: MainAxisSize.min,
@@ -131,10 +134,13 @@ class AppButton extends StatelessWidget {
           );
 
     final shape = RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(_small ? AppRadius.tile : AppRadius.button),
+      borderRadius: BorderRadius.circular(
+        _small ? AppRadius.tile : AppRadius.button,
+      ),
     );
     final minSize = Size(fullWidth ? double.infinity : 0, _height);
-    final pad = padding ??
+    final pad =
+        padding ??
         EdgeInsets.symmetric(horizontal: _small ? AppSpacing.m : AppSpacing.l);
 
     final Widget button;
@@ -144,28 +150,35 @@ class AppButton extends StatelessWidget {
         final isDeal = variant == AppButtonVariant.deal;
         button = FilledButton(
           onPressed: enabled ? onPressed : null,
-          style: FilledButton.styleFrom(
-            backgroundColor: isDeal ? AppColors.accent : AppColors.primary,
-            foregroundColor: _foreground,
-            disabledBackgroundColor: loading
-                ? (isDeal ? AppColors.accent : AppColors.primary)
-                : AppColors.divider,
-            disabledForegroundColor: loading ? _foreground : AppColors.muted,
-            minimumSize: minSize,
-            fixedSize: Size.fromHeight(_height),
-            padding: pad,
-            shape: shape,
-            textStyle: textStyle,
-          ).copyWith(
-            overlayColor: WidgetStatePropertyAll(
-              isDeal ? AppColors.onAccent.withValues(alpha: 0.08) : AppColors.primaryDark,
-            ),
-          ),
+          style:
+              FilledButton.styleFrom(
+                backgroundColor: isDeal ? AppColors.accent : AppColors.primary,
+                foregroundColor: _foreground,
+                disabledBackgroundColor: loading
+                    ? (isDeal ? AppColors.accent : AppColors.primary)
+                    : AppColors.divider,
+                disabledForegroundColor: loading
+                    ? _foreground
+                    : AppColors.muted,
+                minimumSize: minSize,
+                fixedSize: Size.fromHeight(_height),
+                padding: pad,
+                shape: shape,
+                textStyle: textStyle,
+              ).copyWith(
+                overlayColor: WidgetStatePropertyAll(
+                  isDeal
+                      ? AppColors.onAccent.withValues(alpha: 0.08)
+                      : AppColors.primaryDark,
+                ),
+              ),
           child: child,
         );
       case AppButtonVariant.outline:
       case AppButtonVariant.danger:
-        final color = variant == AppButtonVariant.danger ? AppColors.error : AppColors.primary;
+        final color = variant == AppButtonVariant.danger
+            ? AppColors.error
+            : AppColors.primary;
         button = OutlinedButton(
           onPressed: enabled ? onPressed : null,
           style: OutlinedButton.styleFrom(

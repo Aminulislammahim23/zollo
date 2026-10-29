@@ -29,7 +29,10 @@ class NotificationsScreen extends ConsumerWidget {
           title: 'Notifications',
           actions: [
             TextButton(
-              onPressed: unread == 0 ? null : () => ref.read(notificationsProvider.notifier).markAllRead(),
+              onPressed: unread == 0
+                  ? null
+                  : () =>
+                        ref.read(notificationsProvider.notifier).markAllRead(),
               child: const Text('Mark all read'),
             ),
           ],
@@ -56,8 +59,16 @@ class NotificationsScreen extends ConsumerWidget {
           data: (items) => TabBarView(
             children: [
               _NotificationList(items: items),
-              _NotificationList(items: items.where((n) => n.type == NotificationType.order).toList()),
-              _NotificationList(items: items.where((n) => n.type == NotificationType.promotion).toList()),
+              _NotificationList(
+                items: items
+                    .where((n) => n.type == NotificationType.order)
+                    .toList(),
+              ),
+              _NotificationList(
+                items: items
+                    .where((n) => n.type == NotificationType.promotion)
+                    .toList(),
+              ),
             ],
           ),
         ),
@@ -91,8 +102,13 @@ class _NotificationList extends ConsumerWidget {
             if (n.deepLink != null) context.push(n.deepLink!);
           },
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.l, vertical: 14),
-            decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.surfaceAlt))),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.l,
+              vertical: 14,
+            ),
+            decoration: const BoxDecoration(
+              border: Border(bottom: BorderSide(color: AppColors.surfaceAlt)),
+            ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -101,13 +117,16 @@ class _NotificationList extends ConsumerWidget {
                   height: 40,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: isOrder ? AppColors.primaryTint : AppColors.discountBg,
+                    color: isOrder
+                        ? AppColors.primaryTint
+                        : AppColors.discountBg,
                     borderRadius: BorderRadius.circular(AppRadius.button),
                   ),
                   child: Text(
                     n.tag,
-                    style: AppText.custom(11, FontWeight.w800,
-                        color: isOrder ? AppColors.primary : AppColors.discountText),
+                    style: AppText.tag.withColor(
+                      isOrder ? AppColors.primary : AppColors.discountText,
+                    ),
                   ),
                 ),
                 const SizedBox(width: AppSpacing.m),
@@ -117,11 +136,20 @@ class _NotificationList extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(n.title, style: AppText.custom(14, FontWeight.w800)),
+                        Text(n.title, style: AppText.rowTitle),
                         const SizedBox(height: 2),
-                        Text(n.body, style: AppText.custom(13, FontWeight.w500, color: AppColors.muted, height: 1.4)),
+                        Text(
+                          n.body,
+                          style: AppText.meta.copyWith(
+                            color: AppColors.muted,
+                            height: 1.4,
+                          ),
+                        ),
                         const SizedBox(height: AppSpacing.xs),
-                        Text(formatRelative(n.createdAt), style: AppText.custom(11, FontWeight.w500, color: AppColors.hint)),
+                        Text(
+                          formatRelative(n.createdAt),
+                          style: AppText.timestamp.withColor(AppColors.hint),
+                        ),
                       ],
                     ),
                   ),
@@ -131,7 +159,10 @@ class _NotificationList extends ConsumerWidget {
                     width: 8,
                     height: 8,
                     margin: const EdgeInsets.only(left: AppSpacing.s, top: 6),
-                    decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
+                    decoration: const BoxDecoration(
+                      color: AppColors.primary,
+                      shape: BoxShape.circle,
+                    ),
                   ),
               ],
             ),

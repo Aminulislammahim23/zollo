@@ -17,7 +17,8 @@ class FakeNotificationRepository implements NotificationRepository {
         id: 'n1',
         type: NotificationType.order,
         title: 'Your order is on the way',
-        body: 'The rider picked up your package. Track it live from your orders.',
+        body:
+            'The rider picked up your package. Track it live from your orders.',
         createdAt: t.subtract(const Duration(minutes: 25)),
         deepLink: '/order-history?tab=shipped',
       ),
@@ -53,7 +54,8 @@ class FakeNotificationRepository implements NotificationRepository {
   late List<AppNotification> _items;
 
   @override
-  Future<List<AppNotification>> getNotifications() async => List.unmodifiable(_items);
+  Future<List<AppNotification>> getNotifications() async =>
+      List.unmodifiable(_items);
 
   @override
   Future<void> markRead(String id) async {

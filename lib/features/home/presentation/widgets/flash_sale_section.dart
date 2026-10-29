@@ -49,7 +49,9 @@ class FlashSaleSection extends StatelessWidget {
                   for (var i = 0; i < 3; i++) ...[
                     if (i > 0) const SizedBox(width: 10),
                     Expanded(
-                      child: i < items.length ? _FlashItem(product: items[i]) : const SizedBox.shrink(),
+                      child: i < items.length
+                          ? _FlashItem(product: items[i])
+                          : const SizedBox.shrink(),
                     ),
                   ],
                 ],
@@ -82,11 +84,22 @@ class _FlashItem extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            AppNetworkImage(url: product.imageUrl, height: 96, width: double.infinity, borderRadius: AppRadius.tileAll),
+            AppNetworkImage(
+              url: product.imageUrl,
+              height: 96,
+              width: double.infinity,
+              borderRadius: AppRadius.tileAll,
+            ),
             const SizedBox(height: 6),
-            Text(formatTaka(product.price), style: AppText.custom(15, FontWeight.w800, color: AppColors.primary)),
+            Text(
+              formatTaka(product.price),
+              style: AppText.cardTitle.withColor(AppColors.primary),
+            ),
             if (product.hasDiscount)
-              Text(formatTaka(product.originalPrice!), style: AppText.priceOld.withSize(11)),
+              Text(
+                formatTaka(product.originalPrice!),
+                style: AppText.priceOld.withSize(11),
+              ),
             const Spacer(),
             const SizedBox(height: 6),
             ClipRRect(
@@ -139,7 +152,11 @@ class _CountdownState extends State<_Countdown> {
   @override
   Widget build(BuildContext context) {
     String two(int n) => n.toString().padLeft(2, '0');
-    final parts = [two(_left.inHours), two(_left.inMinutes % 60), two(_left.inSeconds % 60)];
+    final parts = [
+      two(_left.inHours),
+      two(_left.inMinutes % 60),
+      two(_left.inSeconds % 60),
+    ];
     return Semantics(
       label: 'Ends in ${_left.inHours} hours ${_left.inMinutes % 60} minutes',
       excludeSemantics: true,
@@ -150,8 +167,14 @@ class _CountdownState extends State<_Countdown> {
             if (i > 0) const SizedBox(width: 3),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-              decoration: BoxDecoration(color: AppColors.deep, borderRadius: BorderRadius.circular(4)),
-              child: Text(parts[i], style: AppText.custom(12, FontWeight.w700, color: AppColors.white)),
+              decoration: BoxDecoration(
+                color: AppColors.deep,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                parts[i],
+                style: AppText.captionStrong.withColor(AppColors.white),
+              ),
             ),
           ],
         ],

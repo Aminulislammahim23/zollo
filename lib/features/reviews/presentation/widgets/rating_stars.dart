@@ -38,7 +38,9 @@ class RatingStars extends StatelessWidget {
               Icon(
                 _iconFor(value),
                 size: size,
-                color: rating >= value - 0.5 ? AppColors.star : AppColors.switchOff,
+                color: rating >= value - 0.5
+                    ? AppColors.star
+                    : AppColors.switchOff,
               ),
           ],
         ),
@@ -52,12 +54,15 @@ class RatingStars extends StatelessWidget {
           SizedBox.square(
             dimension: 48,
             child: IconButton(
-              tooltip: '$value star${value == 1 ? '' : 's'} – ${labels[value - 1]}',
+              tooltip:
+                  '$value star${value == 1 ? '' : 's'} – ${labels[value - 1]}',
               padding: EdgeInsets.zero,
               iconSize: size,
               onPressed: () => onChanged!(value),
               icon: Icon(
-                value <= rating ? Icons.star_rounded : Icons.star_outline_rounded,
+                value <= rating
+                    ? Icons.star_rounded
+                    : Icons.star_outline_rounded,
                 color: value <= rating ? AppColors.star : AppColors.switchOff,
               ),
             ),

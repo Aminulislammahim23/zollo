@@ -77,7 +77,10 @@ class CartItemTile extends StatelessWidget {
                         ),
                         if (item.variant != null) ...[
                           const SizedBox(height: 2),
-                          Text(item.variant!, style: AppText.caption.withColor(AppColors.muted)),
+                          Text(
+                            item.variant!,
+                            style: AppText.caption.withColor(AppColors.muted),
+                          ),
                         ],
                       ],
                     ),
@@ -88,9 +91,15 @@ class CartItemTile extends StatelessWidget {
                       child: IconButton(
                         tooltip: 'Remove ${product.title}',
                         padding: EdgeInsets.zero,
-                        style: IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.padded),
+                        style: IconButton.styleFrom(
+                          tapTargetSize: MaterialTapTargetSize.padded,
+                        ),
                         onPressed: onRemove,
-                        icon: const Icon(Icons.delete_outline, size: AppSpacing.iconInline, color: AppColors.muted),
+                        icon: const Icon(
+                          Icons.delete_outline,
+                          size: AppSpacing.iconInline,
+                          color: AppColors.muted,
+                        ),
                       ),
                     ),
                 ],

@@ -63,8 +63,12 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
                       dimension: AppSpacing.tapTarget,
                       child: IconButton(
                         tooltip: 'Back',
-                        icon: const Icon(Icons.arrow_back_ios_new, size: AppSpacing.iconSmall),
-                        onPressed: onBack ??
+                        icon: const Icon(
+                          Icons.arrow_back_ios_new,
+                          size: AppSpacing.iconSmall,
+                        ),
+                        onPressed:
+                            onBack ??
                             () {
                               if (context.canPop()) {
                                 context.pop();
@@ -89,7 +93,9 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
                         if (subtitle != null)
                           Text(
                             subtitle!,
-                            style: subtitleStyle ?? AppText.caption.withColor(AppColors.muted),
+                            style:
+                                subtitleStyle ??
+                                AppText.caption.withColor(AppColors.muted),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),

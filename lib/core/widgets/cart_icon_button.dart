@@ -19,17 +19,26 @@ class CartIconButton extends ConsumerWidget {
     final count = ref.watch(cartItemCountProvider);
     final icon = CartBadge(
       count: count,
-      child: const Icon(Icons.shopping_cart_outlined, size: AppSpacing.iconBar, color: AppColors.ink),
+      child: const Icon(
+        Icons.shopping_cart_outlined,
+        size: AppSpacing.iconBar,
+        color: AppColors.ink,
+      ),
     );
     return IconButton(
       tooltip: count > 0 ? 'Cart, $count items' : 'Cart',
       onPressed: () => context.go('/cart'),
-      style: IconButton.styleFrom(minimumSize: const Size.square(AppSpacing.tapTarget)),
+      style: IconButton.styleFrom(
+        minimumSize: const Size.square(AppSpacing.tapTarget),
+      ),
       icon: circle
           ? Container(
               width: 44,
               height: 44,
-              decoration: const BoxDecoration(color: AppColors.surface, shape: BoxShape.circle),
+              decoration: const BoxDecoration(
+                color: AppColors.surface,
+                shape: BoxShape.circle,
+              ),
               alignment: Alignment.center,
               child: icon,
             )

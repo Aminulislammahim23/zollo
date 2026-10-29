@@ -7,18 +7,31 @@ import 'package:zollo/core/widgets/widgets.dart';
 import 'package:zollo/features/orders/domain/models/order_model.dart';
 
 Widget _wrap(Widget child) => ProviderScope(
-      child: MaterialApp(theme: AppTheme.light, home: Scaffold(body: child)),
-    );
+  child: MaterialApp(
+    theme: AppTheme.light,
+    home: Scaffold(body: child),
+  ),
+);
 
 void main() {
-  testWidgets('AppButton calls onPressed and blocks taps while loading', (tester) async {
+  testWidgets('AppButton calls onPressed and blocks taps while loading', (
+    tester,
+  ) async {
     var taps = 0;
-    await tester.pumpWidget(_wrap(Column(
-      children: [
-        AppButton.primary(label: 'Go', onPressed: () => taps++),
-        AppButton.primary(label: 'Busy', loading: true, onPressed: () => taps++),
-      ],
-    )));
+    await tester.pumpWidget(
+      _wrap(
+        Column(
+          children: [
+            AppButton.primary(label: 'Go', onPressed: () => taps++),
+            AppButton.primary(
+              label: 'Busy',
+              loading: true,
+              onPressed: () => taps++,
+            ),
+          ],
+        ),
+      ),
+    );
 
     await tester.tap(find.text('Go'));
     expect(taps, 1);
@@ -34,16 +47,22 @@ void main() {
     expect(find.text('Hide'), findsOneWidget);
   });
 
-  testWidgets('QuantityStepper disables minus at 1 and plus at stock', (tester) async {
+  testWidgets('QuantityStepper disables minus at 1 and plus at stock', (
+    tester,
+  ) async {
     var value = 1;
-    await tester.pumpWidget(_wrap(StatefulBuilder(
-      builder: (context, setState) => QuantityStepper(
-        value: value,
-        max: 2,
-        onIncrement: () => setState(() => value++),
-        onDecrement: () => setState(() => value--),
+    await tester.pumpWidget(
+      _wrap(
+        StatefulBuilder(
+          builder: (context, setState) => QuantityStepper(
+            value: value,
+            max: 2,
+            onIncrement: () => setState(() => value++),
+            onDecrement: () => setState(() => value--),
+          ),
+        ),
       ),
-    )));
+    );
 
     await tester.tap(find.byTooltip('Decrease quantity'));
     expect(value, 1);
@@ -59,24 +78,35 @@ void main() {
     expect(find.text('Delivered'), findsOneWidget);
   });
 
-  testWidgets('AppBottomNav shows the cart badge only when items exist', (tester) async {
+  testWidgets('AppBottomNav shows the cart badge only when items exist', (
+    tester,
+  ) async {
     var tapped = -1;
-    await tester.pumpWidget(_wrap(AppBottomNav(
-      currentIndex: 0,
-      cartCount: 3,
-      onTap: (i) => tapped = i,
-    )));
+    await tester.pumpWidget(
+      _wrap(
+        AppBottomNav(currentIndex: 0, cartCount: 3, onTap: (i) => tapped = i),
+      ),
+    );
     expect(find.text('3'), findsOneWidget);
     await tester.tap(find.text('Cart'));
     expect(tapped, 2);
   });
 
   testWidgets('Style preview renders every section', (tester) async {
-    await tester.pumpWidget(ProviderScope(
-      child: MaterialApp(theme: AppTheme.light, home: const StylePreviewScreen()),
-    ));
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          theme: AppTheme.light,
+          home: const StylePreviewScreen(),
+        ),
+      ),
+    );
     expect(find.text('Colours'), findsOneWidget);
-    await tester.scrollUntilVisible(find.text('Logo'), 400, scrollable: find.byType(Scrollable).first);
+    await tester.scrollUntilVisible(
+      find.text('Logo'),
+      400,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(find.text('Logo'), findsOneWidget);
   });
 }

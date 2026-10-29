@@ -31,19 +31,20 @@ class TrackingEvent {
       status: map['status'] as String? ?? 'pending',
       description: map['description'] as String? ?? '',
       location: map['location'] as String?,
-      timestamp: DateTime.tryParse(map['timestamp'] as String? ?? '') ??
+      timestamp:
+          DateTime.tryParse(map['timestamp'] as String? ?? '') ??
           DateTime.now(),
     );
   }
 
   Map<String, dynamic> toMap() => {
-        'id': id,
-        'shipment_id': shipmentId,
-        'status': status,
-        'description': description,
-        'location': location,
-        'timestamp': timestamp.toUtc().toIso8601String(),
-      };
+    'id': id,
+    'shipment_id': shipmentId,
+    'status': status,
+    'description': description,
+    'location': location,
+    'timestamp': timestamp.toUtc().toIso8601String(),
+  };
 }
 
 class Shipment {
@@ -74,9 +75,11 @@ class Shipment {
     final rawEvents = map['tracking_events'] as List<dynamic>?;
     final parsedEvents = rawEvents != null
         ? rawEvents
-            .map((e) =>
-                TrackingEvent.fromMap(Map<String, dynamic>.from(e as Map)))
-            .toList()
+              .map(
+                (e) =>
+                    TrackingEvent.fromMap(Map<String, dynamic>.from(e as Map)),
+              )
+              .toList()
         : (events ?? []);
 
     parsedEvents.sort((a, b) => a.timestamp.compareTo(b.timestamp));
@@ -91,19 +94,19 @@ class Shipment {
           ? DateTime.tryParse(map['estimated_delivery_date'] as String)
           : null,
       createdAt:
-          DateTime.tryParse(map['created_at'] as String? ?? '') ?? DateTime.now(),
+          DateTime.tryParse(map['created_at'] as String? ?? '') ??
+          DateTime.now(),
       events: parsedEvents,
     );
   }
 
   Map<String, dynamic> toMap() => {
-        'id': id,
-        'order_id': orderId,
-        'tracking_number': trackingNumber,
-        'courier_name': courierName,
-        'status': status,
-        'estimated_delivery_date':
-            estimatedDeliveryDate?.toUtc().toIso8601String(),
-        'created_at': createdAt.toUtc().toIso8601String(),
-      };
+    'id': id,
+    'order_id': orderId,
+    'tracking_number': trackingNumber,
+    'courier_name': courierName,
+    'status': status,
+    'estimated_delivery_date': estimatedDeliveryDate?.toUtc().toIso8601String(),
+    'created_at': createdAt.toUtc().toIso8601String(),
+  };
 }

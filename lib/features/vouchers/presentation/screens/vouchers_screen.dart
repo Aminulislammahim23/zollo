@@ -32,13 +32,17 @@ class _VouchersScreenState extends ConsumerState<VouchersScreen> {
     FocusScope.of(context).unfocus();
     setState(() => _adding = true);
     try {
-      final voucher = await ref.read(vouchersProvider.notifier).redeem(_code.text);
+      final voucher = await ref
+          .read(vouchersProvider.notifier)
+          .redeem(_code.text);
       _code.clear();
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Added: ${voucher.title}')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Added: ${voucher.title}')));
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(ErrorView.describe(error))));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(ErrorView.describe(error))));
     } finally {
       if (mounted) setState(() => _adding = false);
     }
@@ -84,7 +88,9 @@ class _VouchersScreenState extends ConsumerState<VouchersScreen> {
           ),
           const SizedBox(height: AppSpacing.cardGap),
           ...vouchersAsync.when(
-            loading: () => [const ShimmerBox(height: 96, radius: AppRadius.card)],
+            loading: () => [
+              const ShimmerBox(height: 96, radius: AppRadius.card),
+            ],
             error: (error, _) => [
               SizedBox(
                 height: 300,
@@ -121,8 +127,10 @@ class _VouchersScreenState extends ConsumerState<VouchersScreen> {
 
 class _UpperCaseFormatter extends TextInputFormatter {
   @override
-  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) =>
-      newValue.copyWith(text: newValue.text.toUpperCase());
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) => newValue.copyWith(text: newValue.text.toUpperCase());
 }
 
 class _VoucherTicket extends StatelessWidget {
@@ -160,10 +168,13 @@ class _VoucherTicket extends StatelessWidget {
                       fit: BoxFit.scaleDown,
                       child: Text(
                         voucher.amountLabel,
-                        style: AppText.custom(20, FontWeight.w800, color: AppColors.accent),
+                        style: AppText.totalPrice.withColor(AppColors.accent),
                       ),
                     ),
-                    Text('OFF', style: AppText.custom(11, FontWeight.w700, color: AppColors.white)),
+                    Text(
+                      'OFF',
+                      style: AppText.microStrong.withColor(AppColors.white),
+                    ),
                   ],
                 ),
               ),
@@ -174,16 +185,21 @@ class _VoucherTicket extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(voucher.title, style: AppText.custom(14, FontWeight.w800)),
+                      Text(voucher.title, style: AppText.rowTitle),
                       const SizedBox(height: 2),
-                      Text(voucher.rule, style: AppText.custom(13, FontWeight.w500, color: AppColors.muted)),
+                      Text(
+                        voucher.rule,
+                        style: AppText.meta.withColor(AppColors.muted),
+                      ),
                       const SizedBox(height: AppSpacing.s),
                       Row(
                         children: [
                           Expanded(
                             child: Text(
                               _expiry,
-                              style: AppText.custom(12, FontWeight.w700, color: AppColors.warning),
+                              style: AppText.captionStrong.withColor(
+                                AppColors.warning,
+                              ),
                             ),
                           ),
                           AppButton.outline(
@@ -194,12 +210,12 @@ class _VoucherTicket extends StatelessWidget {
                             onPressed: voucher.isExpired
                                 ? null
                                 : () => ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          'Code ${voucher.code} saved. Applying vouchers at checkout is coming soon.',
-                                        ),
+                                    SnackBar(
+                                      content: Text(
+                                        'Code ${voucher.code} saved. Applying vouchers at checkout is coming soon.',
                                       ),
                                     ),
+                                  ),
                           ),
                         ],
                       ),

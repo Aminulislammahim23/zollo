@@ -36,7 +36,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final controller = ref.read(authControllerProvider.notifier);
-    final ok = await controller.signIn(email: _email.text, password: _password.text);
+    final ok = await controller.signIn(
+      email: _email.text,
+      password: _password.text,
+    );
     if (!mounted) return;
 
     if (ok) {
@@ -45,7 +48,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
     final error = ref.read(authControllerProvider).error;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(AuthValidators.message(error ?? 'Could not log in.'))),
+      SnackBar(
+        content: Text(AuthValidators.message(error ?? 'Could not log in.')),
+      ),
     );
   }
 
@@ -79,29 +84,34 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   controller: _password,
                   textInputAction: TextInputAction.done,
                   onSubmitted: (_) => _submit(),
-                  validator: (v) => (v == null || v.isEmpty) ? 'Enter your password' : null,
+                  validator: (v) =>
+                      (v == null || v.isEmpty) ? 'Enter your password' : null,
                 ),
                 const SizedBox(height: AppSpacing.s),
-                Row(
+                Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    Expanded(
-                      child: InkWell(
-                        onTap: () => setState(() => _keepLoggedIn = !_keepLoggedIn),
-                        borderRadius: AppRadius.tileAll,
-                        child: Row(
-                          children: [
-                            Checkbox(
-                              value: _keepLoggedIn,
-                              onChanged: (v) => setState(() => _keepLoggedIn = v ?? true),
+                    InkWell(
+                      onTap: () =>
+                          setState(() => _keepLoggedIn = !_keepLoggedIn),
+                      borderRadius: AppRadius.tileAll,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Checkbox(
+                            value: _keepLoggedIn,
+                            onChanged: (v) =>
+                                setState(() => _keepLoggedIn = v ?? true),
+                          ),
+                          Flexible(
+                            child: Text(
+                              'Keep me logged in',
+                              style: AppText.meta.withColor(AppColors.inkSoft),
                             ),
-                            Flexible(
-                              child: Text(
-                                'Keep me logged in',
-                                style: AppText.custom(13, FontWeight.w500, color: AppColors.inkSoft),
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(width: AppSpacing.s),
+                        ],
                       ),
                     ),
                     TextButton(
@@ -114,7 +124,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ),
           ),
         ),
-        AppButton.primary(label: 'Log in', loading: isLoading, onPressed: _submit),
+        AppButton.primary(
+          label: 'Log in',
+          loading: isLoading,
+          onPressed: _submit,
+        ),
         if (AppConstants.showSocialLogin) ...[
           Row(
             children: [
@@ -123,7 +137,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.m),
                 child: Text(
                   'or continue with',
-                  style: AppText.custom(13, FontWeight.w500, color: AppColors.muted),
+                  style: AppText.meta.withColor(AppColors.muted),
                 ),
               ),
               const Expanded(child: Divider()),
@@ -131,9 +145,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ),
           Row(
             children: [
-              Expanded(child: AppButton.outline(label: 'Google', height: 50, onPressed: () {})),
+              Expanded(
+                child: AppButton.outline(
+                  label: 'Google',
+                  height: 50,
+                  onPressed: () {},
+                ),
+              ),
               const SizedBox(width: AppSpacing.m),
-              Expanded(child: AppButton.outline(label: 'Facebook', height: 50, onPressed: () {})),
+              Expanded(
+                child: AppButton.outline(
+                  label: 'Facebook',
+                  height: 50,
+                  onPressed: () {},
+                ),
+              ),
             ],
           ),
         ],
@@ -148,7 +174,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           onPressed: () => context.go('/home'),
           style: TextButton.styleFrom(
             foregroundColor: AppColors.muted,
-            textStyle: AppText.custom(14, FontWeight.w700),
+            textStyle: AppText.bodyStrong,
           ),
           child: const Text('Continue as guest'),
         ),
