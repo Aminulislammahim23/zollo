@@ -2,321 +2,212 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_text.dart';
+import '../../../../core/utils/formatters.dart';
+import '../../../../core/widgets/widgets.dart';
+import '../../../products/presentation/providers/products_provider.dart';
+import '../../../reviews/providers/review_providers.dart';
+import '../../domain/models/order_model.dart';
 import '../providers/order_provider.dart';
+import '../widgets/order_thumbnail.dart';
 
-class OrderHistoryScreen extends ConsumerStatefulWidget {
-  const OrderHistoryScreen({super.key});
+enum OrderTab {
+  all('All'),
+  processing('Processing'),
+  shipped('Shipped'),
+  delivered('Delivered'),
+  cancelled('Cancelled');
 
-  @override
-  ConsumerState<OrderHistoryScreen> createState() => _OrderHistoryScreenState();
+  const OrderTab(this.label);
+  final String label;
+
+  bool matches(OrderModel order) => switch (this) {
+        OrderTab.all => true,
+        OrderTab.processing => order.isActive,
+        OrderTab.shipped => order.status == OrderStatus.shipped,
+        OrderTab.delivered => order.status == OrderStatus.delivered,
+        OrderTab.cancelled => order.status == OrderStatus.cancelled,
+      };
+
+  static OrderTab fromQuery(String? value) =>
+      OrderTab.values.firstWhere((t) => t.name == value, orElse: () => OrderTab.all);
 }
 
-class _OrderHistoryScreenState extends ConsumerState<OrderHistoryScreen> {
-  String selectedTab = 'All';
-  final List<String> tabs = [
-    'All',
-    'To pay',
-    'To ship',
-    'To receive',
-    'To review',
-  ];
+/// `/order-history?tab=<all|processing|shipped|delivered|cancelled>`, spec C13.
+class OrderHistoryScreen extends ConsumerWidget {
+  const OrderHistoryScreen({super.key, this.initialTab = OrderTab.all});
+
+  final OrderTab initialTab;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final ordersAsync = ref.watch(myOrdersProvider);
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF9F9F7),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new,
-            size: 18,
-            color: Colors.black87,
-          ),
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              context.go('/home');
-            }
-          },
-        ),
-        title: const Text(
-          'My orders',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(48),
-          child: Container(
-            color: Colors.white,
-            alignment: Alignment.centerLeft,
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: tabs.map((tab) {
-                  final isSelected = selectedTab == tab;
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        selectedTab = tab;
-                      });
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        border: Border(
-                          bottom: BorderSide(
-                            color: isSelected
-                                ? const Color(0xFF006B54)
-                                : Colors.transparent,
-                            width: 2.5,
-                          ),
-                        ),
-                      ),
-                      child: Text(
-                        tab,
-                        style: TextStyle(
-                          color: isSelected
-                              ? const Color(0xFF006B54)
-                              : Colors.grey.shade600,
-                          fontWeight:
-                              isSelected ? FontWeight.bold : FontWeight.w500,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
+    return DefaultTabController(
+      length: OrderTab.values.length,
+      initialIndex: initialTab.index,
+      child: Scaffold(
+        appBar: AppTopBar(
+          title: 'My orders',
+          fallbackRoute: '/account',
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(44),
+            child: SizedBox(
+              height: 44,
+              child: TabBar(
+                isScrollable: true,
+                indicatorWeight: 3,
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s),
+                tabs: [for (final t in OrderTab.values) Tab(text: t.label)],
               ),
             ),
           ),
         ),
-      ),
-      body: ordersAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+        body: ordersAsync.when(
+          loading: () => const ShimmerList(itemHeight: 150),
+          error: (error, _) => ErrorView(
+            title: "Couldn't load your orders",
+            error: error,
+            onRetry: () => ref.invalidate(myOrdersProvider),
+          ),
+          data: (orders) => TabBarView(
             children: [
-              const Text('Could not load orders.'),
-              const SizedBox(height: 8),
-              TextButton(
-                onPressed: () => ref.invalidate(myOrdersProvider),
-                child: const Text('Retry'),
-              ),
+              for (final tab in OrderTab.values)
+                _OrderList(orders: orders.where(tab.matches).toList()),
             ],
           ),
         ),
-        data: (orders) {
-          if (orders.isEmpty) {
-            return const Center(
-              child: Text('You have not placed any orders yet.'),
-            );
-          }
-
-          return RefreshIndicator(
-            onRefresh: () async => ref.refresh(myOrdersProvider.future),
-            child: ListView.separated(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(16),
-              itemCount: orders.length,
-              separatorBuilder: (context, index) =>
-                  const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final order = orders[index];
-                final firstItem = order.items.isNotEmpty
-                    ? order.items.first.productName
-                    : 'Product Item';
-                final itemCount =
-                    order.items.fold(0, (sum, item) => sum + item.quantity);
-                final itemSummary = itemCount > 1
-                    ? '$firstItem + ${itemCount - 1} more'
-                    : firstItem;
-
-                String statusText = 'In transit';
-                Color statusColor = const Color(0xFF006B54);
-                String actionText = 'Track';
-                bool isReview = false;
-
-                if (order.status.name == 'delivered') {
-                  statusText = 'Delivered';
-                  statusColor = Colors.grey.shade700;
-                  actionText = 'Write review';
-                  isReview = true;
-                } else if (order.status.name == 'shipped') {
-                  statusText = 'In transit';
-                  statusColor = const Color(0xFF006B54);
-                  actionText = 'Track';
-                } else if (order.status.name == 'processing') {
-                  statusText = 'Packed';
-                  statusColor = const Color(0xFF006B54);
-                  actionText = 'Track';
-                } else if (order.status.name == 'pending') {
-                  statusText = 'Awaiting payment';
-                  statusColor = Colors.orange.shade800;
-                  actionText = 'Pay now';
-                }
-
-                return Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: Colors.grey.shade200),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            '[Seller store A]',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          Text(
-                            statusText,
-                            style: TextStyle(
-                              color: statusColor,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 12),
-                        child: Divider(height: 1),
-                      ),
-                      Row(
-                        children: [
-                          Container(
-                            width: 60,
-                            height: 60,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF3F1EC),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Icon(
-                              Icons.shopping_bag_outlined,
-                              color: Colors.grey,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  itemSummary,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 14,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  '$itemCount item${itemCount > 1 ? 's' : ''} · placed ${order.createdAt.day} ${_monthName(order.createdAt.month)}',
-                                  style: TextStyle(
-                                    color: Colors.grey.shade600,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 12),
-                        child: Divider(height: 1),
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Total ৳${order.totalAmount.toStringAsFixed(0)}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          OutlinedButton(
-                            style: OutlinedButton.styleFrom(
-                              side: const BorderSide(
-                                color: Color(0xFF006B54),
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 8,
-                              ),
-                            ),
-                            onPressed: () {
-                              if (isReview) {
-                                context.push('/order-details/${order.id}');
-                              } else {
-                                context.push('/tracking/${order.id}');
-                              }
-                            },
-                            child: Text(
-                              actionText,
-                              style: const TextStyle(
-                                color: Color(0xFF006B54),
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          );
-        },
       ),
     );
   }
+}
 
-  String _monthName(int month) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    return months[month - 1];
+class _OrderList extends ConsumerWidget {
+  const _OrderList({required this.orders});
+
+  final List<OrderModel> orders;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (orders.isEmpty) {
+      return EmptyState(
+        icon: Icons.receipt_long_outlined,
+        title: 'No orders here yet.',
+        message: 'Orders you place will show up here.',
+        actionLabel: 'Start shopping',
+        onAction: () => context.go('/home'),
+      );
+    }
+    return RefreshIndicator(
+      color: AppColors.primary,
+      onRefresh: () async {
+        ref.invalidate(myOrdersProvider);
+        await ref.read(myOrdersProvider.future).catchError((_) => <OrderModel>[]);
+      },
+      child: ListView.separated(
+        padding: const EdgeInsets.all(AppSpacing.m),
+        itemCount: orders.length,
+        separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.cardGap),
+        itemBuilder: (context, i) => OrderCard(order: orders[i]),
+      ),
+    );
+  }
+}
+
+class OrderCard extends ConsumerWidget {
+  const OrderCard({super.key, required this.order});
+
+  final OrderModel order;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final first = order.items.isNotEmpty ? order.items.first : null;
+    final more = order.items.length - 1;
+    final firstProduct = first == null ? null : ref.watch(productLookupProvider)[first.productId];
+    final canReview = order.status == OrderStatus.delivered && first != null
+        ? ref.watch(canUserReviewProvider(first.productId)).value ?? false
+        : false;
+
+    void openDetails() => context.push('/order-details/${order.id}');
+
+    final (String label, VoidCallback action) = switch (order.status) {
+      OrderStatus.shipped => ('Track', () => context.push('/tracking/${order.id}')),
+      OrderStatus.delivered when canReview && firstProduct != null => (
+          'Write review',
+          () => context.push('/write-review', extra: firstProduct),
+        ),
+      _ => ('Details', openDetails),
+    };
+
+    return InfoCard(
+      onTap: openDetails,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(child: Text(formatOrderNumber(order.id), style: AppText.custom(13, FontWeight.w700))),
+              StatusText(order.status),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.m),
+          Row(
+            children: [
+              if (first != null) OrderThumbnail(productId: first.productId),
+              const SizedBox(width: AppSpacing.m),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      first == null
+                          ? 'Order'
+                          : more > 0
+                              ? '${first.productName} + $more more'
+                              : first.productName,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppText.bodySmall,
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      '${order.itemCount} ${order.itemCount == 1 ? 'item' : 'items'} · placed ${formatDate(order.createdAt)}',
+                      style: AppText.custom(13, FontWeight.w500, color: AppColors.muted),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const Padding(
+            padding: EdgeInsets.only(top: 10, bottom: AppSpacing.s),
+            child: Divider(),
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: Text.rich(
+                  TextSpan(
+                    style: AppText.custom(13, FontWeight.w500, color: AppColors.muted),
+                    children: [
+                      const TextSpan(text: 'Total '),
+                      TextSpan(text: formatTaka(order.total), style: AppText.custom(13, FontWeight.w800)),
+                    ],
+                  ),
+                ),
+              ),
+              AppButton.outline(
+                label: label,
+                size: AppButtonSize.small,
+                fullWidth: false,
+                onPressed: action,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }

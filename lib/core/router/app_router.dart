@@ -123,7 +123,9 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: '/order-history',
-      builder: (context, state) => const OrderHistoryScreen(),
+      builder: (context, state) => OrderHistoryScreen(
+        initialTab: OrderTab.fromQuery(state.uri.queryParameters['tab']),
+      ),
     ),
     GoRoute(
       path: '/order-details/:orderId',
