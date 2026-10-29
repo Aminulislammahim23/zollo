@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../auth/domain/providers/auth_provider.dart';
 import '../../data/address_repository.dart';
 import '../../domain/address_model.dart';
 
@@ -13,11 +14,11 @@ final addressListProvider =
 );
 
 class AddressListNotifier extends AsyncNotifier<List<Address>> {
-  late final AddressRepository _repository;
+  AddressRepository get _repository => ref.read(addressRepositoryProvider);
 
   @override
   Future<List<Address>> build() async {
-    _repository = ref.read(addressRepositoryProvider);
+    ref.watch(currentUserProvider.select((u) => u?.id));
     return _repository.getAddresses();
   }
 

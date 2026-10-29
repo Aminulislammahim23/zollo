@@ -2,6 +2,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../auth/domain/providers/auth_provider.dart';
 import '../../data/wishlist_repository.dart';
 
 final wishlistRepositoryProvider =
@@ -18,7 +19,10 @@ AsyncNotifierProvider<WishlistNotifier, Set<String>>(
 
 class WishlistNotifier extends AsyncNotifier<Set<String>> {
   @override
-  Future<Set<String>> build() {
+  Future<Set<String>> build() async {
+    // Guests have an empty wishlist; it reloads when the user logs in or out.
+    final userId = ref.watch(currentUserProvider.select((u) => u?.id));
+    if (userId == null) return <String>{};
     return ref.read(wishlistRepositoryProvider).getProductIds();
   }
 

@@ -7,6 +7,7 @@ abstract final class AppConstants {
   static const String privacyPolicyUrl = 'https://zollo.com.bd/privacy';
   static const String termsUrl = 'https://zollo.com.bd/terms';
   static const String supportEmail = 'support@zollo.com.bd';
+  static const String productShareBaseUrl = 'https://zollo.com.bd/p';
 
   /// Social login buttons stay hidden until OAuth is configured in Supabase.
   static const bool showSocialLogin = false;

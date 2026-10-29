@@ -11,7 +11,7 @@ class CartController extends Notifier<Map<String, CartItem>> {
   @override
   Map<String, CartItem> build() => {};
 
-  void addToCart(Product product) {
+  void addToCart(Product product, {String? variant}) {
     if (product.stock <= 0) return;
 
     final currentItem = state[product.id];
@@ -22,13 +22,19 @@ class CartController extends Notifier<Map<String, CartItem>> {
 
       state = {
         ...state,
-        product.id: currentItem.copyWith(quantity: currentItem.quantity + 1),
+        product.id: currentItem.copyWith(
+          quantity: currentItem.quantity + 1,
+          variant: variant,
+        ),
       };
       return;
     }
 
     // New product.
-    state = {...state, product.id: CartItem(product: product, quantity: 1)};
+    state = {
+      ...state,
+      product.id: CartItem(product: product, quantity: 1, variant: variant),
+    };
   }
 
   void increment(String productId) {

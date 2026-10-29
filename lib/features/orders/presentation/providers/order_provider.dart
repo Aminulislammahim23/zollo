@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../auth/domain/providers/auth_provider.dart';
 import '../../data/repositories/order_repository.dart';
 import '../../data/repositories/supabase_order_repository.dart';
 import '../../domain/models/order_model.dart';
@@ -11,6 +12,7 @@ final orderRepositoryProvider = Provider<OrderRepository>((ref) {
 
 final orderHistoryProvider =
     FutureProvider<List<OrderModel>>((ref) async {
+  ref.watch(currentUserProvider.select((u) => u?.id));
   return ref.watch(orderRepositoryProvider).getOrders();
 });
 

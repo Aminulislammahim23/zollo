@@ -19,6 +19,8 @@ import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/change_password_screen.dart';
 import '../../features/products/presentation/screens/product_details_screen.dart';
 import '../../features/products/domain/models/product.dart';
+import '../../features/reviews/presentation/screens/product_reviews_screen.dart';
+import '../../features/reviews/presentation/screens/write_review_screen.dart';
 import '../../features/checkout/screens/checkout_screen.dart';
 import '../../features/orders/presentation/screens/order_history_screen.dart';
 import '../../features/orders/presentation/screens/order_details_screen.dart';
@@ -101,6 +103,14 @@ final GoRouter appRouter = GoRouter(
         final product = state.extra as Product;
         return ProductDetailsScreen(product: product);
       },
+    ),
+    GoRoute(
+      path: '/product-reviews',
+      builder: (context, state) => ProductReviewsScreen(product: state.extra as Product),
+    ),
+    GoRoute(
+      path: '/write-review',
+      builder: (context, state) => WriteReviewScreen(product: state.extra as Product),
     ),
     GoRoute(
       path: '/checkout',

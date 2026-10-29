@@ -4,11 +4,18 @@ class CartItem {
   final Product product;
   final int quantity;
 
-  const CartItem({required this.product, required this.quantity});
+  /// Chosen option shown on the cart line, e.g. "Colour: Black".
+  final String? variant;
+
+  const CartItem({required this.product, required this.quantity, this.variant});
 
   double get subtotal => product.price * quantity;
 
-  CartItem copyWith({int? quantity}) {
-    return CartItem(product: product, quantity: quantity ?? this.quantity);
+  CartItem copyWith({int? quantity, String? variant}) {
+    return CartItem(
+      product: product,
+      quantity: quantity ?? this.quantity,
+      variant: variant ?? this.variant,
+    );
   }
 }
