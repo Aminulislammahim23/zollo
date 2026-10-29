@@ -5,6 +5,7 @@ export 'app_network_image.dart';
 export 'app_text_field.dart';
 export 'app_top_bar.dart';
 export 'cart_icon_button.dart';
+export 'dashed_border.dart';
 export 'discount_badge.dart';
 export 'empty_state.dart';
 export 'error_view.dart';
