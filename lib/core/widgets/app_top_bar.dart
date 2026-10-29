@@ -10,6 +10,7 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
     super.key,
     required this.title,
     this.subtitle,
+    this.subtitleStyle,
     this.actions = const [],
     this.showBack = true,
     this.onBack,
@@ -19,6 +20,9 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
 
   final String title;
   final String? subtitle;
+
+  /// Defaults to caption / muted.
+  final TextStyle? subtitleStyle;
   final List<Widget> actions;
   final bool showBack;
   final VoidCallback? onBack;
@@ -85,7 +89,7 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
                         if (subtitle != null)
                           Text(
                             subtitle!,
-                            style: AppText.caption.withColor(AppColors.muted),
+                            style: subtitleStyle ?? AppText.caption.withColor(AppColors.muted),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),

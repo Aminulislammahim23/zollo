@@ -12,6 +12,7 @@ import '../../../../core/widgets/widgets.dart';
 import '../../../address/presentation/providers/address_provider.dart';
 import '../../../auth/domain/providers/auth_provider.dart';
 import '../../../cart/presentation/providers/cart_provider.dart';
+import '../../../chat/presentation/providers/chat_providers.dart';
 import '../../../reviews/domain/review_summary.dart';
 import '../../../reviews/presentation/widgets/rating_stars.dart';
 import '../../../reviews/providers/review_providers.dart';
@@ -63,12 +64,14 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
     );
   }
 
-  void _chatWithSeller() {
+  Future<void> _chatWithSeller() async {
     if (ref.read(currentUserProvider) == null) {
       context.push('/login');
       return;
     }
-    context.push('/messages/new', extra: product);
+    final conversation = await ref.read(chatRepositoryProvider).conversationForProduct(product);
+    if (!mounted) return;
+    context.push('/messages/${conversation.id}');
   }
 
   @override

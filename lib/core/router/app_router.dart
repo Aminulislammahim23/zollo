@@ -12,6 +12,8 @@ import '../../features/categories/presentation/screens/categories_screen.dart';
 import '../../features/search/presentation/screens/search_screen.dart';
 import '../../features/vouchers/presentation/screens/vouchers_screen.dart';
 import '../../features/notifications/presentation/screens/notifications_screen.dart';
+import '../../features/chat/presentation/screens/messages_screen.dart';
+import '../../features/chat/presentation/screens/chat_room_screen.dart';
 import '../../features/cart/presentation/screens/cart_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/profile/presentation/screens/edit_profile_screen.dart';
@@ -100,6 +102,18 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/notifications',
       builder: (context, state) => const NotificationsScreen(),
+    ),
+    GoRoute(
+      path: '/messages',
+      builder: (context, state) => const MessagesScreen(),
+      routes: [
+        GoRoute(
+          path: ':conversationId',
+          builder: (context, state) => ChatRoomScreen(
+            conversationId: state.pathParameters['conversationId']!,
+          ),
+        ),
+      ],
     ),
     GoRoute(
       path: '/search',
