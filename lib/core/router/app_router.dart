@@ -9,6 +9,7 @@ import '../../features/onboarding/presentation/screens/onboarding_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/products/presentation/screens/product_list_screen.dart';
 import '../../features/categories/presentation/screens/categories_screen.dart';
+import '../../features/search/presentation/screens/search_screen.dart';
 import '../../features/cart/presentation/screens/cart_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/profile/presentation/screens/edit_profile_screen.dart';
@@ -89,6 +90,10 @@ final GoRouter appRouter = GoRouter(
         final address = state.extra as Address;
         return AddEditAddressScreen(address: address);
       },
+    ),
+    GoRoute(
+      path: '/search',
+      builder: (context, state) => const SearchScreen(),
     ),
     GoRoute(
       path: '/products',
