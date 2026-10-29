@@ -35,6 +35,27 @@ class Address {
 
   String get formattedAddress => '$addressLine, $city - $postalCode';
 
+  /// "House 12, Road 4, Dhanmondi, Dhaka City, Dhaka".
+  String get displayAddress {
+    final parts = <String>[addressLine, area, district, division]
+        .map((p) => p.trim())
+        .where((p) => p.isNotEmpty)
+        .toList();
+    // Drop consecutive duplicates such as "Dhaka City, Dhaka City".
+    final unique = <String>[];
+    for (final p in parts) {
+      if (unique.isEmpty || unique.last.toLowerCase() != p.toLowerCase()) unique.add(p);
+    }
+    if (unique.isEmpty) return formattedAddress;
+    return postalCode.trim().isEmpty ? unique.join(', ') : '${unique.join(', ')} - $postalCode';
+  }
+
+  /// "Dhanmondi, Dhaka City".
+  String get shortArea {
+    final parts = [area, district].map((p) => p.trim()).where((p) => p.isNotEmpty);
+    return parts.isEmpty ? city : parts.join(', ');
+  }
+
   factory Address.fromMap(Map<String, dynamic> map) {
     return Address(
       id: map['id'] as String? ?? '',

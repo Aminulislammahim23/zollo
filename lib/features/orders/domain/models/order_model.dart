@@ -56,6 +56,23 @@ class OrderModel {
 
   double get totalAmount => total;
 
+  int get itemCount => items.fold(0, (sum, item) => sum + item.quantity);
+
+  List<String> get _addressLines =>
+      shippingAddress.split('\n').map((l) => l.trim()).where((l) => l.isNotEmpty).toList();
+
+  /// "Name · phone" from the address snapshot written at checkout.
+  String get recipient => _addressLines.length > 1 ? _addressLines.first : '';
+
+  /// The address part of the snapshot.
+  String get deliveryAddress =>
+      _addressLines.length > 1 ? _addressLines.sublist(1).join(', ') : shippingAddress;
+
+  bool get isActive =>
+      status == OrderStatus.pending ||
+      status == OrderStatus.confirmed ||
+      status == OrderStatus.processing;
+
   Map<String, dynamic> toInsertJson() => {
         'id': id,
         'user_id': userId,
