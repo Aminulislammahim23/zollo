@@ -1,4 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
+
+import '../constants/app_constants.dart';
+import '../debug/style_preview_screen.dart';
 
 import '../../features/splash/presentation/screens/splash_screen.dart';
 import '../../features/onboarding/presentation/screens/onboarding_screen.dart';
@@ -26,6 +30,11 @@ import 'main_scaffold.dart';
 final GoRouter appRouter = GoRouter(
   initialLocation: '/splash',
   routes: [
+    if (kDebugMode)
+      GoRoute(
+        path: '/style-preview',
+        builder: (context, state) => const StylePreviewScreen(),
+      ),
     GoRoute(
       path: '/splash',
       builder: (context, state) => const SplashScreen(),
@@ -80,7 +89,7 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) {
         final extras = state.extra as Map<String, dynamic>?;
         final subtotal = extras?['subtotal'] as double? ?? 0.0;
-        final deliveryCharge = extras?['deliveryCharge'] as double? ?? 60.0;
+        final deliveryCharge = extras?['deliveryCharge'] as double? ?? AppConstants.deliveryFee;
         return CheckoutScreen(subtotal: subtotal, deliveryCharge: deliveryCharge);
       },
     ),

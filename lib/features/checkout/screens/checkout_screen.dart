@@ -12,6 +12,7 @@ import '../../orders/presentation/providers/order_provider.dart';
 import '../../address/presentation/providers/address_provider.dart';
 import '../../address/domain/address_model.dart';
 import '../models/checkout_order.dart';
+import '../../../core/constants/app_constants.dart';
 
 class CheckoutScreen extends ConsumerStatefulWidget {
   final double subtotal;
@@ -20,7 +21,7 @@ class CheckoutScreen extends ConsumerStatefulWidget {
   const CheckoutScreen({
     super.key,
     required this.subtotal,
-    this.deliveryCharge = 120,
+    this.deliveryCharge = AppConstants.deliveryFee,
   });
 
   @override
@@ -103,7 +104,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final total = widget.subtotal + widget.deliveryCharge - 100;
+    final total = widget.subtotal + widget.deliveryCharge;
     final isPlacingOrder = ref.watch(placeOrderProvider).isLoading;
     final defaultAddressAsync = ref.watch(defaultAddressProvider);
     final currentAddress = _selectedAddress ?? defaultAddressAsync.value;

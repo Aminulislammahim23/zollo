@@ -54,7 +54,7 @@ void main() {
       await tester.pump(); // Initial frame
 
       expect(find.text('zollo'), findsOneWidget);
-      expect(find.text('Your Ultimate Marketplace'), findsOneWidget);
+      expect(find.text('Everything you need, delivered across Bangladesh'), findsOneWidget);
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
       await tester.pump(const Duration(milliseconds: 1600));

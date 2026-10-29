@@ -76,7 +76,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Navigated to Onboarding
-      expect(find.text('Discover Products'), findsOneWidget);
+      expect(find.text('Millions of products from trusted sellers'), findsOneWidget);
 
       // Tap Skip in Onboarding
       await tester.tap(find.text('Skip'));
