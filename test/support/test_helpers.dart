@@ -146,6 +146,7 @@ Future<void> pumpRoutes(
   final router = GoRouter(initialLocation: initialLocation, routes: routes);
   await tester.pumpWidget(
     ProviderScope(
+      retry: (retryCount, error) => null,
       overrides: [
         sharedPreferencesProvider.overrideWithValue(sharedPrefs),
         authRepositoryProvider.overrideWithValue(authRepo),

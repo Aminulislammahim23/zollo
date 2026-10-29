@@ -12,6 +12,7 @@ export 'password_field.dart';
 export 'phone_field.dart';
 export 'price_text.dart';
 export 'product_card.dart';
+export 'product_grid.dart';
 export 'quantity_stepper.dart';
 export 'rating_row.dart';
 export 'search_field.dart';

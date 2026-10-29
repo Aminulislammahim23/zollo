@@ -1,44 +1,32 @@
 import 'package:flutter/material.dart';
-import 'package:zollo/features/products/domain/models/product.dart';
-import 'package:zollo/features/products/presentation/widgets/product_card.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/widgets/product_grid.dart';
+import '../../../../core/widgets/section_header.dart';
+import '../../../products/domain/models/product.dart';
+
+/// "Just for you" header plus a 2-column product grid, as slivers.
 class JustForYouSection extends StatelessWidget {
-  final List<Product> products;
-
   const JustForYouSection({super.key, required this.products});
+
+  final List<Product> products;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Just for you',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+    return SliverMainAxisGroup(
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(AppSpacing.screen, 0, AppSpacing.xs, AppSpacing.xs),
+          sliver: SliverToBoxAdapter(
+            child: SectionHeader(
+              title: 'Just for you',
+              onAction: () => context.push('/products'),
             ),
           ),
-          const SizedBox(height: 12),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: products.length,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 0.68,
-            ),
-            itemBuilder: (context, index) {
-              final product = products[index];
-              return ProductCard(product: product);
-            },
-          ),
-        ],
-      ),
+        ),
+        SliverProductGrid(products: products),
+      ],
     );
   }
 }

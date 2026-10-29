@@ -25,6 +25,8 @@ Future<void> main() async {
 
   runApp(
     ProviderScope(
+      // Screens show an ErrorView with "Try again" instead of retrying silently.
+      retry: (retryCount, error) => null,
       overrides: [
         sharedPreferencesProvider.overrideWithValue(sharedPreferences),
       ],
