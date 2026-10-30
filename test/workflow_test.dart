@@ -75,6 +75,16 @@ class FakeOrderRepository implements OrderRepository {
   Future<List<OrderModel>> getOrders() async {
     return orders;
   }
+
+  @override
+  Future<OrderModel> cancelOrder(String orderId, {String? reason}) async {
+    final i = orders.indexWhere((o) => o.id == orderId);
+    if (i < 0) throw const OrderException(OrderErrorCode.orderNotFound);
+    if (!orders[i].canCancel) {
+      throw const OrderException(OrderErrorCode.orderNotCancellable);
+    }
+    return orders[i] = orders[i].copyWith(status: OrderStatus.cancelled);
+  }
 }
 
 void main() {

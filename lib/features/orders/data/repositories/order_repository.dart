@@ -9,4 +9,8 @@ abstract interface class OrderRepository {
   Future<OrderModel?> getOrderById(String id);
 
   Future<List<OrderModel>> getOrders();
+
+  /// Cancels a pending order (`cancel_order()`); the database releases the
+  /// reserved stock. Throws `OrderException` (ORDER_NOT_CANCELLABLE, ...).
+  Future<OrderModel> cancelOrder(String orderId, {String? reason});
 }

@@ -61,3 +61,14 @@ class PlaceOrderController extends AsyncNotifier<OrderModel?> {
     }
   }
 }
+
+/// Cancels a pending order and refreshes every view of it.
+Future<OrderModel> cancelOrder(WidgetRef ref, String orderId) async {
+  final order = await ref
+      .read(orderRepositoryProvider)
+      .cancelOrder(orderId, reason: 'cancelled_by_customer');
+  ref.invalidate(orderHistoryProvider);
+  ref.invalidate(orderDetailsProvider(orderId));
+  ref.invalidate(orderByIdProvider(orderId));
+  return order;
+}

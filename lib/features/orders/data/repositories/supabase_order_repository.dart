@@ -70,4 +70,19 @@ class SupabaseOrderRepository implements OrderRepository {
         .order('created_at', ascending: false);
     return rows.map(OrderModel.fromJson).toList();
   }
+
+  @override
+  Future<OrderModel> cancelOrder(String orderId, {String? reason}) {
+    return _guard(() async {
+      await _client.rpc(
+        'cancel_order',
+        params: {'p_order_id': orderId, 'p_reason': reason},
+      );
+      final order = await getOrderById(orderId);
+      if (order == null) {
+        throw const OrderException(OrderErrorCode.orderNotFound);
+      }
+      return order;
+    });
+  }
 }

@@ -117,9 +117,48 @@ void main() {
 
     expect(find.text('Delivered'), findsWidgets);
     expect(find.text('৳560'), findsOneWidget);
+    expect(find.text('Cancel order'), findsNothing);
     await tester.tap(find.text('Request a return'));
     await tester.pumpAndSettle();
     expect(find.text('Return destination'), findsOneWidget);
+  });
+
+  testWidgets('a pending order can be cancelled after confirming', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(400, 1400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final repo = FakeOrderRepository([...orders]);
+    await pumpRoutes(
+      tester,
+      routes: routes,
+      initialLocation: '/order-details/aaaaaa-1',
+      user: FakeUser(),
+      overrides: [
+        ...overrides.skip(1),
+        orderRepositoryProvider.overrideWithValue(repo),
+      ],
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Cancel order'));
+    await tester.pumpAndSettle();
+    expect(find.text('Cancel this order?'), findsOneWidget);
+
+    // "Keep order" leaves it alone.
+    await tester.tap(find.text('Keep order'));
+    await tester.pumpAndSettle();
+    expect(repo.orders.first.status, OrderStatus.pending);
+
+    await tester.tap(find.text('Cancel order'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Cancel order').last);
+    await tester.pumpAndSettle();
+
+    expect(repo.orders.first.status, OrderStatus.cancelled);
+    expect(find.text('Order cancelled'), findsOneWidget);
+    expect(find.text('Cancel order'), findsNothing);
   });
 
   testWidgets('tracking derives steps from the order status', (tester) async {
