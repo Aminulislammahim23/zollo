@@ -78,14 +78,22 @@ class PhoneField extends StatelessWidget {
         margin: const EdgeInsets.only(left: 1, right: 10),
         padding: const EdgeInsets.symmetric(horizontal: 12),
         constraints: BoxConstraints(minHeight: height - 2),
-        alignment: Alignment.center,
         decoration: const BoxDecoration(
           color: AppColors.surfaceAlt,
           borderRadius: BorderRadius.horizontal(left: Radius.circular(11)),
         ),
-        child: Text(
-          '+880',
-          style: AppText.custom(15, FontWeight.w700, color: AppColors.inkSoft),
+        // widthFactor 1: as wide as the text. A Container with `alignment`
+        // would expand to the whole field and leave no room to type.
+        child: Center(
+          widthFactor: 1,
+          child: Text(
+            '+880',
+            style: AppText.custom(
+              15,
+              FontWeight.w700,
+              color: AppColors.inkSoft,
+            ),
+          ),
         ),
       ),
     );
