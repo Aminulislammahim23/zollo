@@ -44,7 +44,7 @@ Everything lives in `lib/core/theme/` and `lib/core/widgets/`. Screens use these
 - **Colours** (`AppColors`): primary `#8A1C5E` (plum), accent `#F5B301` (deal yellow), deep `#2A1023` (campaign banners), ink and muted greys, plus status colours (`warning`, `error`, `discountBg`, …).
 - **Type** (`AppText`): Manrope, with `display`, `headline`, `title`, `section`, `body`, `caption`, `price`, `priceOld` and named helper styles.
 - **Spacing and shape** (`AppSpacing`, `AppRadius`, `AppBorders`): 4 / 8 / 12 / 16 / 24 / 32 spacing; radius 12 for buttons and inputs, 14 for cards, 16 for banners, 10 for tiles. The style is flat, with no shadows.
-- **Helpers**: `formatTaka(2450)` → `৳2,450`, `formatSold`, `formatDate`, `formatRelative`, `formatOrderNumber`. `AppConstants.deliveryFee = 60` is the single source for the delivery fee.
+- **Helpers**: `formatTaka(2450)` → `৳2,450`, `formatSold`, `formatDate`, `formatRelative`, `formatOrderNumber`. The delivery fee comes from the `app_config` table at start-up (`deliveryFeeProvider`), with `AppConstants.deliveryFee = 60` as the fallback.
 - **Shared widgets**: `AppButton` (primary / outline / deal / danger, loading state), `AppTextField`, `PasswordField`, `PhoneField` (+880, BD validation), `SearchField`, `AppChip`, `DiscountBadge`, `PriceText`, `RatingRow`, `ProductCard`, `SliverProductGrid`, `QuantityStepper`, `SectionHeader`, `AppTopBar`, `InfoCard`, `EmptyState`, `ErrorView`, `ShimmerBox`, `StatusText`, `AppBottomNav`, `CartIconButton`, `DashedBorder`, `ZolloLogo`.
 - **Style preview**: in debug builds, `/style-preview` shows every colour, text style and widget on one screen.
 
@@ -120,7 +120,8 @@ main() → Supabase.initialize → SharedPreferences → ProviderScope(retry off
 lib/
 ├── main.dart                                   # Bootstrap: Supabase, SharedPreferences, ProviderScope, MyApp
 ├── core/
-│   ├── constants/app_constants.dart            # Delivery fee, URLs, return window, BD divisions → districts
+│   ├── config/app_config.dart                  # AppConfigRepository + deliveryFeeProvider (app_config table)
+│   ├── constants/app_constants.dart            # Fallback delivery fee, URLs, return window, BD divisions → districts
 │   ├── debug/style_preview_screen.dart         # Debug-only /style-preview catalogue
 │   ├── router/
 │   │   ├── app_router.dart                     # All routes + bottom-nav shell
@@ -192,7 +193,7 @@ lib/
     │       ├── providers/categories_provider.dart               # categoriesProvider, productsByCategoryProvider
     │       └── screens/categories_screen.dart                   # Rail + panel (tab 2)
     ├── products/
-    │   ├── data/repositories/product_repository.dart            # Products with fallback queries
+    │   ├── data/repositories/product_repository.dart            # Active products + category name
     │   ├── domain/models/product.dart                           # Product (+ categoryId, originalPrice, soldCount)
     │   ├── domain/product_filter.dart                           # Search / sort / filter logic
     │   └── presentation/
@@ -206,7 +207,7 @@ lib/
     │       ├── providers/search_providers.dart
     │       └── screens/search_screen.dart
     ├── reviews/
-    │   ├── data/review_repository.dart                          # Reviews + verified-buyer check
+    │   ├── data/review_repository.dart                          # Reviews; delivered-order check, RLS error mapping
     │   ├── domain/review.dart
     │   ├── domain/review_summary.dart                           # Average + distribution
     │   ├── providers/review_providers.dart
@@ -228,12 +229,14 @@ lib/
     │       ├── screens/cart_screen.dart
     │       └── widgets/cart_item_tile.dart
     ├── checkout/
-    │   ├── models/checkout_order.dart                           # PaymentMethod
-    │   └── screens/checkout_screen.dart
+    │   └── screens/checkout_screen.dart                         # Builds a PlaceOrderRequest, idempotency key
     ├── orders/
     │   ├── data/repositories/order_repository.dart              # Interface
-    │   ├── data/repositories/supabase_order_repository.dart
+    │   ├── data/repositories/supabase_order_repository.dart     # place_order() / cancel_order() RPCs
     │   ├── domain/models/order_model.dart                       # OrderStatus, OrderItem, OrderModel
+    │   ├── domain/models/payment_method.dart                    # PaymentMethod + DB values
+    │   ├── domain/models/place_order_request.dart               # PlaceOrderRequest, PlaceOrderLine
+    │   ├── domain/order_exception.dart                          # DB error codes → friendly messages
     │   └── presentation/
     │       ├── providers/order_provider.dart                    # history, details, PlaceOrderController
     │       ├── screens/order_confirmation_screen.dart
@@ -329,15 +332,21 @@ test/
 
 ## Backend (Supabase)
 
-| Table | Used by |
+The schema lives in [`supabase/migrations/`](supabase/migrations/): `20261030000100_hardening.sql` (constraints, RLS on every table, triggers) and `20261030000200_variants_payments_place_order.sql` (variants, stock reservations, payments and the order functions). Run them in the Supabase SQL editor in that order.
+
+| Table / function | Used by |
 | --- | --- |
-| `products` (+ `categories` join) | ProductRepository |
+| `products` (+ `categories` join; `compare_at_price`, `rating`, `rating_count`) | ProductRepository |
 | `categories` | CategoryRepository |
 | `wishlist` | WishlistRepository |
-| `addresses` | AddressRepository |
-| `orders`, `order_items` | SupabaseOrderRepository, ReviewRepository |
-| `shipments`, `tracking_events` | TrackingRepository |
-| `product_reviews` | ReviewRepository |
+| `addresses`, `set_default_address()` | AddressRepository |
+| `place_order()`, `cancel_order()`, `orders` + `order_items` (read) | SupabaseOrderRepository |
+| `order_items` + `orders` (delivered check) | ReviewRepository |
+| `shipments`, `tracking_events` (`occurred_at`) | TrackingRepository |
+| `product_reviews` (insert allowed by RLS only after delivery) | ReviewRepository |
+| `app_config` (`delivery_fee`) | AppConfigRepository |
+
+Orders are never inserted by the app: `place_order()` reads prices and stock from the database, reserves stock, records a payment row and is idempotent per checkout attempt. Its error codes (`OUT_OF_STOCK`, `ADDRESS_NOT_FOUND`, …) are shown as friendly messages.
 
 Auth uses Supabase email/password. `full_name` and `phone` are stored in user metadata. Vouchers, notifications, chat and returns run on fake repositories until their tables exist.
 
@@ -365,7 +374,7 @@ In a debug build, open `/style-preview` to check the design system on a device.
 
 ```bash
 flutter analyze   # no issues
-flutter test      # 126 tests
+flutter test      # 141 tests
 ```
 
 The tests cover the formatters, shared widgets, router start-up flow, and each feature's screens, which run with faked repositories (auth, wishlist, orders, reviews, addresses, search, chat, vouchers, notifications, settings, returns). A layout test renders every screen at 360dp width with 1.3× text and fails on any overflow.
@@ -374,11 +383,11 @@ The tests cover the formatters, shared widgets, router start-up flow, and each f
 
 ## Known Limitations / Roadmap
 
-- **Data bugs (spec "Prompt D", not done yet)**: `SupabaseOrderRepository` may save orders without items (it writes `price` instead of `unit_price` and swallows the error). `AddressRepository` doesn't save division, district, area or label. Tracking reads `timestamp` instead of `occurred_at`. Wishlist and review upserts need unique indexes. All of this needs a schema migration.
-- The product catalogue has no `original_price`, `sold_count` or rating columns yet, so discount badges and sold counts appear only when that data exists. Every current product has `category_id = null`, so the category screens show empty states.
+- **The two migrations must be run** before checkout, default addresses and the delivery-fee config work against the live project. After that, run the LOCKDOWN block at the end of migration 2 to drop the temporary insert policies.
+- Discount badges need `compare_at_price` set on products; there is no `sold_count` column, so sold counts don't show. Every current product has `category_id = null`, so the category screens show empty states.
 - Colour options are hardcoded (Black / White / Navy). Products have a single image.
 - Payments: only cash on delivery works. bKash, Nagad and cards are *coming soon*. Vouchers can't be applied at checkout yet.
 - Vouchers, notifications, chat and returns use fake data (`TODO(backend)`).
 - The language choice is saved but there are no translations yet.
-- The cart lives in memory and is not synced to Supabase.
+- The cart lives in memory and is not synced to Supabase (`cart_items`), and it sends product ids, so `place_order()` uses each product's default variant.
 - Account deletion goes through support; there is no delete endpoint yet.
