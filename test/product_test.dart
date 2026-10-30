@@ -45,4 +45,33 @@ void main() {
       expect(product.stock, 25);
     });
   });
+
+  test('reads compare_at_price, rating and rating_count from products', () {
+    final product = Product.fromJson({
+      'id': 'p1',
+      'name': 'Wireless Bluetooth Earbuds',
+      'price': 1850.00,
+      'compare_at_price': 2400.00,
+      'rating': 4.25,
+      'rating_count': 12,
+      'stock_quantity': 120,
+      'categories': {'name': 'Electronics'},
+    });
+    expect(product.originalPrice, 2400);
+    expect(product.hasDiscount, isTrue);
+    expect(product.discountPercent, 23);
+    expect(product.rating, 4.25);
+    expect(product.ratingCount, 12);
+    expect(product.category, 'Electronics');
+  });
+
+  test('no discount badge without a higher compare_at_price', () {
+    final product = Product.fromJson({
+      'id': 'p1',
+      'price': 500,
+      'compare_at_price': null,
+    });
+    expect(product.hasDiscount, isFalse);
+    expect(product.ratingCount, 0);
+  });
 }
