@@ -23,5 +23,5 @@ final canUserReviewProvider = FutureProvider.family<bool, String>((
   }
   return ref
       .watch(reviewRepositoryProvider)
-      .hasUserCompletedOrderForProduct(productId);
+      .hasDeliveredOrderForProduct(productId);
 });

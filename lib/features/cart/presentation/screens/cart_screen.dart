@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/constants/app_constants.dart';
+import '../../../../core/config/app_config.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text.dart';
@@ -63,7 +63,10 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     }
     context.push(
       '/checkout',
-      extra: {'subtotal': subtotal, 'deliveryCharge': AppConstants.deliveryFee},
+      extra: {
+        'subtotal': subtotal,
+        'deliveryCharge': ref.read(deliveryFeeProvider),
+      },
     );
   }
 
@@ -73,7 +76,8 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     final items = cart.values.toList();
     final count = ref.watch(cartItemCountProvider);
     final subtotal = ref.watch(cartSubtotalProvider);
-    final total = subtotal + (items.isEmpty ? 0 : AppConstants.deliveryFee);
+    final total =
+        subtotal + (items.isEmpty ? 0 : ref.watch(deliveryFeeProvider));
 
     if (items.isEmpty && _editing) {
       WidgetsBinding.instance.addPostFrameCallback((_) {

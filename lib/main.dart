@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:zollo/core/config/app_config.dart';
 import 'package:zollo/core/theme/app_theme.dart';
 import 'package:zollo/features/onboarding/presentation/providers/onboarding_provider.dart';
 
@@ -21,7 +22,10 @@ Future<void> main() async {
     ),
   );
 
-  final sharedPreferences = await SharedPreferences.getInstance();
+  final (sharedPreferences, deliveryFee) = await (
+    SharedPreferences.getInstance(),
+    AppConfigRepository.loadDeliveryFee(Supabase.instance.client),
+  ).wait;
 
   runApp(
     ProviderScope(
@@ -29,6 +33,7 @@ Future<void> main() async {
       retry: (retryCount, error) => null,
       overrides: [
         sharedPreferencesProvider.overrideWithValue(sharedPreferences),
+        deliveryFeeProvider.overrideWithValue(deliveryFee),
       ],
       child: const MyApp(),
     ),

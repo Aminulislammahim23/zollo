@@ -14,13 +14,17 @@ import 'package:zollo/features/reviews/providers/review_providers.dart';
 import '../../support/test_helpers.dart';
 
 class FakeReviewRepository implements ReviewRepository {
+  FakeReviewRepository({this.delivered = true});
+
+  /// false = no delivered order, so submitting fails like the RLS policy.
+  final bool delivered;
   final submitted = <String>[];
 
   @override
   Future<List<ProductReview>> getReviews(String productId) async => [];
 
   @override
-  Future<bool> hasUserCompletedOrderForProduct(String productId) async => true;
+  Future<bool> hasDeliveredOrderForProduct(String productId) async => delivered;
 
   @override
   Future<void> submitReview({
@@ -28,6 +32,7 @@ class FakeReviewRepository implements ReviewRepository {
     required int rating,
     String? comment,
   }) async {
+    if (!delivered) throw const ReviewNotAllowedException();
     submitted.add('$productId:$rating:$comment');
   }
 }
@@ -156,6 +161,24 @@ void main() {
     await tester.tap(find.text('Submit review'));
     await tester.pumpAndSettle();
     expect(repo.submitted, ['p1:4:Solid bass']);
+  });
+
+  testWidgets('a rejected review explains it needs a delivered order', (
+    tester,
+  ) async {
+    final repo = FakeReviewRepository(delivered: false);
+    await pumpDetails(tester, sampleProduct(), canReview: true, repo: repo);
+
+    await tester.ensureVisible(find.text('Write a review'));
+    await tester.tap(find.text('Write a review'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('5 stars – Excellent'));
+    await tester.pump();
+    await tester.tap(find.text('Submit review'));
+    await tester.pump();
+
+    expect(find.text(ReviewNotAllowedException.message), findsOneWidget);
+    expect(repo.submitted, isEmpty);
   });
 
   testWidgets('reviews screen shows the distribution and cards', (

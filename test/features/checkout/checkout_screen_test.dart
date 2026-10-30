@@ -6,6 +6,7 @@ import 'package:zollo/features/address/presentation/providers/address_provider.d
 import 'package:zollo/features/cart/presentation/providers/cart_provider.dart';
 import 'package:zollo/features/checkout/screens/checkout_screen.dart';
 import 'package:zollo/features/orders/domain/models/order_model.dart';
+import 'package:zollo/features/orders/domain/order_exception.dart';
 import 'package:zollo/features/orders/presentation/providers/order_provider.dart';
 import 'package:zollo/features/orders/presentation/screens/order_confirmation_screen.dart';
 
@@ -74,9 +75,56 @@ void main() {
 
     expect(orders.orders.single.total, 3760);
     expect(orders.orders.single.shippingFee, 60);
+    final request = orders.requests.single;
+    expect(request.addressId, 'a1');
+    expect(request.toRpcParams()['p_payment_method'], 'cash_on_delivery');
+    expect(request.toRpcParams()['p_items'], [
+      {'product_id': 'p1', 'quantity': 2},
+    ]);
     expect(find.text('Order placed'), findsOneWidget);
     expect(find.text('Track my order'), findsOneWidget);
     expect(container.read(cartItemCountProvider), 0);
+  });
+
+  testWidgets('shows a friendly message and keeps the key on retry', (
+    tester,
+  ) async {
+    final orders = FakeOrderRepository(
+      [],
+      failWith: const OrderException(OrderErrorCode.outOfStock),
+    );
+    await pumpRoutes(
+      tester,
+      routes: routes,
+      initialLocation: '/checkout',
+      user: FakeUser(),
+      overrides: [
+        defaultAddressProvider.overrideWith((ref) async => address),
+        orderRepositoryProvider.overrideWithValue(orders),
+      ],
+    );
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(CheckoutScreen)),
+    );
+    container.read(cartProvider.notifier).addToCart(sampleProduct());
+    await tester.pump();
+    await tester.pump();
+
+    await tester.tap(find.text('Place order'));
+    await tester.pump();
+    expect(find.text(OrderErrorCode.outOfStock.message), findsOneWidget);
+    expect(container.read(cartItemCountProvider), 1);
+
+    orders.failWith = null;
+    await tester.tap(find.text('Place order'));
+    await tester.pumpAndSettle();
+
+    expect(orders.requests, hasLength(2));
+    expect(
+      orders.requests.last.idempotencyKey,
+      orders.requests.first.idempotencyKey,
+    );
+    expect(find.text('Order placed'), findsOneWidget);
   });
 
   testWidgets('asks for an address when none is saved', (tester) async {

@@ -116,7 +116,7 @@ class _StatusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final eta = shipment?.estimatedDeliveryDate;
+    final eta = shipment?.estimatedDelivery;
     final headline = switch (order.status) {
       OrderStatus.delivered => 'Delivered',
       OrderStatus.cancelled => 'Order cancelled',

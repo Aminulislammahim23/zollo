@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:zollo/core/config/app_config.dart';
 import 'package:zollo/features/cart/presentation/providers/cart_provider.dart';
 import 'package:zollo/features/cart/presentation/screens/cart_screen.dart';
 
@@ -32,6 +33,25 @@ void main() {
     await tester.tap(find.text('Start shopping'));
     await tester.pumpAndSettle();
     expect(find.text('Home destination'), findsOneWidget);
+  });
+
+  testWidgets('uses the delivery fee loaded from app_config', (tester) async {
+    await pumpRoutes(
+      tester,
+      routes: routes,
+      initialLocation: '/cart',
+      user: FakeUser(),
+      overrides: [deliveryFeeProvider.overrideWithValue(80)],
+    );
+    containerOf(tester)
+        .read(cartProvider.notifier)
+        .addToCart(sampleProduct(stock: 3));
+    await tester.pump();
+
+    expect(find.text('৳1,930'), findsOneWidget);
+    await tester.tap(find.text('Checkout (1)'));
+    await tester.pumpAndSettle();
+    expect(find.text('Checkout 1850.0 + 80.0'), findsOneWidget);
   });
 
   testWidgets('shows items, totals with delivery and steps quantity', (

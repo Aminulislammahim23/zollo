@@ -72,11 +72,8 @@ class Product {
               .toInt()
         : 0;
 
-    final rawOriginal =
-        json['original_price'] ??
-        json['compare_at_price'] ??
-        json['old_price'] ??
-        json['mrp'];
+    // products.compare_at_price: the "was" price behind the discount badge.
+    final rawOriginal = json['compare_at_price'] ?? json['original_price'];
     final rawSold = json['sold_count'] ?? json['sold'];
 
     return Product(

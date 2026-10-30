@@ -21,17 +21,17 @@ class TimelineStep {
   /// Tracking events in time order; the newest one is current.
   static List<TimelineStep> fromEvents(List<TrackingEvent> events) {
     final sorted = [...events]
-      ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+      ..sort((a, b) => a.occurredAt.compareTo(b.occurredAt));
     return [
       for (var i = 0; i < sorted.length; i++)
         TimelineStep(
           title: sorted[i].description.isNotEmpty
               ? sorted[i].description
-              : _humanize(sorted[i].status),
+              : sorted[i].shipmentStatus?.label ?? _humanize(sorted[i].status),
           note: [
             if (sorted[i].location != null && sorted[i].location!.isNotEmpty)
               sorted[i].location!,
-            formatDateTime(sorted[i].timestamp),
+            formatDateTime(sorted[i].occurredAt),
           ].join(' · '),
           state: i == sorted.length - 1
               ? TimelineStepState.current

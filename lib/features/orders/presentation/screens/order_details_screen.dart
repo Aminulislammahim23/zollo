@@ -153,6 +153,7 @@ class _OrderDetailsBody extends ConsumerWidget {
                   children: [
                     OrderThumbnail(
                       productId: order.items[i].productId,
+                      imageUrl: order.items[i].imageUrl,
                       size: 56,
                     ),
                     const SizedBox(width: AppSpacing.m),
@@ -219,7 +220,7 @@ class _OrderDetailsBody extends ConsumerWidget {
               ),
               row('Items total', formatTaka(order.subtotal)),
               row('Delivery', formatTaka(order.shippingFee)),
-              row('Payment method', 'Cash on delivery'),
+              row('Payment method', order.paymentMethod.label),
               const Padding(
                 padding: EdgeInsets.only(bottom: AppSpacing.s),
                 child: Divider(),
@@ -245,6 +246,10 @@ class _OrderDetailsBody extends ConsumerWidget {
           ),
           const SizedBox(height: AppSpacing.m),
         ],
+        if (order.canCancel) ...[
+          _CancelOrderButton(order: order),
+          const SizedBox(height: AppSpacing.m),
+        ],
         Center(
           child: TextButton(
             onPressed: () => contactSupport(
@@ -255,6 +260,70 @@ class _OrderDetailsBody extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// "Cancel order" for pending orders, with a confirmation step.
+class _CancelOrderButton extends ConsumerStatefulWidget {
+  const _CancelOrderButton({required this.order});
+
+  final OrderModel order;
+
+  @override
+  ConsumerState<_CancelOrderButton> createState() => _CancelOrderButtonState();
+}
+
+class _CancelOrderButtonState extends ConsumerState<_CancelOrderButton> {
+  bool _busy = false;
+
+  Future<void> _cancel() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cancel this order?'),
+        content: Text(
+          '${formatOrderNumber(widget.order.id)} will be cancelled and '
+          'nothing will be charged.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Keep order'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            child: const Text('Cancel order'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+
+    setState(() => _busy = true);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await cancelOrder(ref, widget.order.id);
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Your order has been cancelled.')),
+      );
+    } catch (error) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(ErrorView.describe(error))),
+      );
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AppButton.danger(
+      label: 'Cancel order',
+      icon: Icons.close,
+      loading: _busy,
+      onPressed: _cancel,
     );
   }
 }

@@ -119,12 +119,17 @@ void main() {
       expect(order.subtotal, 1500.0);
       expect(order.total, 1560.0);
       expect(order.totalAmount, 1560.0);
-
-      final insertJson = order.toInsertJson();
-      expect(insertJson['id'], 'order-uuid-123');
-      expect(insertJson['user_id'], 'user-uuid-456');
-      expect(insertJson['shipping_fee'], 60.0);
-      expect(insertJson['status'], 'pending');
+      // Orders are created by place_order() in the database, so the app
+      // never builds an insert payload; the stored total wins when present.
+      final saved = OrderModel.fromJson({
+        'id': 'order-uuid-123',
+        'total_amount': 1560,
+        'order_items': [
+          {'product_id': '1', 'unit_price': 500, 'quantity': 3},
+        ],
+      });
+      expect(saved.total, 1560.0);
+      expect(saved.items.single.subtotal, 1500.0);
     });
   });
 }
