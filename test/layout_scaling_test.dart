@@ -58,8 +58,18 @@ void main() {
     id: 'order-12345',
     userId: 'user-1',
     items: const [
-      OrderItem(productId: 'p1', productName: 'Wireless Bluetooth Earbuds with a long name', price: 1850, quantity: 2),
-      OrderItem(productId: 'p2', productName: 'Charger', price: 650, quantity: 1),
+      OrderItem(
+        productId: 'p1',
+        productName: 'Wireless Bluetooth Earbuds with a long name',
+        price: 1850,
+        quantity: 2,
+      ),
+      OrderItem(
+        productId: 'p2',
+        productName: 'Charger',
+        price: 650,
+        quantity: 1,
+      ),
     ],
     shippingAddress: 'Rahim Uddin · 01712345678\nHouse 12, Road 4, Dhanmondi, Dhaka City, Dhaka',
     shippingFee: 60,
@@ -81,7 +91,8 @@ void main() {
   );
 
   final screens = <String, Widget Function()>{
-    'splash': () => const SplashScreen(splashDelay: Duration(milliseconds: 300)),
+    'splash': () =>
+        const SplashScreen(splashDelay: Duration(milliseconds: 300)),
     'onboarding': () => const OnboardingScreen(),
     'login': () => const LoginScreen(),
     'signup': () => const SignupScreen(),
@@ -132,21 +143,33 @@ void main() {
         initialLocation: '/screen',
         user: FakeUser(),
         overrides: [
-          productsProvider.overrideWith((ref) async => [product, sampleProduct(id: 'p2', title: 'Charger')]),
-          categoriesProvider.overrideWith((ref) async => const [
-                Category(id: 'c1', name: 'Electronics'),
-                Category(id: 'c2', name: 'Home & Living'),
-              ]),
+          productsProvider.overrideWith(
+            (ref) async => [product, sampleProduct(id: 'p2', title: 'Charger')],
+          ),
+          categoriesProvider.overrideWith(
+            (ref) async => const [
+              Category(id: 'c1', name: 'Electronics'),
+              Category(id: 'c2', name: 'Home & Living'),
+            ],
+          ),
           productReviewsProvider.overrideWith((ref, id) async => []),
           canUserReviewProvider.overrideWith((ref, id) async => true),
           defaultAddressProvider.overrideWith((ref) async => address),
           addressListProvider.overrideWith(() => _FixedAddresses([address])),
-          orderRepositoryProvider.overrideWithValue(FakeOrderRepository([order])),
-          shipmentsByOrderProvider.overrideWith((ref, id) async => <Shipment>[]),
+          orderRepositoryProvider.overrideWithValue(
+            FakeOrderRepository([order]),
+          ),
+          shipmentsByOrderProvider.overrideWith(
+            (ref, id) async => <Shipment>[],
+          ),
         ],
       );
-      final element = tester.element(find.byType(entry.value().runtimeType).first);
-      ProviderScope.containerOf(element).read(cartProvider.notifier).addToCart(product, variant: 'Colour: Black');
+      final element = tester.element(
+        find.byType(entry.value().runtimeType).first,
+      );
+      ProviderScope.containerOf(element)
+          .read(cartProvider.notifier)
+          .addToCart(product, variant: 'Colour: Black');
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
 

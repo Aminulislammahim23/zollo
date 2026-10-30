@@ -12,10 +12,12 @@ import '../../../core/widgets/widgets.dart';
 import '../../address/domain/address_model.dart';
 import '../../address/presentation/providers/address_provider.dart';
 import '../../auth/domain/providers/auth_provider.dart';
+import '../../cart/domain/models/cart_item.dart';
 import '../../cart/presentation/providers/cart_provider.dart';
-import '../../orders/domain/models/order_model.dart';
+import '../../orders/domain/models/payment_method.dart';
+import '../../orders/domain/models/place_order_request.dart';
+import '../../orders/domain/order_exception.dart';
 import '../../orders/presentation/providers/order_provider.dart';
-import '../models/checkout_order.dart';
 
 /// `/checkout`, spec C11.
 class CheckoutScreen extends ConsumerStatefulWidget {
@@ -38,6 +40,12 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   final PaymentMethod _paymentMethod = PaymentMethod.cashOnDelivery;
   Address? _selectedAddress;
 
+  /// One key per checkout attempt: tapping "Place order" again after a
+  /// timeout returns the same order instead of creating a second one.
+  /// It is renewed only when the cart or address changes, or the order succeeds.
+  String? _idempotencyKey;
+  String? _keyFingerprint;
+
   void _showMessage(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context)
@@ -49,6 +57,16 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     if (selected != null && mounted) {
       setState(() => _selectedAddress = selected);
     }
+  }
+
+  String _keyFor(Address address, List<CartItem> cartItems) {
+    final fingerprint =
+        '${address.id}|${cartItems.map((i) => '${i.product.id}x${i.quantity}').join(',')}';
+    if (_idempotencyKey == null || _keyFingerprint != fingerprint) {
+      _idempotencyKey = const Uuid().v4();
+      _keyFingerprint = fingerprint;
+    }
+    return _idempotencyKey!;
   }
 
   Future<void> _submitOrder() async {
@@ -71,36 +89,37 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       return;
     }
 
-    // Address snapshot so order history isn't altered by future address edits.
-    final addressSnapshot =
-        '${addressToUse.fullName} · ${addressToUse.phone}\n${addressToUse.displayAddress}';
-
-    final order = OrderModel(
-      id: const Uuid().v4(),
-      userId: user.id,
-      items: cartItems.map((item) {
-        return OrderItem(
-          productId: item.product.id,
-          productName: item.product.title,
-          price: item.product.price,
-          quantity: item.quantity,
-        );
-      }).toList(),
-      shippingAddress: addressSnapshot,
+    final request = PlaceOrderRequest(
+      items: cartItems
+          .map(
+            (item) => PlaceOrderLine(
+              productId: item.product.id,
+              quantity: item.quantity,
+              productName: item.product.title,
+              unitPrice: item.product.price,
+            ),
+          )
+          .toList(),
+      addressId: addressToUse.id,
+      paymentMethod: _paymentMethod,
+      idempotencyKey: _keyFor(addressToUse, cartItems),
       shippingFee: widget.deliveryCharge,
-      status: OrderStatus.pending,
-      createdAt: DateTime.now().toUtc(),
     );
 
     try {
       final savedOrder = await ref
           .read(placeOrderProvider.notifier)
-          .placeOrder(order);
+          .placeOrder(request);
+      _idempotencyKey = null;
       if (!mounted) return;
       ref.read(cartProvider.notifier).clearCart();
       context.go('/order-confirmation', extra: savedOrder);
     } catch (error) {
-      _showMessage("Couldn't place your order. ${ErrorView.describe(error)}");
+      _showMessage(
+        error is OrderException
+            ? error.message
+            : "Couldn't place your order. ${ErrorView.describe(error)}",
+      );
     }
   }
 

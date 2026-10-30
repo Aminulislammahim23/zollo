@@ -166,7 +166,11 @@ class OrderCard extends ConsumerWidget {
           const SizedBox(height: AppSpacing.m),
           Row(
             children: [
-              if (first != null) OrderThumbnail(productId: first.productId),
+              if (first != null)
+                OrderThumbnail(
+                  productId: first.productId,
+                  imageUrl: first.imageUrl,
+                ),
               const SizedBox(width: AppSpacing.m),
               Expanded(
                 child: Column(

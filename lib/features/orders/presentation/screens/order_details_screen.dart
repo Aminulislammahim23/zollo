@@ -153,6 +153,7 @@ class _OrderDetailsBody extends ConsumerWidget {
                   children: [
                     OrderThumbnail(
                       productId: order.items[i].productId,
+                      imageUrl: order.items[i].imageUrl,
                       size: 56,
                     ),
                     const SizedBox(width: AppSpacing.m),
@@ -219,7 +220,7 @@ class _OrderDetailsBody extends ConsumerWidget {
               ),
               row('Items total', formatTaka(order.subtotal)),
               row('Delivery', formatTaka(order.shippingFee)),
-              row('Payment method', 'Cash on delivery'),
+              row('Payment method', order.paymentMethod.label),
               const Padding(
                 padding: EdgeInsets.only(bottom: AppSpacing.s),
                 child: Divider(),

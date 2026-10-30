@@ -20,7 +20,7 @@ class OrderConfirmationScreen extends StatelessWidget {
       ('Order number', formatOrderNumber(order.id)),
       ('Items', '${order.itemCount}'),
       ('Total', formatTaka(order.total)),
-      ('Payment', 'Cash on delivery'),
+      ('Payment', order.paymentMethod.label),
       ('Deliver to', order.deliveryAddress),
     ];
 

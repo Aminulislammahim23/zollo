@@ -127,7 +127,11 @@ class _ReturnRequestScreenState extends ConsumerState<ReturnRequestScreen> {
                                     : _selected.remove(item.productId);
                               }),
                             ),
-                          OrderThumbnail(productId: item.productId, size: 56),
+                          OrderThumbnail(
+                            productId: item.productId,
+                            imageUrl: item.imageUrl,
+                            size: 56,
+                          ),
                           const SizedBox(width: AppSpacing.m),
                           Expanded(
                             child: Column(

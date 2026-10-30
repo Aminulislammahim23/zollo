@@ -5,6 +5,7 @@ import '../../../auth/domain/providers/auth_provider.dart';
 import '../../data/repositories/order_repository.dart';
 import '../../data/repositories/supabase_order_repository.dart';
 import '../../domain/models/order_model.dart';
+import '../../domain/models/place_order_request.dart';
 
 final orderRepositoryProvider = Provider<OrderRepository>((ref) {
   return SupabaseOrderRepository(Supabase.instance.client);
@@ -40,7 +41,7 @@ class PlaceOrderController extends AsyncNotifier<OrderModel?> {
   @override
   OrderModel? build() => null;
 
-  Future<OrderModel> placeOrder(OrderModel order) async {
+  Future<OrderModel> placeOrder(PlaceOrderRequest request) async {
     if (state.isLoading) {
       throw StateError('An order submission is already in progress.');
     }
@@ -48,11 +49,10 @@ class PlaceOrderController extends AsyncNotifier<OrderModel?> {
     state = const AsyncLoading();
 
     try {
-      await ref.read(orderRepositoryProvider).saveOrder(order);
+      final order = await ref.read(orderRepositoryProvider).saveOrder(request);
 
       state = AsyncData(order);
       ref.invalidate(orderHistoryProvider);
-      ref.invalidate(myOrdersProvider);
 
       return order;
     } catch (error, stackTrace) {
