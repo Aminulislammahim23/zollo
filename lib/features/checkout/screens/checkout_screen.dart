@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../../core/constants/app_constants.dart';
+import '../../../core/config/app_config.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_text.dart';
@@ -24,12 +24,14 @@ class CheckoutScreen extends ConsumerStatefulWidget {
   /// Kept for the router contract; the screen always recomputes the
   /// subtotal from the cart so the total shown matches what is saved.
   final double subtotal;
-  final double deliveryCharge;
+
+  /// Null = use [deliveryFeeProvider] (the value from `app_config`).
+  final double? deliveryCharge;
 
   const CheckoutScreen({
     super.key,
     required this.subtotal,
-    this.deliveryCharge = AppConstants.deliveryFee,
+    this.deliveryCharge,
   });
 
   @override
@@ -45,6 +47,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   /// It is renewed only when the cart or address changes, or the order succeeds.
   String? _idempotencyKey;
   String? _keyFingerprint;
+
+  double get _deliveryFee =>
+      widget.deliveryCharge ?? ref.read(deliveryFeeProvider);
 
   void _showMessage(String message) {
     if (!mounted) return;
@@ -103,7 +108,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       addressId: addressToUse.id,
       paymentMethod: _paymentMethod,
       idempotencyKey: _keyFor(addressToUse, cartItems),
-      shippingFee: widget.deliveryCharge,
+      shippingFee: _deliveryFee,
     );
 
     try {
@@ -128,7 +133,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     final cart = ref.watch(cartProvider);
     final itemCount = ref.watch(cartItemCountProvider);
     final subtotal = ref.watch(cartSubtotalProvider);
-    final total = subtotal + widget.deliveryCharge;
+    final total = subtotal + _deliveryFee;
     final isPlacingOrder = ref.watch(placeOrderProvider).isLoading;
     final defaultAddressAsync = ref.watch(defaultAddressProvider);
     final address = _selectedAddress ?? defaultAddressAsync.value;
@@ -233,10 +238,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               children: [
                 _SummaryRow(label: 'Items total', value: formatTaka(subtotal)),
                 const SizedBox(height: AppSpacing.s),
-                _SummaryRow(
-                  label: 'Delivery',
-                  value: formatTaka(widget.deliveryCharge),
-                ),
+                _SummaryRow(label: 'Delivery', value: formatTaka(_deliveryFee)),
               ],
             ),
           ),

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/config/app_config.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -495,7 +496,7 @@ class _DeliveryInfo extends ConsumerWidget {
       children: [
         row(
           Icons.local_shipping_outlined,
-          'Standard delivery to $area · ${formatTaka(AppConstants.deliveryFee)}',
+          'Standard delivery to $area · ${formatTaka(ref.watch(deliveryFeeProvider))}',
           'Arrives in 2–4 days',
         ),
         row(

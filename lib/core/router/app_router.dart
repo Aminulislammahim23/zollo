@@ -34,7 +34,6 @@ import '../../features/splash/presentation/screens/splash_screen.dart';
 import '../../features/tracking/presentation/screens/tracking_screen.dart';
 import '../../features/vouchers/presentation/screens/vouchers_screen.dart';
 import '../../features/wishlist/presentation/screens/wishlist_screen.dart';
-import '../constants/app_constants.dart';
 import '../debug/style_preview_screen.dart';
 import 'main_scaffold.dart';
 
@@ -91,8 +90,7 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) {
         final extras = state.extra as Map<String, dynamic>?;
         final subtotal = extras?['subtotal'] as double? ?? 0.0;
-        final deliveryCharge =
-            extras?['deliveryCharge'] as double? ?? AppConstants.deliveryFee;
+        final deliveryCharge = extras?['deliveryCharge'] as double?;
         return CheckoutScreen(
           subtotal: subtotal,
           deliveryCharge: deliveryCharge,
