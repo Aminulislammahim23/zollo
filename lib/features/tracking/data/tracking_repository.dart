@@ -24,35 +24,23 @@ class TrackingRepository {
       throw StateError('Order not found or unauthorized access.');
     }
 
-    try {
-      final shipmentRows = await _supabase
-          .from('shipments')
-          .select('*, tracking_events(*)')
-          .eq('order_id', orderId)
-          .order('created_at', ascending: false);
+    final shipmentRows = await _supabase
+        .from('shipments')
+        .select('*, tracking_events(*)')
+        .eq('order_id', orderId)
+        .order('created_at', ascending: false)
+        .order('occurred_at', referencedTable: 'tracking_events');
 
-      return shipmentRows.map((row) {
-        return Shipment.fromMap(Map<String, dynamic>.from(row as Map));
-      }).toList();
-    } catch (_) {
-      // Return empty list if shipments table doesn't exist yet in the DB
-      return [];
-    }
+    return shipmentRows.map(Shipment.fromMap).toList();
   }
 
   Future<List<TrackingEvent>> getTrackingEvents(String shipmentId) async {
-    try {
-      final eventRows = await _supabase
-          .from('tracking_events')
-          .select()
-          .eq('shipment_id', shipmentId)
-          .order('timestamp', ascending: true);
+    final eventRows = await _supabase
+        .from('tracking_events')
+        .select()
+        .eq('shipment_id', shipmentId)
+        .order('occurred_at', ascending: true);
 
-      return eventRows.map((row) {
-        return TrackingEvent.fromMap(Map<String, dynamic>.from(row as Map));
-      }).toList();
-    } catch (_) {
-      return [];
-    }
+    return eventRows.map(TrackingEvent.fromMap).toList();
   }
 }

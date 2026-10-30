@@ -5,27 +5,50 @@ import 'package:flutter/material.dart';
 
 void main() {
   group('Tracking Feature Unit & Widget Tests', () {
-    test('TrackingEvent fromMap and toMap serialization', () {
+    test('TrackingEvent reads occurred_at', () {
       final now = DateTime.now().toUtc();
       final eventMap = {
         'id': 'ev-1',
         'shipment_id': 'sh-1',
-        'status': 'in_transit',
+        'status': 'out_for_delivery',
         'description': 'Package picked up by courier',
         'location': 'Dhaka Hub',
-        'timestamp': now.toIso8601String(),
+        'occurred_at': now.toIso8601String(),
       };
 
       final event = TrackingEvent.fromMap(eventMap);
       expect(event.id, 'ev-1');
       expect(event.shipmentId, 'sh-1');
-      expect(event.status, 'in_transit');
+      expect(event.status, 'out_for_delivery');
+      expect(event.shipmentStatus, ShipmentStatus.outForDelivery);
       expect(event.description, 'Package picked up by courier');
       expect(event.location, 'Dhaka Hub');
+      expect(event.occurredAt, now);
+    });
 
-      final serialized = event.toMap();
-      expect(serialized['id'], 'ev-1');
-      expect(serialized['shipment_id'], 'sh-1');
+    test('ShipmentStatus maps every database value', () {
+      const db = [
+        'pending',
+        'confirmed',
+        'processing',
+        'shipped',
+        'out_for_delivery',
+        'delivered',
+        'cancelled',
+        'failed',
+      ];
+      expect(ShipmentStatus.values.map((s) => s.dbValue), db);
+      expect(ShipmentStatus.fromDb('in_transit'), isNull);
+    });
+
+    test('Shipment reads estimated_delivery', () {
+      final shipment = Shipment.fromMap({
+        'id': 'sh-1',
+        'status': 'shipped',
+        'estimated_delivery': '2026-11-02',
+      });
+      expect(shipment.estimatedDelivery, DateTime(2026, 11, 2));
+      expect(shipment.shipmentStatus, ShipmentStatus.shipped);
     });
 
     test('Shipment chronological event sorting', () {
@@ -45,14 +68,14 @@ void main() {
             'shipment_id': 'sh-1',
             'status': 'in_transit',
             'description': 'Out for delivery',
-            'timestamp': t2.toIso8601String(),
+            'occurred_at': t2.toIso8601String(),
           },
           {
             'id': 'e1',
             'shipment_id': 'sh-1',
             'status': 'picked_up',
             'description': 'Picked up',
-            'timestamp': t1.toIso8601String(),
+            'occurred_at': t1.toIso8601String(),
           },
         ],
       };
@@ -71,7 +94,7 @@ void main() {
           status: 'picked_up',
           description: 'Package picked up',
           location: 'Warehouse',
-          timestamp: DateTime.now(),
+          occurredAt: DateTime.now(),
         ),
       ];
 

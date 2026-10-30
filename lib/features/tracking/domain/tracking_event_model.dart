@@ -1,11 +1,29 @@
+/// `shipments.status` / `tracking_events.status` values in the database.
 enum ShipmentStatus {
-  pending,
-  pickedUp,
-  inTransit,
-  outForDelivery,
-  delivered,
-  exception,
+  pending('pending', 'Pending'),
+  confirmed('confirmed', 'Confirmed'),
+  processing('processing', 'Packing'),
+  shipped('shipped', 'Shipped'),
+  outForDelivery('out_for_delivery', 'Out for delivery'),
+  delivered('delivered', 'Delivered'),
+  cancelled('cancelled', 'Cancelled'),
+  failed('failed', 'Delivery failed');
+
+  const ShipmentStatus(this.dbValue, this.label);
+
+  final String dbValue;
+  final String label;
+
+  static ShipmentStatus? fromDb(String? value) {
+    for (final status in values) {
+      if (status.dbValue == value) return status;
+    }
+    return null;
+  }
 }
+
+DateTime? _date(Object? value) =>
+    value is String ? DateTime.tryParse(value) : null;
 
 class TrackingEvent {
   final String id;
@@ -13,7 +31,9 @@ class TrackingEvent {
   final String status;
   final String description;
   final String? location;
-  final DateTime timestamp;
+
+  /// `tracking_events.occurred_at`.
+  final DateTime occurredAt;
 
   const TrackingEvent({
     required this.id,
@@ -21,8 +41,10 @@ class TrackingEvent {
     required this.status,
     required this.description,
     this.location,
-    required this.timestamp,
+    required this.occurredAt,
   });
+
+  ShipmentStatus? get shipmentStatus => ShipmentStatus.fromDb(status);
 
   factory TrackingEvent.fromMap(Map<String, dynamic> map) {
     return TrackingEvent(
@@ -31,20 +53,9 @@ class TrackingEvent {
       status: map['status'] as String? ?? 'pending',
       description: map['description'] as String? ?? '',
       location: map['location'] as String?,
-      timestamp:
-          DateTime.tryParse(map['timestamp'] as String? ?? '') ??
-          DateTime.now(),
+      occurredAt: _date(map['occurred_at']) ?? DateTime.now(),
     );
   }
-
-  Map<String, dynamic> toMap() => {
-    'id': id,
-    'shipment_id': shipmentId,
-    'status': status,
-    'description': description,
-    'location': location,
-    'timestamp': timestamp.toUtc().toIso8601String(),
-  };
 }
 
 class Shipment {
@@ -53,7 +64,9 @@ class Shipment {
   final String trackingNumber;
   final String? courierName;
   final String status;
-  final DateTime? estimatedDeliveryDate;
+
+  /// `shipments.estimated_delivery`.
+  final DateTime? estimatedDelivery;
   final DateTime createdAt;
   final List<TrackingEvent> events;
 
@@ -63,7 +76,7 @@ class Shipment {
     required this.trackingNumber,
     this.courierName,
     required this.status,
-    this.estimatedDeliveryDate,
+    this.estimatedDelivery,
     required this.createdAt,
     this.events = const [],
   });
@@ -82,7 +95,7 @@ class Shipment {
               .toList()
         : (events ?? []);
 
-    parsedEvents.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    parsedEvents.sort((a, b) => a.occurredAt.compareTo(b.occurredAt));
 
     return Shipment(
       id: map['id'] as String? ?? '',
@@ -90,9 +103,7 @@ class Shipment {
       trackingNumber: map['tracking_number'] as String? ?? '',
       courierName: map['courier_name'] as String?,
       status: map['status'] as String? ?? 'pending',
-      estimatedDeliveryDate: map['estimated_delivery_date'] != null
-          ? DateTime.tryParse(map['estimated_delivery_date'] as String)
-          : null,
+      estimatedDelivery: _date(map['estimated_delivery']),
       createdAt:
           DateTime.tryParse(map['created_at'] as String? ?? '') ??
           DateTime.now(),
@@ -100,13 +111,5 @@ class Shipment {
     );
   }
 
-  Map<String, dynamic> toMap() => {
-    'id': id,
-    'order_id': orderId,
-    'tracking_number': trackingNumber,
-    'courier_name': courierName,
-    'status': status,
-    'estimated_delivery_date': estimatedDeliveryDate?.toUtc().toIso8601String(),
-    'created_at': createdAt.toUtc().toIso8601String(),
-  };
+  ShipmentStatus? get shipmentStatus => ShipmentStatus.fromDb(status);
 }
