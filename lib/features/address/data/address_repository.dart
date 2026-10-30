@@ -7,131 +7,59 @@ class AddressRepository {
 
   AddressRepository(this._supabase);
 
-  Future<List<Address>> getAddresses() async {
+  String get _userId {
     final user = _supabase.auth.currentUser;
     if (user == null) {
-      throw StateError('Please sign in to view addresses.');
+      throw StateError('Please sign in to manage your addresses.');
     }
-
-    try {
-      final rows = await _supabase
-          .from('addresses')
-          .select()
-          .eq('user_id', user.id)
-          .order('is_default', ascending: false)
-          .order('created_at', ascending: false);
-
-      return rows
-          .map((row) => Address.fromMap(Map<String, dynamic>.from(row as Map)))
-          .toList();
-    } catch (_) {
-      return [];
-    }
+    return user.id;
   }
 
+  Future<List<Address>> getAddresses() async {
+    final rows = await _supabase
+        .from('addresses')
+        .select()
+        .eq('user_id', _userId)
+        .order('is_default', ascending: false)
+        .order('created_at', ascending: false);
+    return rows.map(Address.fromMap).toList();
+  }
+
+  /// Only one default per user is allowed (unique index), so rows are
+  /// written with is_default false and then promoted atomically by
+  /// set_default_address().
   Future<void> addAddress(Address address) async {
-    final user = _supabase.auth.currentUser;
-    if (user == null) {
-      throw StateError('Please sign in to add an address.');
-    }
-
-    if (address.isDefault) {
-      try {
-        await _supabase
-            .from('addresses')
-            .update({'is_default': false})
-            .eq('user_id', user.id);
-      } catch (_) {}
-    }
-
-    final payload = {
-      'user_id': user.id,
-      'recipient_name': address.fullName,
-      'phone': address.phone,
-      'address_line': address.addressLine,
-      'city': address.city,
-      'postal_code': address.postalCode.isEmpty ? null : address.postalCode,
-      'country': address.country,
-      'is_default': address.isDefault,
-    };
-
-    try {
-      await _supabase.from('addresses').insert(payload);
-    } on PostgrestException catch (e) {
-      throw Exception(e.message);
-    } catch (e) {
-      rethrow;
-    }
+    final row = await _supabase
+        .from('addresses')
+        .insert({
+          ...address.toWriteMap(),
+          'user_id': _userId,
+          'is_default': false,
+        })
+        .select('id')
+        .single();
+    if (address.isDefault) await setDefaultAddress(row['id'] as String);
   }
 
   Future<void> updateAddress(Address address) async {
-    final user = _supabase.auth.currentUser;
-    if (user == null) {
-      throw StateError('Please sign in to update an address.');
-    }
-
-    if (address.isDefault) {
-      try {
-        await _supabase
-            .from('addresses')
-            .update({'is_default': false})
-            .eq('user_id', user.id);
-      } catch (_) {}
-    }
-
-    final payload = {
-      'recipient_name': address.fullName,
-      'phone': address.phone,
-      'address_line': address.addressLine,
-      'city': address.city,
-      'postal_code': address.postalCode.isEmpty ? null : address.postalCode,
-      'country': address.country,
-      'is_default': address.isDefault,
-    };
-
-    try {
-      await _supabase
-          .from('addresses')
-          .update(payload)
-          .eq('id', address.id)
-          .eq('user_id', user.id);
-    } on PostgrestException catch (e) {
-      throw Exception(e.message);
-    } catch (e) {
-      rethrow;
-    }
+    await _supabase
+        .from('addresses')
+        .update(address.toWriteMap())
+        .eq('id', address.id)
+        .eq('user_id', _userId);
+    if (address.isDefault) await setDefaultAddress(address.id);
   }
 
   Future<void> deleteAddress(String id) async {
-    final user = _supabase.auth.currentUser;
-    if (user == null) {
-      throw StateError('Please sign in to delete an address.');
-    }
-
     await _supabase
         .from('addresses')
         .delete()
         .eq('id', id)
-        .eq('user_id', user.id);
+        .eq('user_id', _userId);
   }
 
+  /// Clears the old default and sets the new one in one transaction.
   Future<void> setDefaultAddress(String id) async {
-    final user = _supabase.auth.currentUser;
-    if (user == null) {
-      throw StateError('Please sign in.');
-    }
-
-    try {
-      await _supabase
-          .from('addresses')
-          .update({'is_default': false})
-          .eq('user_id', user.id);
-    } catch (_) {}
-
-    await _supabase
-        .from('addresses')
-        .update({'is_default': true})
-        .eq('id', id)
-        .eq('user_id', user.id);
+    await _supabase.rpc('set_default_address', params: {'p_address_id': id});
   }
 }

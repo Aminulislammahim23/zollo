@@ -94,29 +94,19 @@ class Address {
     );
   }
 
-  Map<String, dynamic> toMap() => {
-    'id': id,
-    'user_id': userId,
-    'recipient_name': fullName,
-    'phone': phone,
-    'address_line': addressLine,
-    'city': city,
-    'postal_code': postalCode,
-    'country': country,
-    'is_default': isDefault,
-    'created_at': createdAt.toUtc().toIso8601String(),
-    'updated_at': updatedAt.toUtc().toIso8601String(),
-  };
-
-  Map<String, dynamic> toInsertMap() => {
-    'user_id': userId,
+  /// Columns the app writes; `user_id` and `is_default` are set by the
+  /// repository. The label is stored lowercase ('home' / 'office' / 'other').
+  Map<String, dynamic> toWriteMap() => {
     'recipient_name': fullName,
     'phone': phone,
     'address_line': addressLine,
     'city': city,
     'postal_code': postalCode.isEmpty ? null : postalCode,
     'country': country,
-    'is_default': isDefault,
+    'division': division,
+    'district': district,
+    'area': area,
+    'label': label.toLowerCase(),
   };
 
   Address copyWith({
