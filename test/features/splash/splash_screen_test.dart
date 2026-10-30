@@ -51,7 +51,7 @@ void main() {
         await tester.pumpWidget(createSplashWidget(router: router));
         await tester.pump(); // Initial frame
 
-        expect(find.text('zollo'), findsOneWidget);
+        expect(find.bySemanticsLabel('zollo'), findsOneWidget);
         expect(
           find.text('Everything you need, delivered across Bangladesh'),
           findsOneWidget,
