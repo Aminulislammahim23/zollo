@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Same diagonal gradient as the splash screen (AppColors.splash*). -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <gradient
+        android:angle="315"
+        android:startColor="#6E0040"
+        android:centerColor="#8A0F57"
+        android:endColor="#B3126F" />
+</shape>

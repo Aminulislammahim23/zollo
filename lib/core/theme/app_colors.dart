@@ -33,6 +33,16 @@ abstract final class AppColors {
   static const Color error = Color(0xFF9B1C1C);
   static const Color errorBg = Color(0xFFFBE2E2);
 
+  /// Splash / logo background, diagonal top-left → bottom-right.
+  static const Color splashStart = Color(0xFF6E0040);
+  static const Color splashMid = Color(0xFF8A0F57);
+  static const Color splashEnd = Color(0xFFB3126F);
+
+  /// Wordmark fill (top → bottom) and its drop shadow.
+  static const Color wordmarkTop = Color(0xFFFFFFFF);
+  static const Color wordmarkBottom = Color(0xFFEFE3EA);
+  static const Color wordmarkShadow = Color(0xFF3A001F);
+
   static const Color white = Color(0xFFFFFFFF);
   static const Color transparent = Color(0x00000000);
 }

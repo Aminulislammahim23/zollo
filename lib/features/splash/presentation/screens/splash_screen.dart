@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:zollo/core/theme/app_colors.dart';
 import 'package:zollo/core/theme/app_spacing.dart';
 import 'package:zollo/core/theme/app_text.dart';
-import 'package:zollo/core/widgets/zollo_logo.dart';
+import 'package:zollo/core/widgets/zollo_wordmark.dart';
 import 'package:zollo/features/auth/domain/providers/auth_provider.dart';
 import 'package:zollo/features/onboarding/presentation/providers/onboarding_provider.dart';
 
@@ -23,11 +23,39 @@ class SplashScreen extends ConsumerStatefulWidget {
   ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends ConsumerState<SplashScreen> {
+class _SplashScreenState extends ConsumerState<SplashScreen>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _intro = AnimationController(
+    vsync: this,
+    duration: ZolloWordmark.introDuration,
+  );
+
+  /// Tagline fades in once the last glyph has landed (~950 ms).
+  late final Animation<double> _taglineFade = CurvedAnimation(
+    parent: _intro,
+    curve: const Interval(0.55, 0.85, curve: Curves.easeOut),
+  );
+
   @override
   void initState() {
     super.initState();
     _initializeAndNavigate();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _intro.value = 1;
+    } else if (_intro.isDismissed) {
+      _intro.forward();
+    }
+  }
+
+  @override
+  void dispose() {
+    _intro.dispose();
+    super.dispose();
   }
 
   Future<void> _initializeAndNavigate() async {
@@ -60,49 +88,61 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   Widget build(BuildContext context) {
     final onMuted = AppColors.onPrimaryMuted;
     return Scaffold(
-      backgroundColor: AppColors.primary,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-          child: Column(
-            children: [
-              Expanded(
-                child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const ZolloLogo(
-                        onPrimary: true,
-                        showMark: true,
-                        fontSize: 40,
-                      ),
-                      const SizedBox(height: 14),
-                      Text(
-                        SplashScreen.tagline,
-                        textAlign: TextAlign.center,
-                        style: AppText.bodyPlain.copyWith(
-                          color: onMuted,
-                          height: 1.4,
+      backgroundColor: AppColors.splashMid,
+      body: DecoratedBox(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppColors.splashStart,
+              AppColors.splashMid,
+              AppColors.splashEnd,
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            child: Column(
+              children: [
+                Expanded(
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ZolloWordmark(animation: _intro),
+                        const SizedBox(height: AppSpacing.l),
+                        FadeTransition(
+                          opacity: _taglineFade,
+                          child: Text(
+                            SplashScreen.tagline,
+                            textAlign: TextAlign.center,
+                            style: AppText.bodyPlain.copyWith(
+                              color: onMuted,
+                              height: 1.4,
+                            ),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox.square(
-                dimension: 22,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: AppColors.white,
+                const SizedBox.square(
+                  dimension: 22,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: AppColors.white,
+                  ),
                 ),
-              ),
-              const SizedBox(height: AppSpacing.l),
-              Text(
-                'English · বাংলা',
-                style: AppText.caption.withColor(onMuted),
-              ),
-              const SizedBox(height: AppSpacing.xl),
-            ],
+                const SizedBox(height: AppSpacing.l),
+                Text(
+                  'English · বাংলা',
+                  style: AppText.caption.withColor(onMuted),
+                ),
+                const SizedBox(height: AppSpacing.xl),
+              ],
+            ),
           ),
         ),
       ),

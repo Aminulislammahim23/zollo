@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:zollo/core/widgets/phone_field.dart';
 import 'package:zollo/features/auth/domain/auth_validators.dart';
+import 'package:zollo/features/auth/domain/providers/auth_provider.dart';
 import 'package:zollo/features/auth/presentation/screens/change_password_screen.dart';
 import 'package:zollo/features/auth/presentation/screens/forgot_password_screen.dart';
 import 'package:zollo/features/auth/presentation/screens/login_screen.dart';
@@ -120,12 +123,58 @@ void main() {
         auth: auth,
       );
 
-      await fillForm(tester);
+      await fillForm(tester, phone: '01712345678');
       await tester.ensureVisible(find.text('Create account'));
       await tester.tap(find.text('Create account'));
       await tester.pump();
 
       expect(find.text('Please accept the terms to continue'), findsOneWidget);
+      expect(auth.calls, isEmpty);
+    });
+
+    Future<void> submit(WidgetTester tester) async {
+      await tester.ensureVisible(find.byType(Checkbox));
+      await tester.tap(find.byType(Checkbox));
+      await tester.ensureVisible(find.text('Create account'));
+      await tester.tap(find.text('Create account'));
+      await tester.pump();
+    }
+
+    testWidgets('phone is required', (tester) async {
+      final auth = FakeAuthRepository();
+      await pumpRoutes(
+        tester,
+        routes: routes,
+        initialLocation: '/signup',
+        auth: auth,
+      );
+
+      expect(find.text('Phone'), findsOneWidget);
+      expect(find.text('Phone (optional)'), findsNothing);
+
+      await fillForm(tester);
+      await submit(tester);
+
+      expect(find.text('Enter your phone number'), findsOneWidget);
+      expect(auth.calls, isEmpty);
+    });
+
+    testWidgets('rejects a number that is not a BD mobile', (tester) async {
+      final auth = FakeAuthRepository();
+      await pumpRoutes(
+        tester,
+        routes: routes,
+        initialLocation: '/signup',
+        auth: auth,
+      );
+
+      await fillForm(tester, phone: '12345');
+      await submit(tester);
+
+      expect(
+        find.text('Enter a valid BD mobile number, e.g. 1712345678'),
+        findsOneWidget,
+      );
       expect(auth.calls, isEmpty);
     });
 
@@ -200,5 +249,31 @@ void main() {
     expect(AuthValidators.strength(''), 0);
     expect(AuthValidators.strength('abc'), 1);
     expect(AuthValidators.strength('Abcdefg1!xyz'), 4);
+  });
+
+  group('sign-up phone', () {
+    for (final input in ['01712345678', '+880 1712-345678', '8801712345678']) {
+      test(
+        '"$input" reaches AuthRepository.signUp as +8801712345678',
+        () async {
+          final auth = FakeAuthRepository(requireConfirmation: true);
+          final container = ProviderContainer(
+            overrides: [authRepositoryProvider.overrideWithValue(auth)],
+          );
+          addTearDown(container.dispose);
+
+          await container
+              .read(authControllerProvider.notifier)
+              .signUp(
+                email: 'rahim@example.com',
+                password: 'Secret123',
+                fullName: 'Rahim Uddin',
+                phone: PhoneField.toE164(input),
+              );
+
+          expect(auth.calls, ['signUp:+8801712345678']);
+        },
+      );
+    }
   });
 }

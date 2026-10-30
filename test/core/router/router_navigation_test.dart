@@ -67,7 +67,7 @@ void main() {
         await tester.pumpWidget(createTestApp(router: router));
 
         // Splash initially shown
-        expect(find.text('zollo'), findsOneWidget);
+        expect(find.bySemanticsLabel('zollo'), findsOneWidget);
 
         // Wait for splash transition
         await tester.pump(const Duration(milliseconds: 1600));

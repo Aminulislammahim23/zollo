@@ -66,14 +66,14 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     FocusScope.of(context).unfocus();
     if (!_formKey.currentState!.validate()) return;
 
-    final phone = _phone.text.trim();
     final response = await ref
         .read(authControllerProvider.notifier)
         .signUp(
           email: _email.text,
           password: _password.text,
           fullName: _name.text,
-          phone: phone.isEmpty ? null : PhoneField.toE164(phone),
+          // Required and validated above; saved in metadata as +8801XXXXXXXXX.
+          phone: PhoneField.toE164(_phone.text.trim()),
         );
     if (!mounted) return;
 
@@ -154,8 +154,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 ),
                 const SizedBox(height: 14),
                 PhoneField(
-                  label: 'Phone (optional)',
+                  label: 'Phone',
                   controller: _phone,
+                  required: true,
                   textInputAction: TextInputAction.next,
                 ),
                 const SizedBox(height: 14),

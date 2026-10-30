@@ -109,4 +109,24 @@ void main() {
     );
     expect(find.text('Logo'), findsOneWidget);
   });
+
+  testWidgets('PhoneField leaves most of the row for typing', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        home: const Scaffold(
+          body: Padding(padding: EdgeInsets.all(16), child: PhoneField()),
+        ),
+      ),
+    );
+
+    final prefix = tester.getSize(find.text('+880'));
+    final input = tester.getSize(find.byType(EditableText));
+    // The +880 tag stays small; the typing area gets the rest.
+    expect(prefix.width, lessThan(80));
+    expect(input.width, greaterThan(200));
+
+    await tester.enterText(find.byType(TextFormField), '1712345678');
+    expect(find.text('1712345678'), findsOneWidget);
+  });
 }

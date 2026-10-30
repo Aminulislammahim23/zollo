@@ -22,3 +22,4 @@ export 'section_header.dart';
 export 'shimmer_box.dart';
 export 'status_text.dart';
 export 'zollo_logo.dart';
+export 'zollo_wordmark.dart';
